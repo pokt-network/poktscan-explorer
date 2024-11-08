@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: #f8f8f8;
+        --foreground: #212121;
+        --main-background: #ffffff;
+        --radius: 0.5rem;
+        --divider: #d4d4d4;
+        --error: #dc2626;
+        --primary: #3b82f6;
+        --secondary: #737373;
+        --highlight-option: #d4d4d4;
+    }
+
+    .light {
+        .poktscan_logo_dark_svg__pokt {
+            fill: #181e36!important;
+        }
+    }
+
+    .dark {
+        --background: #1a1a1a;
+        --main-background: #121212;
+        --foreground: #ededed;
+        --divider: #262626;
+        --error: #f87171;
+        --primary: #60a5fa;
+        --secondary: #d4d4d4;
+        --highlight-option: #262626;
+    }
+}
+
+body {
+    color: var(--foreground);
+    background: var(--background);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+
