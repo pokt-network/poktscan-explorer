@@ -9,7 +9,7 @@ export default function Price({usd, usd_24h_change, showLabel = true, priceColor
   let changeColor: string
 
   if (usd_24h_change > 0) {
-    changeColor = 'text-green-500'
+    changeColor = 'text-[color:--success]'
   } else if (usd_24h_change < 0) {
     changeColor = 'text-[color:--error]'
   } else {
@@ -17,7 +17,6 @@ export default function Price({usd, usd_24h_change, showLabel = true, priceColor
   }
 
   const color = `text-[color:${priceColor}]`
-
 
   return (
     <p className={"text-xs text-[color:--secondary]"}>

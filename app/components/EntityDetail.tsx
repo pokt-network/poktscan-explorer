@@ -13,8 +13,10 @@ type LabelValueItem = {
   description?: string
 }
 
+export type Item = LabelValueItem | DividerItem
+
 interface EntityDetailProps {
-  items: Array<LabelValueItem | DividerItem>
+  items: Array<Item>
 }
 
 export default function EntityDetail({items}: EntityDetailProps) {

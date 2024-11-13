@@ -12,7 +12,8 @@
         --error: #dc2626;
         --primary: #3b82f6;
         --secondary: #737373;
-        --highlight-option: #d4d4d4;
+        --highlight-option: #efefef;
+        --success: #0c8126;
     }
 
     .light {
@@ -30,6 +31,7 @@
         --primary: #60a5fa;
         --secondary: #d4d4d4;
         --highlight-option: #262626;
+        --success: #44da66;
     }
 }
 

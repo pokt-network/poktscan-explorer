@@ -9,9 +9,10 @@ interface SelectItemsPerRowProps {
   currentPage: number
   value: number
   options: Array<number>
+  basePath: string
 }
 
-export default function SelectItemsPerRow({value, currentPage, options}: SelectItemsPerRowProps) {
+export default function SelectItemsPerRow({value, currentPage, basePath, options}: SelectItemsPerRowProps) {
   const router = useRouter()
 
   return (
@@ -19,6 +20,7 @@ export default function SelectItemsPerRow({value, currentPage, options}: SelectI
       const newUrl = getNewPageHref({
         newPage:currentPage,
         itemsPerPage: Number(newValue),
+        basePath
       })
 
       router.push(newUrl)

@@ -5,8 +5,6 @@ import getPrice from '@/app/api/price'
 import Price from '@/app/components/Price'
 import SiteSettings from '@/app/appbar/SiteSettings'
 
-
-
 export default async function AppBar() {
   const price = await getPrice();
 
@@ -27,9 +25,24 @@ export default async function AppBar() {
           items={[
             {
               type: 'route',
+              label: 'Transactions',
+              href: '/txs'
+            },
+            {
+              type: 'route',
+              label: 'Suppliers',
+              href: '/suppliers'
+            },
+            {
+              type: 'route',
+              label: 'Applications',
+              href: '/apps'
+            },
+            {
+              type: 'route',
               label: 'Blocks',
               href: '/blocks'
-            }
+            },
           ]}
         />
       </header>

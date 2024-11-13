@@ -3,6 +3,7 @@ import { graphql } from '@/app/config/gql'
 import { getClient } from '@/app/config/apollo/rsc'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
+import { getPageAndItems } from '@/app/utils/pagination'
 
 const blockListDocument = graphql(`
   query blockList($limit: Int!, $offset: Int!) {
@@ -45,23 +46,8 @@ interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-
 export default async function BlocksPage({searchParams}: PageProps) {
-  const params = await searchParams
-
-  let page = 1, itemsPerPage = 25
-
-  if (typeof params.p === 'string') {
-    page = parseInt(params.p)
-  }
-
-  if (typeof params.ps === 'string') {
-    const ps = parseInt(params.ps)
-
-    if ([25, 50, 75, 100].includes(ps)) {
-      itemsPerPage = ps
-    }
-  }
+  let {page, itemsPerPage} = await getPageAndItems(searchParams)
 
   let {data} = await getClient().query({
     query: blockListDocument,
@@ -187,7 +173,7 @@ export default async function BlocksPage({searchParams}: PageProps) {
           },
         ]}
       />
-      <Table columns={columns} rows={rows} header={{title: 'Blocks', subtitle: 'Blocks'}} pagintation={{currentPage: page, totalPages, itemsPerPage}} />
+      <Table columns={columns} rows={rows} header={{title: 'Blocks', subtitle: 'Blocks'}} pagination={{currentPage: page, totalPages, itemsPerPage, basePath: '/blocks'}} />
     </div>
   )
 }
