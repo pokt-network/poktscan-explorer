@@ -86,7 +86,7 @@ export default async function TransactionsPage({searchParams}: PageProps) {
         limit: itemsPerPage,
         offset: (page - 1) * itemsPerPage,
         startDate: startDate.toISOString(),
-        endDate: endDate.toISOString()
+        endDate: currentDate.toISOString()
       }
     })
 

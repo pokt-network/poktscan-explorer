@@ -166,7 +166,7 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
             <Title
               title={'POKT Price'}
             />
-            <Price usd={price.usd} usd_24h_change={price.usd_24h_change} usd_market_cap={price.usd_market_cap}
+            <Price usd={price?.usd || 0} usd_24h_change={price?.usd_24h_change || 0} usd_market_cap={price?.usd_market_cap || 0}
                    showLabel={false} priceColor={'--foreground'} />
           </div>
           <hr className={'border-[color:--divider]'} />
@@ -175,7 +175,7 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
               title={'Market Cap'}
             />
             <p className={'text-xs'}>
-              ${Number(price.usd_market_cap.toFixed(2)).toLocaleString()}
+              ${Number(price?.usd_market_cap?.toFixed(2) || 0).toLocaleString()}
             </p>
           </div>
         </div>

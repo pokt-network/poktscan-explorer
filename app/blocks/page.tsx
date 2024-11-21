@@ -7,11 +7,12 @@ import { getPageAndItems } from '@/app/utils/pagination'
 import millify from 'millify'
 import { formatTimeDifference } from '@/app/(home)/utils'
 import { formatBalance } from '@/app/utils/balances'
+import { getLatestBlock } from '@/app/api/blocks'
 
 export const dynamic = "force-dynamic";
 
 const blockListDocument = graphql(`
-  query blockList($limit: Int!, $offset: Int!) {
+  query blockList($limit: Int!, $offset: Int!, $startDate: Datetime!, $endDate: Datetime!) {
     blocks(first: $limit, offset: $offset, orderBy: HEIGHT_DESC) {
       nodes {
         id
@@ -38,10 +39,12 @@ const blockListDocument = graphql(`
       }
       totalCount
     }
-    latestBlock: blocks(first: 1, orderBy: HEIGHT_DESC) {
-      nodes {
-        height
-        totalTxs
+    avgs: blocks(filter: {timestamp: {greaterThanOrEqualTo: $startDate, lessThanOrEqualTo: $endDate}}) {
+      aggregates {
+        average {
+          timeToBlock
+          size
+        }
       }
     }
   }
@@ -67,15 +70,24 @@ interface PageProps {
 }
 
 export default async function BlocksPage({searchParams}: PageProps) {
-  const pageInfo = await getPageAndItems(searchParams)
+  const [pageInfo, latestBlock] = await Promise.all([
+    getPageAndItems(searchParams),
+    getLatestBlock()
+  ])
   let page = pageInfo.page
   const itemsPerPage = pageInfo.itemsPerPage
+
+
+  const currentDate = new Date(latestBlock.timestamp)
+  const last24hDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000)
 
   let {data} = await getClient().query({
     query: blockListDocument,
     variables: {
       limit: itemsPerPage,
-      offset: (page - 1) * itemsPerPage
+      offset: (page - 1) * itemsPerPage,
+      endDate: currentDate.toISOString(),
+      startDate: last24hDate.toISOString(),
     }
   })
 
@@ -88,7 +100,9 @@ export default async function BlocksPage({searchParams}: PageProps) {
       query: blockListDocument,
       variables: {
         limit: itemsPerPage,
-        offset: (page - 1) * itemsPerPage
+        offset: (page - 1) * itemsPerPage,
+        endDate: currentDate.toISOString(),
+        startDate: last24hDate.toISOString(),
       }
     })
 
@@ -176,8 +190,6 @@ export default async function BlocksPage({searchParams}: PageProps) {
     }
   ]
 
-  const latestBlock = data.latestBlock?.nodes?.at(0)
-
   return (
     <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
       <h1 className={'text-2xl font-semibold'}>
@@ -200,11 +212,14 @@ export default async function BlocksPage({searchParams}: PageProps) {
           },
           {
             label: 'Production Time (Avg. 24H)',
-            children: 2
+            children: formatTimeDifference(data?.avgs?.aggregates?.average?.timeToBlock || 0)
           },
           {
             label: 'Total Size (Avg. 24H)',
-            children: 3
+            children: millify(data?.avgs?.aggregates?.average?.size || 0, {
+              units: ["B", "KB", "MB", "GB", "TB"],
+              space: true,
+            })
           },
         ]}
       />
