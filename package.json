@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "pnpm codegen && next dev --turbopack",
     "build": "pnpm codegen && next build",
+    "only-build": "next build",
     "start": "next start -p 3001",
     "lint": "next lint",
-    "codegen": "graphql-codegen --config codegen.ts"
+    "codegen": "graphql-codegen --config codegen.ts",
+    "docker:build": "pnpm codegen && docker build -t registry.digitalocean.com/poktscan/shannon-web:stage ."
   },
   "dependencies": {
     "@apollo/client": "^3.11.8",
@@ -25,6 +27,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "graphql": "^16.9.0",
+    "graphql-cli": "^4.1.0",
     "lucide-react": "^0.454.0",
     "millify": "^6.1.0",
     "next": "15.0.2",

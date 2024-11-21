@@ -3,12 +3,14 @@ import { config as dotenvConfig } from 'dotenv';
 
 dotenvConfig();
 
-if (!process.env.GRAPHQL_API_URL) {
-  throw new Error('GRAPHQL_API_URL is not set');
+let graphqlApiUrl = process.env.GRAPHQL_API_URL;
+if (!graphqlApiUrl || graphqlApiUrl === "") {
+  // this should be normally where in development would be the subquery query client.
+  graphqlApiUrl = "http://localhost:3000"
 }
 
 const config: CodegenConfig = {
-  schema: process.env.GRAPHQL_API_URL,
+  schema: graphqlApiUrl,
   documents: ['app/**/*.ts*'],
   generates: {
     './app/config/gql/': {

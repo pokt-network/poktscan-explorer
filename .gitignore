@@ -42,3 +42,5 @@ next-env.d.ts
 
 app/config/gql
 schema.graphql
+
+indexer-schema.graphql
