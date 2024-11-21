@@ -1,0 +1,263 @@
+import { graphql } from '@/app/config/gql'
+import { getPageAndItems } from '@/app/utils/pagination'
+import { getClient } from '@/app/config/apollo/rsc'
+import Table, { GridColDef } from '@/app/components/Table'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { CircleHelp } from 'lucide-react'
+import DetailCell from '@/app/components/DetailCell'
+import EntityLink from '@/app/components/EntityLink'
+import React from 'react'
+import { getStakeLabel } from '@/app/utils/stake'
+import { formatBalance } from '@/app/utils/balances'
+
+export const dynamic = "force-dynamic";
+
+const gatewayListDocument = graphql(`
+  query gatewayList($limit: Int!, $offset: Int!) {
+    gateways(first: $limit, offset: $offset) {
+      totalCount
+      nodes {
+        id
+        account {
+          id
+          balances {
+            nodes {
+              amount
+              denom
+            }
+          }
+        }
+        stakeAmount
+        stakeDenom
+        stakeStatus
+        unstakingBeginBlock {
+          height
+        }
+        unstakingEndBlock {
+          height
+        }
+        applications: applicationGateways {
+          nodes {
+            application {
+              id
+              applicationServices {
+                nodes {
+                  service {
+                    id
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    stakedGateways: gateways(filter: {stakeStatus: {equalTo: 0}}) {
+      totalCount
+      aggregates {
+        sum {
+          stakeAmount
+        }
+      }
+    }
+  }
+`)
+
+interface RowGateway {
+  id: string
+  status: string
+  stakeAmount: string
+  balance: string
+  applicationsDelegating: string
+  services: string
+  servicesData: Array<{ id: string, name: string }>
+  allApplications: Array<string>
+}
+
+interface PageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}
+
+export default async function GatewaysPage({searchParams}: PageProps) {
+  const pageInfo = await getPageAndItems(searchParams)
+  let page = pageInfo.page
+  const itemsPerPage = pageInfo.itemsPerPage
+
+  let {data} = await getClient().query({
+    query: gatewayListDocument,
+    variables: {
+      limit: itemsPerPage,
+      offset: (page - 1) * itemsPerPage
+    }
+  })
+
+  const totalPages = Math.ceil((data.gateways?.totalCount || 0) / itemsPerPage)
+
+  if (page > totalPages) {
+    page = 1
+
+    const result = await getClient().query({
+      query: gatewayListDocument,
+      variables: {
+        limit: itemsPerPage,
+        offset: (page - 1) * itemsPerPage
+      }
+    })
+
+    data = result.data
+  }
+
+  const rows: Array<RowGateway> = data.gateways?.nodes?.map((gateway) => {
+    const applications: Array<string> = [], services: Array<{ id: string, name: string }> = []
+
+    for (const application of gateway.applications.nodes) {
+      applications.push(application.application!.id)
+
+      for (const service of application.application!.applicationServices.nodes) {
+        services.push({
+          id: service.service!.id,
+          name: service.service!.name
+        })
+      }
+    }
+
+    return {
+      id: gateway.id,
+      status: getStakeLabel(gateway.stakeStatus),
+      stakeAmount: formatBalance({
+        amount: gateway.stakeAmount,
+        denom: gateway.stakeDenom
+      }),
+      balance: formatBalance(gateway.account.balances.nodes.at(0)!),
+      applicationsDelegating: applications.length > 1 ? applications.length : applications.at(0) || 'None',
+      services: services.length > 1 ? services.length : services.at(0) || 'None',
+      servicesData: services,
+      allApplications: applications
+    }
+  })
+
+  const columns: Array<GridColDef> = [
+    {
+      field: 'detail',
+      minWidth: 50,
+      maxWidth: 50,
+      headerName: (
+        <div className={'w-full h-full flex items-center justify-center'}>
+          <TooltipProvider delayDuration={150}>
+            <Tooltip>
+              <TooltipTrigger>
+                <CircleHelp className={"w-4 h-4 text-[color:--secondary]"} />
+              </TooltipTrigger>
+              <TooltipContent side={"left"}>
+                <p className={"p-2 bg-[color:--main-background] rounded-lg border border-[color:--divider]"}>
+                  See a preview of the gateway details
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      ),
+      renderCell: (row: RowGateway) => {
+        return (
+          <DetailCell
+            rows={
+              [
+                {
+                  label: 'Applications',
+                  value: row.allApplications.length ?(
+                    <ul className={'pt-2 pl-5 list-disc'}>
+                      {row.allApplications.map((application) => (
+                        <li key={application}>
+                          <EntityLink entity={'app'} entityId={application} copy={{enabled: true}}/>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className={"text-xs mt-1"}>
+                      No Applications
+                    </p>
+                  )
+                },
+                {
+                  label: 'Services',
+                  value: row.servicesData.length ?(
+                    <ul className={'pt-2 pl-5 list-disc'}>
+                      {row.servicesData.map((service) => (
+                        <li key={service!.id}>
+                          <p className={"text-xs"}>
+                            {service!.name}{service.id !== service.name && ` (${service!.id})`}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className={"text-xs mt-1"}>
+                      No Services
+                    </p>
+                  )
+                },
+              ]}
+            entityProps={{
+              entity: 'gateway',
+              entityId: row.id
+            }}
+          />
+        )
+      }
+    },
+    {
+      field: 'id',
+      headerName: 'Address',
+      minWidth: 200,
+      renderCell: (row: RowGateway) => (
+        <EntityLink
+          entity={'gateway'}
+          entityId={row.id}
+        />
+      )
+    },
+    {
+      field: 'status',
+      headerName: 'Status',
+    },
+    {
+      field: 'stakeAmount',
+      headerName: 'Stake Amount',
+    },
+    {
+      field: 'balance',
+      headerName: 'Balance',
+    },
+    {
+      field: 'applicationsDelegating',
+      headerName: 'Applications Delegating',
+      description: "Applications that this gateways have permissions"
+    },
+    {
+      field: 'services',
+      headerName: 'Services',
+    },
+  ]
+
+  return (
+    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
+      <h1 className={'text-2xl font-semibold'}>
+        Gateways
+      </h1>
+      <Table
+        columns={columns}
+        rows={rows}
+        header={{
+          title: `${data.gateways?.totalCount} gateways found`,
+        }}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          itemsPerPage,
+          basePath: '/gateways'
+        }}
+      />
+    </div>
+  )
+}

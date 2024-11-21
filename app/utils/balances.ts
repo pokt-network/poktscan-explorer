@@ -1,6 +1,4 @@
-import { Balance } from '@/app/config/gql/graphql'
-
-function convertUpoktToPokt(upokt: number | string): number {
+export function convertUpoktToPokt(upokt: number | string): number {
   // todo: convert upokt to pokt using a library to divide precisely (not using floats)
   return Number(upokt) / 1e6
 }

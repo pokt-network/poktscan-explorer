@@ -1,14 +1,14 @@
 import Link from 'next/link'
-import { Table as ShadTable, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import React from 'react'
 import SelectItemsPerRow from '@/app/components/SelectItemsPerRow'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { CircleHelp } from 'lucide-react'
+import { CircleAlert } from 'lucide-react';
+import BaseTable from '@/app/components/BaseTable'
 
 export interface GridColDef {
   field: string
   headerName: React.ReactNode
   headerAlign?: 'left' | 'center' | 'right'
+  width?: number
   minWidth?: number
   maxWidth?: number
   description?: string
@@ -19,7 +19,7 @@ export interface GridColDef {
 export interface TableProps {
   header: {
     title: string
-    subtitle: string
+    subtitle?: string
   }
   columns: Array<GridColDef>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,16 +44,35 @@ export default function Table({pagination, rows, columns, header, }: TableProps)
         totalPages={pagination.totalPages}
         itemsPerPage={pagination.itemsPerPage}
         basePath={pagination.basePath}
+        hidePagination={rows.length === 0}
       />
-      <Table.Table columns={columns} rows={rows} />
-      <Table.Footer
-        currentPage={pagination.currentPage}
-        totalPages={pagination.totalPages}
-        itemsPerPage={pagination.itemsPerPage}
-        basePath={pagination.basePath}
-      />
+      <BaseTable columns={columns} rows={rows} />
+      {
+        rows.length > 0 ? (
+          <Table.Footer
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            itemsPerPage={pagination.itemsPerPage}
+            basePath={pagination.basePath}
+          />
+        ): (
+          <div className={"h-[400px] flex flex-col items-center justify-center"}>
+            <CircleAlert className={"h-16 w-16 text-[color:--warning]"}/>
+            <p className={"text-lg font-semibold mt-4 mb-3"}>
+              There are no matching records
+            </p>
+            <p className={"text-sm text-[color:--secondary]"}>
+              Please try another search
+            </p>
+          </div>
+        )
+      }
     </div>
   )
+}
+
+function getSymbol(path: string) {
+  return path.includes('?') ? '&' : '?'
 }
 
 export const getNewPageHref = ({
@@ -65,16 +84,17 @@ export const getNewPageHref = ({
   newPage: number,
   basePath: string
 }) => {
+
   let href: string
 
   if (newPage === 1) {
     href = basePath
   } else {
-    href = `${basePath}?p=${newPage}`
+    href = `${basePath}${getSymbol(basePath)}p=${newPage}`
   }
 
   if (itemsPerPage !== 25) {
-    href += `${newPage === 1 ? '?' : '&'}ps=${itemsPerPage}`
+    href += `${getSymbol(href)}ps=${itemsPerPage}`
   }
 
   return href
@@ -82,14 +102,15 @@ export const getNewPageHref = ({
 
 interface TableHeaderProps {
   title: string
-  subtitle: string
+  subtitle?: string
   currentPage: number
   totalPages: number
   itemsPerPage: number
   basePath: string
+  hidePagination?: boolean
 }
 
-type TablePaginationProps = Omit<TableHeaderProps, 'title' | 'subtitle'>
+type TablePaginationProps = Omit<TableHeaderProps, 'title' | 'subtitle'  | 'hidePagination'>
 
 Table.Pagination = function TablePagination({currentPage, totalPages, itemsPerPage, basePath}: TablePaginationProps) {
   const commonClasses = "text-[13px] inline-block rounded-md border border-[color:--divider] m-w-8 px-2 py-1 text-center leading-[18px]"
@@ -150,96 +171,29 @@ Table.Pagination = function TablePagination({currentPage, totalPages, itemsPerPa
   )
 }
 
-Table.Header = function TableHeader({title, subtitle, currentPage, totalPages, itemsPerPage, basePath}: TableHeaderProps) {
+Table.Header = function TableHeader({title, subtitle, hidePagination,currentPage, totalPages, itemsPerPage, basePath}: TableHeaderProps) {
   return (
     <div className={"flex p-4 flex-row w-full h-74 items-center justify-between"}>
       <div>
         <p className={"text-sm"}>
           {title}
         </p>
-        <p className={"text-xs text-[color:--secondary]"}>
-          {subtitle}
-        </p>
+        {subtitle && (
+          <p className={'text-xs text-[color:--secondary]'}>
+            {subtitle}
+          </p>
+        )}
       </div>
 
-      <Table.Pagination currentPage={currentPage} totalPages={totalPages} itemsPerPage={itemsPerPage} basePath={basePath} />
+      {!hidePagination && (
+        <Table.Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          itemsPerPage={itemsPerPage}
+          basePath={basePath}
+        />
+      )}
     </div>
-  )
-}
-
-interface TableTableProps {
-  columns: Array<GridColDef>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rows: Array<any>
-}
-
-Table.Table = function Table({columns, rows}: TableTableProps) {
-  return (
-    <ShadTable>
-        <TableHeader>
-          <TableRow>
-            {columns.map((column, index) => {
-
-              return (
-                <TableHead
-                  key={column.field}
-                  style={{
-                    minWidth: column.minWidth,
-                    maxWidth: column.maxWidth,
-                  }}
-                  className={`${index ? 'pl-2' : 'pl-4'} text-[13px] text-left whitespace-nowrap py-[10px] ${index === columns.length - 1 ? 'pr-4' : 'pr-2'}`}
-                >
-                  <span>
-                    {column.headerName}
-                  </span>
-                  {column.description && (
-                    <div className={'inline-flex relative w-4 h-4'}>
-                      <TooltipProvider delayDuration={150}>
-                        <Tooltip>
-                          <TooltipTrigger className={'ml-[2px] absolute top-[3px] left-[2px]'}>
-                            <CircleHelp className={'w-4 h-4 text-[color:--secondary]'} />
-                          </TooltipTrigger>
-                          <TooltipContent side={'left'}>
-                            <p
-                              className={'p-2 bg-[color:--main-background] rounded-lg border border-[color:--divider]'}>
-                              {column.description}
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-
-                  )}
-                </TableHead>
-              )
-            })}
-          </TableRow>
-        </TableHeader>
-      <TableBody>
-        {rows.map((row) => (
-          <TableRow key={row.id}>
-            {columns.map((column, index) => {
-              return (
-                <TableCell
-                  key={column.field}
-                  style={{
-                    minWidth: column.minWidth,
-                    maxWidth: column.maxWidth,
-                  }}
-                  className={`h-[48px] py-[10px] ${index ? 'pl-2' : 'pl-4'} ${index === columns.length - 1 ? 'pr-4' : 'pr-2'}`}
-                  >
-                    {column.renderCell ? column.renderCell(row) : (
-                      <p className={"text-[14px] whitespace-nowrap overflow-hidden overflow-ellipsis"}>
-                        {row[column.field]}
-                      </p>
-                    )}
-                  </TableCell>
-                )
-              })}
-            </TableRow>
-          ))}
-        </TableBody>
-    </ShadTable>
   )
 }
 

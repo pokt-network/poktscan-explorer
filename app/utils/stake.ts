@@ -22,3 +22,18 @@ export function getStakeType(status: number, operatorAddress: string, ownerAddre
 
   return '-'
 }
+
+export function getEndpointLabel(type: number) {
+  switch (type) {
+    case 1:
+      return 'gRPC'
+    case 2:
+      return 'WebSocket'
+    case 3:
+      return 'JSON-RPC'
+    case 4:
+      return 'REST'
+    default:
+      return 'Unknown'
+  }
+}

@@ -14,6 +14,9 @@
         --secondary: #737373;
         --highlight-option: #efefef;
         --success: #0c8126;
+        --success-background: rgba(146, 250, 176, 0.33);
+        --warning: #d59f02;
+        --warning-background: rgba(255, 236, 163, 0.78);
     }
 
     .light {
@@ -32,6 +35,9 @@
         --secondary: #d4d4d4;
         --highlight-option: #262626;
         --success: #44da66;
+        --success-background: rgba(48, 255, 110, 0.1);
+        --warning: #fdcb3f;
+        --warning-background: rgba(183, 142, 13, 0.3);
     }
 }
 

@@ -4,6 +4,13 @@ import EntityDetail, { Item } from '@/app/components/EntityDetail'
 import { getStakeLabel } from '@/app/utils/stake'
 import { formatBalance } from '@/app/utils/balances'
 import EntityLink from '@/app/components/EntityLink'
+import { getPageAndItems } from '@/app/utils/pagination'
+import TransactionByAddressTable from '@/app/(transactions)/TransactionsByAddress'
+import TransferTable from '@/app/(transactions)/TransferTable'
+import Tabs from '@/app/components/Tabs'
+import TextWithCopyButton from '@/app/components/TextWithCopyButton'
+
+export const dynamic = "force-dynamic";
 
 const appByIdDocument = graphql(`
   query appById($id: String!) {
@@ -18,15 +25,16 @@ const appByIdDocument = graphql(`
           }
         }
       }
-      stake
-      status
-      unstakedAtBlock {
+      stakeAmount
+      stakeDenom
+      stakeStatus
+      unstakingEndBlock {
         height
       }
-      unstakingStartBlock {
+      unstakingBeginBlock {
         height
       }
-      unstakingHeight
+      unstakingEndHeight
       services:applicationServices {
         nodes {
           service {
@@ -35,38 +43,62 @@ const appByIdDocument = graphql(`
           }
         }
       }
-      gateways: applicationDelegatedToGateways {
+      gateways: applicationGateways {
         nodes {
           gatewayId
         }
       }
-      transferToEndedAt {
+      transferEndBlock {
         height
       }
-      transferFromId
+      sourceApplicationId
       transferredFromAt {
         height
       }
-      transferToId
+      destinationApplicationId
       transferringToId
-      transferEndsAtHeight
+      transferEndHeight
     }
   }
 `)
 
 interface PageProps {
   params: Promise<{id: string}>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-export default async function AppPage({params}: PageProps) {
-  const { id } = await params
+export default async function AppPage({params, searchParams}: PageProps) {
+  const [{ id }, { page, itemsPerPage }, sParams] = await Promise.all([
+    params,
+    getPageAndItems(searchParams),
+    searchParams,
+  ])
 
-  const { data } = await getClient().query({
-    query: appByIdDocument,
-    variables: {
-      id
-    }
-  })
+  const activeTab = sParams.tab || 'txs'
+
+  const [{ data }, transfers] = await Promise.all([
+    getClient().query({
+      query: appByIdDocument,
+      variables: {
+        id
+      }
+    }),
+    activeTab === 'txs' ? (
+      <TransactionByAddressTable
+        address={id as string}
+        page={page}
+        itemsPerPage={itemsPerPage}
+        basePath={`/app/${id}?tab=txs`}
+      />
+    ) : (
+      <TransferTable
+        address={id as string}
+        page={page}
+        itemsPerPage={itemsPerPage}
+        basePath={`/app/${id}?tab=transfers`}
+      />
+    )
+  ])
 
   if (!data.application) {
     return (
@@ -80,7 +112,10 @@ export default async function AppPage({params}: PageProps) {
     {
       type: 'row',
       label: 'Balance',
-      value: formatBalance(app.account.balances.nodes.at(0)!)
+      value: formatBalance(app?.account?.balances?.nodes?.at(0) || {
+        amount: '0',
+        denom: 'upokt'
+      })
     },
     {
       type: 'divider'
@@ -88,22 +123,25 @@ export default async function AppPage({params}: PageProps) {
     {
       type: 'row',
       label: 'Status',
-      value: getStakeLabel(app.status)
+      value: getStakeLabel(app.stakeStatus)
     },
     {
       type: 'row',
       label: 'Stake Amount',
-      value: formatBalance(app.stake)
+      value: formatBalance({
+        amount: app.stakeAmount,
+        denom: app.stakeDenom
+      })
     },
     {
       type: 'row',
       label: app.services.nodes.length === 1 ? 'Service' : 'Services',
       value: (
         <ul className={'pt-2 pl-1'}>
-          {app.services.nodes.map(({ service }) => (
-            <li key={service.id}>
+          {app?.services?.nodes?.map((s) => (
+            <li key={s?.service?.id}>
               <p className={"text-sm"}>
-                {service.name}{service.id !== service.name && ` (${service.id})`}
+                {s?.service?.name}{s?.service?.id !== s?.service?.name && ` (${s?.service?.id})`}
               </p>
             </li>
           ))}
@@ -118,9 +156,9 @@ export default async function AppPage({params}: PageProps) {
       label: 'Delegated To',
       value: (
         <ul className={'pt-2 pl-1'}>
-          {app.gateways.nodes.map((gateway) => (
-            <li key={gateway.gatewayId}>
-              <EntityLink entity={'gateway'} entityId={gateway.gatewayId}/>
+          {app?.gateways?.nodes?.map((gateway) => (
+            <li key={gateway?.gatewayId}>
+              <EntityLink entity={'gateway'} entityId={gateway?.gatewayId || ''}/>
             </li>
           ))}
         </ul>
@@ -129,91 +167,103 @@ export default async function AppPage({params}: PageProps) {
   }
 
 
-  if (app.status !== 0) {
+  if (app.stakeStatus !== 0) {
     rows.push({
         type: 'divider'
       }, {
         type: 'row',
         label: 'Unstaking Begin At',
-        value: app.unstakingStartBlock!.height
+        value: app.unstakingBeginBlock!.height
       },
       {
         type: 'row',
         label: 'Unstaking End At',
-        value: app.unstakingHeight
+        value: app.unstakingEndHeight
       })
 
-    if (app.unstakedAtBlock) {
+    if (app.unstakingEndBlock) {
       rows.push({
         type: 'row',
         label: 'Unstaked At Height',
-        value: app.unstakedAtBlock!.height
-      })
-    }
-  } else {
-    if (app.transferFromId) {
-      rows.push({
-        type: 'row',
-        label: 'Transferred From',
-        value: (
-          <EntityLink entity={'app'} entityId={app.transferFromId} copy={{enabled: true}}/>
-        )
-      }, {
-        type: 'row',
-        label: 'Transferred At',
-        value: (
-          <EntityLink entity={'block'} entityId={app.transferredFromAt!.height} copy={{enabled: true}}/>
-        )
-      })
-    }
-
-    if (app.transferringToId) {
-      rows.push({
-        type: 'row',
-        label: 'Transferring To',
-        value: (
-          <EntityLink entity={'account'} entityId={app.transferringToId} copy={{enabled: true}}/>
-        )
-      }, {
-        type: 'row',
-        label: 'Transfer Ends At',
-        value: (
-          <EntityLink entity={'block'} entityId={app.transferEndsAtHeight} copy={{enabled: true}}/>
-        )
-      })
-    }
-
-    if (app.transferToId) {
-      rows.push({
-        type: 'row',
-        label: 'Transferred To',
-        value: (
-          <EntityLink entity={'app'} entityId={app.transferToId} copy={{enabled: true}}/>
-        )
-      }, {
-        type: 'row',
-        label: 'Transferred At',
-        value: (
-          <EntityLink entity={'block'} entityId={app.transferToEndedAt.height} copy={{enabled: true}}/>
-        )
+        value: app.unstakingEndBlock!.height
       })
     }
   }
 
+  if (app.sourceApplicationId) {
+    rows.push({
+      type: 'row',
+      label: 'Transferred From',
+      value: (
+        <EntityLink entity={'app'} entityId={app.sourceApplicationId} copy={{enabled: true}}/>
+      )
+    }, {
+      type: 'row',
+      label: 'Transferred At',
+      value: (
+        <EntityLink entity={'block'} entityId={app.transferredFromAt!.height} copy={{enabled: true}}/>
+      )
+    })
+  }
+
+  if (app.transferringToId) {
+    rows.push({
+      type: 'row',
+      label: 'Transferring To',
+      value: (
+        <EntityLink entity={'account'} entityId={app.transferringToId} copy={{enabled: true}}/>
+      )
+    }, {
+      type: 'row',
+      label: 'Transfer Ends At',
+      value: (
+        <EntityLink entity={'block'} entityId={app.transferEndHeight} copy={{enabled: true}}/>
+      )
+    })
+  }
+
+  if (app.destinationApplicationId) {
+    rows.push({
+      type: 'row',
+      label: 'Transferred To',
+      value: (
+        <EntityLink entity={'app'} entityId={app.destinationApplicationId} copy={{enabled: true}}/>
+      )
+    }, {
+      type: 'row',
+      label: 'Transferred At',
+      value: (
+        <EntityLink entity={'block'} entityId={app.transferEndBlock.height} copy={{enabled: true}}/>
+      )
+    })
+  }
 
   return (
-    <div className={"p-10 gap-5 flex flex-col"}>
+    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
       <div className={"flex flex-row items-center gap-3"}>
         <h1 className={'text-2xl font-semibold'}>
           Application
         </h1>
-        <p className={'text-lg text-[color:--secondary]'}>
-          {app.id}
-        </p>
+        <TextWithCopyButton text={app.id} />
       </div>
       <EntityDetail
         items={rows}
       />
+      <Tabs
+        basePath={`/app/${id}`}
+        activeTab={activeTab}
+        tabs={[
+          {
+            label: 'Transactions',
+            tab: "txs"
+          },
+          {
+            label: 'Transfers',
+            tab: "transfers"
+          }
+        ]}
+      />
+      {transfers}
     </div>
   )
 }

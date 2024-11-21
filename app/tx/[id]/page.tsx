@@ -4,6 +4,11 @@ import EntityDetail, { Item } from '@/app/components/EntityDetail'
 import EntityLink from '@/app/components/EntityLink'
 import { formatBalance } from '@/app/utils/balances'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { isValidPoktAddress } from '@/app/utils/poktroll'
+import React from 'react'
+import TextWithCopyButton from '@/app/components/TextWithCopyButton'
+
+export const dynamic = "force-dynamic";
 
 const txByIdDocument = graphql(`
   query transaction($id: String!) {
@@ -152,14 +157,12 @@ export default async function TransactionDetailPage({
   }
 
   return (
-    <div className={"p-10 gap-5 flex flex-col"}>
+    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
       <div className={"flex flex-row items-center gap-3"}>
         <h1 className={'text-2xl font-semibold'}>
           Tx
         </h1>
-        <p className={'text-lg text-[color:--secondary] whitespace-nowrap overflow-hidden overflow-ellipsis'}>
-          {tx.id}
-        </p>
+        <TextWithCopyButton text={tx.id} />
       </div>
       <EntityDetail
         items={rows}
@@ -171,14 +174,16 @@ export default async function TransactionDetailPage({
         <Accordion type={'multiple'} defaultValue={['0']}>
           {tx.messages.nodes.map((node, index) => (
             <AccordionItem value={index.toString()} key={index.toString()} className={index === tx.messages.nodes.length - 1 ? 'border-none' : undefined}>
-              <AccordionTrigger className={'flex flex-row gap-2 justify-start items-center'}>
-                {node.typeUrl.split('.').at(-1).replace('Msg','')}
+              <AccordionTrigger className={'flex flex-row gap-2 min-w-0 justify-start items-center'}>
+                <span className={'font-semibold'}>
+                  {node.typeUrl.split('.').at(-1).replace('Msg','')}
+                </span>
                 <p className={'whitespace-nowrap overflow-hidden overflow-ellipsis text-[color:--secondary]'}>
                   {node.typeUrl}
                 </p>
               </AccordionTrigger>
-              <AccordionContent className={"whitespace-pre"}>
-                {JSON.stringify(JSON.parse(node.json), null, 4)}
+              <AccordionContent className={"p-4 bg-[color:--background]"}>
+                {renderJSON(JSON.parse(node.json), 0)}
               </AccordionContent>
             </AccordionItem>
           ))}
@@ -186,5 +191,53 @@ export default async function TransactionDetailPage({
       </div>
     </div>
   )
+}
 
+function renderJSON(data: any, level = 0) {
+  return (
+    <div className={'flex flex-col gap-4 md:gap-[10px]'}>
+      {Object.entries(data).map(([key, value]) => {
+        const isObject = typeof value === 'object' && value !== null
+        const areAmounts = (Array.isArray(value) && value.every((value) => 'amount' in value && 'denom' in value && Object.keys(value).length === 2)) || (isObject && 'amount' in value && 'denom' in value && Object.keys(value).length === 2)
+        const isAddress = typeof value === 'string' && isValidPoktAddress(value)
+
+        let valueComponent: React.ReactNode
+
+        if (areAmounts) {
+          const arr = !Array.isArray(value)? [value] : value
+          valueComponent = (
+            <p className={'text-xs font-semibold whitespace-pre leading-[24px] md:leading-5 md:mt-[-4px] ml-[10px] md:ml-0'}>
+              {arr.map((item) => formatBalance(item)).join('\n')}
+            </p>
+          )
+        } else if (isObject) {
+          valueComponent = renderJSON(value, level + 1)
+        } else if (isAddress) {
+          valueComponent = (
+            <div className={'text-xs font-semibold whitespace-nowrap overflow-hidden overflow-ellipsis'}>
+              <EntityLink
+                entity={'account'}
+                entityId={value}
+              />
+            </div>
+          )
+        } else {
+          valueComponent = (
+            <p className={'text-xs font-semibold whitespace-nowrap overflow-hidden overflow-ellipsis'}>
+              {value}
+            </p>
+          )
+        }
+
+        return (
+          <div key={key} className={'flex flex-col md:flex-row gap-1 md:gap-2'} style={{marginLeft: level * 5, flexDirection: isObject && !areAmounts ? 'column' : undefined}}>
+            <p className={'text-[color:--secondary] text-xs font-semibold'} style={{width: 150 - (5 * level), minWidth: 150 - (5 * level)}}>
+              {key}:
+            </p>
+            {valueComponent}
+          </div>
+        )
+      })}
+    </div>
+  )
 }

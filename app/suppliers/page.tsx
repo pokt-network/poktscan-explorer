@@ -9,8 +9,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { CircleHelp } from 'lucide-react'
 import React from 'react'
 import DetailCell from '@/app/components/DetailCell'
-import { SupplierService } from '@/app/config/gql/graphql'
+import { SupplierServiceConfig } from '@/app/config/gql/graphql'
 import { getStakeLabel } from '@/app/utils/stake'
+
+export const dynamic = "force-dynamic";
 
 const supplierListDocument = graphql(`
   query supplierList($limit: Int!, $offset: Int!) {
@@ -36,9 +38,10 @@ const supplierListDocument = graphql(`
             }
           }
         }
-        stake
-        status
-        supplierServices {
+        stakeAmount
+        stakeDenom
+        stakeStatus
+        supplierServices: serviceConfigs {
           nodes {
             service {
               id
@@ -48,21 +51,19 @@ const supplierListDocument = graphql(`
         }
       }
     }
-    stakedSuppliers: suppliers(filter: {status: {equalTo: 0}}) {
+    stakedSuppliers: suppliers(filter: {stakeStatus: {equalTo: 0}}) {
       totalCount
       aggregates {
         sum {
-          # TODO: replace this when stake is not a coin JSON scalar field but a value we can aggregate
-          status
+          stakeAmount
         }
       }
     }
-    unstakingSuppliers: suppliers(filter: {status: {equalTo: 1}}) {
+    unstakingSuppliers: suppliers(filter: {stakeStatus: {equalTo: 1}}) {
       totalCount
       aggregates {
         sum {
-          # TODO: replace this when stake is not a coin JSON scalar field but a value we can aggregate
-          status
+          stakeAmount
         }
       }
     }
@@ -78,7 +79,7 @@ interface RowSupplier {
   outputAddress: string
   outputBalance: string
   services: string
-  servicesData: Array<SupplierService>
+  servicesData: Array<SupplierServiceConfig>
 }
 
 interface PageProps {
@@ -86,7 +87,9 @@ interface PageProps {
 }
 
 export default async function SuppliersPage({searchParams}: PageProps) {
-  let {page, itemsPerPage} = await getPageAndItems(searchParams)
+  const pageInfo = await getPageAndItems(searchParams)
+  let page = pageInfo.page
+  const itemsPerPage = pageInfo.itemsPerPage
 
   let {data} = await getClient().query({
     query: supplierListDocument,
@@ -112,14 +115,16 @@ export default async function SuppliersPage({searchParams}: PageProps) {
     data = result.data
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rows: Array<RowSupplier> = data.suppliers?.nodes?.map((supplier) => {
     const isCustodian = supplier!.status === 0 && supplier!.operator!.id === supplier!.owner!.id
     return {
       id: supplier!.id,
-      status: getStakeLabel(supplier!.status),
-      stakeType: supplier!.status === 0 ? isCustodian ? "Custodian" : "Non-Custodian" : "-",
-      stakeAmount: formatBalance(supplier!.stake),
+      status: getStakeLabel(supplier!.stakeStatus),
+      stakeType: supplier!.stakeStatus === 0 ? isCustodian ? "Custodian" : "Non-Custodian" : "-",
+      stakeAmount: formatBalance({
+        amount: supplier!.stakeAmount,
+        denom: supplier!.stakeDenom
+      }),
       balance: formatBalance(supplier!.operator!.balances.nodes.at(0)!),
       outputBalance: isCustodian ? '-' : formatBalance(supplier!.owner!.balances.nodes.at(0)!),
       outputAddress: isCustodian ? '-' : supplier!.owner!.id,
@@ -154,11 +159,6 @@ export default async function SuppliersPage({searchParams}: PageProps) {
         <DetailCell
           rows={
           [
-            //  UNKNOWN_RPC = 0; // Undefined RPC type
-            //   GRPC = 1; // gRPC
-            //   WEBSOCKET = 2; // WebSocket
-            //   JSON_RPC = 3; // JSON-RPC
-            //   REST = 4; // REST
             {
               label: 'Services',
               value: (
@@ -229,8 +229,8 @@ export default async function SuppliersPage({searchParams}: PageProps) {
   ]
 
   return (
-    <div className={"p-10 gap-5 flex flex-col"}>
-      <h1 className={"text-4xl"}>
+    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
+      <h1 className={'text-2xl font-semibold'}>
         Suppliers
       </h1>
       <FourCard
@@ -243,23 +243,23 @@ export default async function SuppliersPage({searchParams}: PageProps) {
             label: 'Staked Tokens',
             children: formatBalance({
               denom: 'upokt',
-              amount: data.stakedSuppliers?.aggregates?.sum?.status
+              amount: data.stakedSuppliers?.aggregates?.sum?.stakeAmount
             })
           },
           {
             label: 'Unstaking Suppliers',
-            children: data.unstakingSuppliers?.aggregates?.sum?.status
+            children: data.unstakingSuppliers?.totalCount
           },
           {
             label: 'Unstaking Tokens',
             children: formatBalance({
               denom: 'upokt',
-              amount: data.unstakingSuppliers?.aggregates?.sum?.status
+              amount: data.unstakingSuppliers?.aggregates?.sum?.stakeAmount
             })
           },
         ]}
       />
-      <Table columns={columns} rows={rows} header={{title: 'Suppliers', subtitle: 'Suppliers'}} pagination={{currentPage: page, totalPages, itemsPerPage, basePath: '/suppliers'}} />
+      <Table columns={columns} rows={rows} header={{title: `${data.suppliers?.totalCount} suppliers found`}} pagination={{currentPage: page, totalPages, itemsPerPage, basePath: '/suppliers'}} />
     </div>
   )
 }

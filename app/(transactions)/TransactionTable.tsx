@@ -19,22 +19,23 @@ interface TransactionTableProps {
   rawRows: Array<Partial<Transaction>>
   includeSigner?: boolean
   pagination: TableProps['pagination']
+  totalItems?: number
 }
 
-export default function TransactionTable({rawRows, includeSigner = true, pagination}: TransactionTableProps) {
+export default function TransactionTable({rawRows, includeSigner = true, pagination, totalItems}: TransactionTableProps) {
   const rows: Array<RowTransaction> = rawRows.map((transaction) => {
     const sendMessageString = transaction.messages!.nodes.find((msg) => msg!.typeUrl === '/cosmos.bank.v1beta1.MsgSend')
 
     let sendMessage
 
-    if (sendMessageString) {
+    if (sendMessageString && transaction.messages!.nodes.length === 1) {
       sendMessage = JSON.parse(sendMessageString.json!)
     }
 
     return {
-      id: transaction.id,
+      id: transaction.id || '',
       result: transaction.code === 0 ? 0 : 1,
-      messages: transaction.messages!.nodes.map((msg) => msg!.typeUrl.split('.').at(-1).replace('Msg', '')),
+      messages: transaction?.messages?.nodes?.map((msg) => msg?.typeUrl?.split('.')?.at(-1)?.replace('Msg', '') || '') || [],
       height: Number(transaction.block!.height),
       timestamp: transaction.block!.timestamp!,
       amount: sendMessage?.amount?.length ? formatBalance(sendMessage.amount.at(0)) : '-',
@@ -42,8 +43,8 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
         amount: '0',
         denom: 'upokt'
       }),
-      signer: transaction.signerAddress!
-    }
+      signer: transaction.signerAddress!,
+    } as RowTransaction
   })
 
   const columns: Array<GridColDef> = [
@@ -140,8 +141,7 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       columns={columns}
       rows={rows}
       header={{
-        title: 'Transactions',
-        subtitle: 'Transactions'
+        title: `${totalItems} transactions found`,
       }}
       pagination={pagination}
     />

@@ -1,7 +1,10 @@
 import { graphql } from '@/app/config/gql'
 import { getPageAndItems } from '@/app/utils/pagination'
 import { getClient } from '@/app/config/apollo/rsc'
-import { ApplicationDelegatedToGateway, ApplicationService, SupplierService } from '@/app/config/gql/graphql'
+import {
+  ApplicationGateway,
+  ApplicationService,
+} from '@/app/config/gql/graphql'
 import { getStakeLabel } from '@/app/utils/stake'
 import { formatBalance } from '@/app/utils/balances'
 import Table, { GridColDef } from '@/app/components/Table'
@@ -11,6 +14,8 @@ import DetailCell from '@/app/components/DetailCell'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import FourCard from '@/app/components/FourCard'
+
+export const dynamic = "force-dynamic";
 
 const applicationListDocument = graphql(`
   query applications($limit: Int!, $offset: Int!) {
@@ -27,8 +32,9 @@ const applicationListDocument = graphql(`
             }
           }
         }
-        stake
-        status
+        stakeAmount
+        stakeDenom
+        stakeStatus
         services: applicationServices {
           nodes {
             service {
@@ -37,39 +43,34 @@ const applicationListDocument = graphql(`
             }
           }
         }
-        applicationDelegatedToGateways {
+        applicationGateways {
           nodes {
             gatewayId
           }
         }
-        unstakingStartBlock {
+        unstakingBeginBlock {
           height
         }
-        unstakingHeight
-        unstakedAtBlock {
+        unstakingEndHeight
+        unstakingEndBlock {
           height
         }
         unstakingReason
-        unstakedAtBlock {
-          height
-        }
       }
     }
-    stakedApps: applications(filter: {status: {equalTo: 0}}) {
+    stakedApps: applications(filter: {stakeStatus: {equalTo: 0}}) {
       totalCount
       aggregates {
         sum {
-          # TODO: replace this when stake is not a coin JSON scalar field but a value we can aggregate
-          status
+          stakeAmount
         }
       }
     }
-    unstakingApps: applications(filter: {status: {equalTo: 1}}) {
+    unstakingApps: applications(filter: {stakeStatus: {equalTo: 1}}) {
       totalCount
       aggregates {
         sum {
-          # TODO: replace this when stake is not a coin JSON scalar field but a value we can aggregate
-          status
+          stakeAmount
         }
       }
     }
@@ -84,7 +85,7 @@ interface RowApp {
   services: string
   servicesData: Array<ApplicationService>
   gateways: string
-  gatewaysData: Array<ApplicationDelegatedToGateway>
+  gatewaysData: Array<ApplicationGateway>
 }
 
 interface PageProps {
@@ -92,7 +93,9 @@ interface PageProps {
 }
 
 export default async function AppsPage({searchParams}: PageProps) {
-  let {page, itemsPerPage} = await getPageAndItems(searchParams)
+  const pageInfo = await getPageAndItems(searchParams)
+  let page = pageInfo.page
+  const itemsPerPage = pageInfo.itemsPerPage
 
   let {data} = await getClient().query({
     query: applicationListDocument,
@@ -120,13 +123,16 @@ export default async function AppsPage({searchParams}: PageProps) {
 
   const rows: Array<RowApp> = data.applications?.nodes?.map((application) => ({
     id: application!.id,
-    status: getStakeLabel(application!.status),
-    stakeAmount: formatBalance(application!.stake),
+    status: getStakeLabel(application!.stakeStatus),
+    stakeAmount: formatBalance({
+      amount: application!.stakeAmount,
+      denom: application!.stakeDenom
+    }),
     balance: formatBalance(application!.account!.balances.nodes.at(0)!),
     services: application!.services.nodes.length === 1 ? application!.services.nodes.at(0)!.service!.name : application!.services.nodes.length,
     servicesData: application!.services!.nodes!,
-    gateways: !application!.applicationDelegatedToGateways.nodes.length ? '-' : application!.applicationDelegatedToGateways.nodes.length === 1 ? application!.applicationDelegatedToGateways.nodes.at(0)!.gatewayId : `${application!.applicationDelegatedToGateways.nodes.length} Gateways`,
-    gatewaysData: application!.applicationDelegatedToGateways!.nodes!
+    gateways: !application!.applicationGateways.nodes.length ? '-' : application!.applicationGateways.nodes.length === 1 ? application!.applicationGateways.nodes.at(0)!.gatewayId : `${application!.applicationGateways.nodes.length} Gateways`,
+    gatewaysData: application!.applicationGateways!.nodes!
   }))
 
 
@@ -228,7 +234,7 @@ export default async function AppsPage({searchParams}: PageProps) {
   ]
 
   return (
-    <div className={"p-10 gap-5 flex flex-col"}>
+    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
       <h1 className={'text-2xl font-semibold'}>
         Applications
       </h1>
@@ -242,23 +248,23 @@ export default async function AppsPage({searchParams}: PageProps) {
             label: 'Staked Tokens',
             children: formatBalance({
               denom: 'upokt',
-              amount: data.stakedApps?.aggregates?.sum?.status
+              amount: data.stakedApps?.aggregates?.sum?.stakeAmount
             })
           },
           {
             label: 'Unstaking Applications',
-            children: data.stakedApps?.aggregates?.sum?.status
+            children: data.unstakingApps?.totalCount
           },
           {
             label: 'Unstaking Tokens',
             children: formatBalance({
               denom: 'upokt',
-              amount: data.stakedApps?.aggregates?.sum?.status
+              amount: data.unstakingApps?.aggregates?.sum?.stakeAmount
             })
           },
         ]}
       />
-      <Table columns={columns} rows={rows} header={{title: 'Applications', subtitle: 'Apps'}} pagination={{currentPage: page, totalPages, itemsPerPage, basePath: '/apps'}} />
+      <Table columns={columns} rows={rows} header={{title: `${data.applications?.totalCount} applications found`}} pagination={{currentPage: page, totalPages, itemsPerPage, basePath: '/apps'}} />
     </div>
   )
 }

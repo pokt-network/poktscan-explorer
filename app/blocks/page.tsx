@@ -4,6 +4,11 @@ import { getClient } from '@/app/config/apollo/rsc'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import { getPageAndItems } from '@/app/utils/pagination'
+import millify from 'millify'
+import { formatTimeDifference } from '@/app/(home)/utils'
+import { formatBalance } from '@/app/utils/balances'
+
+export const dynamic = "force-dynamic";
 
 const blockListDocument = graphql(`
   query blockList($limit: Int!, $offset: Int!) {
@@ -12,15 +17,31 @@ const blockListDocument = graphql(`
         id
         height
         timestamp
-        txAmount
-        proposerId
+        totalTxs
+        timeToBlock
+        successfulTxs
+        stakedApps
+        stakedSuppliers
+        stakedGateways
+        totalRelays
+        totalComputedUnits
+        proposerAddress
+        size
+        supplies {
+          nodes {
+            supply {
+              denom
+              amount
+            }
+          }
+        }
       }
       totalCount
     }
     latestBlock: blocks(first: 1, orderBy: HEIGHT_DESC) {
       nodes {
         height
-        txAmount
+        totalTxs
       }
     }
   }
@@ -37,9 +58,8 @@ interface RowBlock {
   apps: number
   gateways: number
   relays: number
-  totalSize: number
-  blockSize: number
-  stateSize: number
+  size: number
+  supply: string
 }
 
 interface PageProps {
@@ -47,7 +67,9 @@ interface PageProps {
 }
 
 export default async function BlocksPage({searchParams}: PageProps) {
-  let {page, itemsPerPage} = await getPageAndItems(searchParams)
+  const pageInfo = await getPageAndItems(searchParams)
+  let page = pageInfo.page
+  const itemsPerPage = pageInfo.itemsPerPage
 
   let {data} = await getClient().query({
     query: blockListDocument,
@@ -73,21 +95,22 @@ export default async function BlocksPage({searchParams}: PageProps) {
     data = result.data
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rows: Array<RowBlock> = data.blocks?.nodes?.map((block: any) => ({
+  const rows: Array<RowBlock> = data.blocks?.nodes?.map((block) => ({
     id: block.id,
     height: Number(block.height),
     timestamp: block.timestamp,
-    txAmount: block.txAmount,
-    proposer: block.proposerId,
-    nodes: 0,
-    apps: 0,
-    took: 0,
-    gateways: 0,
-    relays: 0,
-    totalSize: 0,
-    blockSize: 0,
-    stateSize: 0
+    txAmount: block.totalTxs,
+    proposer: block.proposerAddress,
+    nodes: block.stakedSuppliers,
+    apps: block.stakedApps,
+    took: formatTimeDifference(block.timeToBlock),
+    gateways: block.stakedGateways,
+    relays: block.totalRelays,
+    size: block.size,
+    supply: formatBalance(block.supplies.nodes.find((item) => item.supply.denom === 'upokt')?.supply || {
+      amount: '0',
+      denom: 'upokt'
+    }),
   })) || []
 
   const columns: Array<GridColDef> = [
@@ -116,6 +139,10 @@ export default async function BlocksPage({searchParams}: PageProps) {
       headerName: 'Proposer',
     },
     {
+      field: 'supply',
+      headerName: 'Total Supply',
+    },
+    {
       field: 'txAmount',
       headerName: 'Transactions',
     },
@@ -136,16 +163,24 @@ export default async function BlocksPage({searchParams}: PageProps) {
       headerName: 'Relays',
     },
     {
-      field: 'blockSize',
+      field: 'size',
       headerName: 'Size',
+      renderCell: (cell: RowBlock) => (
+        <p className={"text-xs"}>
+          {millify(cell.size, {
+            units: ["B", "KB", "MB", "GB", "TB"],
+            space: true,
+          })}
+        </p>
+      )
     }
   ]
 
   const latestBlock = data.latestBlock?.nodes?.at(0)
 
   return (
-    <div className={"p-10 gap-5 flex flex-col"}>
-      <h1 className={"text-4xl"}>
+    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
+      <h1 className={'text-2xl font-semibold'}>
         Blocks
       </h1>
       <FourCard
@@ -161,7 +196,7 @@ export default async function BlocksPage({searchParams}: PageProps) {
           },
           {
             label: 'Transactions',
-            children: latestBlock?.txAmount
+            children: latestBlock?.totalTxs
           },
           {
             label: 'Production Time (Avg. 24H)',
@@ -173,7 +208,7 @@ export default async function BlocksPage({searchParams}: PageProps) {
           },
         ]}
       />
-      <Table columns={columns} rows={rows} header={{title: 'Blocks', subtitle: 'Blocks'}} pagination={{currentPage: page, totalPages, itemsPerPage, basePath: '/blocks'}} />
+      <Table columns={columns} rows={rows} header={{title: `${data.blocks?.totalCount} blocks found`}} pagination={{currentPage: page, totalPages, itemsPerPage, basePath: '/blocks'}} />
     </div>
   )
 }

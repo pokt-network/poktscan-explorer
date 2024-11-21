@@ -5,6 +5,8 @@ import React from 'react'
 import FourCard from '@/app/components/FourCard'
 import TransactionTable from '@/app/(transactions)/TransactionTable'
 
+export const dynamic = "force-dynamic";
+
 const transactionsPageDocument = graphql(`
   query transactions($limit: Int!, $offset: Int!, $startDate: Datetime!, $endDate: Datetime!) {
     transactions(first: $limit, offset: $offset, orderBy: BLOCK_ID_DESC) {
@@ -47,29 +49,20 @@ const transactionsPageDocument = graphql(`
     latestBlock: blocks(first: 1, orderBy: HEIGHT_DESC) {
       nodes {
         height
-        txAmount
+        totalTxs
       }
     }
   }
 `)
-
-interface RowTransaction {
-  id: string
-  result: 0 | 1
-  messages: Array<string>
-  height: number
-  timestamp: string
-  amount: string
-  fee: string
-  signer: string
-}
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
 export default async function TransactionsPage({searchParams}: PageProps) {
-  let { page, itemsPerPage } = await getPageAndItems(searchParams)
+  const pageInfo = await getPageAndItems(searchParams)
+  let page = pageInfo.page
+  const itemsPerPage = pageInfo.itemsPerPage
 
   const startDate = new Date(Date.now() - (24 * 60 * 60 * 1000))
   const endDate = new Date()
@@ -93,7 +86,9 @@ export default async function TransactionsPage({searchParams}: PageProps) {
       query: transactionsPageDocument,
       variables: {
         limit: itemsPerPage,
-        offset: (page - 1) * itemsPerPage
+        offset: (page - 1) * itemsPerPage,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
       }
     })
 
@@ -101,7 +96,7 @@ export default async function TransactionsPage({searchParams}: PageProps) {
   }
 
   return (
-    <div className={"p-10 gap-5 flex flex-col"}>
+    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
       <h1 className={'text-2xl font-semibold'}>
         Transactions
       </h1>
@@ -121,7 +116,7 @@ export default async function TransactionsPage({searchParams}: PageProps) {
           },
           {
             label: 'Transactions (Last Block)',
-            children: data.latestBlock.nodes[0].txAmount
+            children: data.latestBlock.nodes[0].totalTxs
           },
 
         ]}
@@ -135,6 +130,7 @@ export default async function TransactionsPage({searchParams}: PageProps) {
           itemsPerPage,
           basePath: '/txs'
         }}
+        totalItems={data.transactions?.totalCount}
       />
     </div>
   )
