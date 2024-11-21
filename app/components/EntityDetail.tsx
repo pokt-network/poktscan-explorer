@@ -21,7 +21,7 @@ interface EntityDetailProps {
 
 export default function EntityDetail({items}: EntityDetailProps) {
   return (
-    <div className={"bg-[color:--main-background] p-4 rounded-lg border border-[color:--divider] flex flex-col gap-4"}>
+    <div className={"bg-[color:--main-background] p-4 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow"}>
       {items.map((item, index) => {
         if (item.type === 'divider') {
           return (
@@ -31,12 +31,12 @@ export default function EntityDetail({items}: EntityDetailProps) {
 
         return (
           <div key={index} className={"flex flex-col md:flex-row gap-1 md:gap-2 px-1"}>
-            <div className={"flex flex-row gap-1.5 items-center w-full md:w-[25%]"}>
+            <div className={"flex flex-row gap-1.5 items-start w-full md:w-[25%]"}>
               {
                 item.description && (
                   <TooltipProvider delayDuration={150}>
                     <Tooltip>
-                      <TooltipTrigger>
+                      <TooltipTrigger className={'mt-[2px]'}>
                         <CircleHelp className={"w-4 h-4 text-[color:--secondary]"} />
                       </TooltipTrigger>
                       <TooltipContent>

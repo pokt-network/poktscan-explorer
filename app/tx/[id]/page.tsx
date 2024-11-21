@@ -170,7 +170,7 @@ export default async function TransactionDetailPage({
       <h2 className={"text-xl font-semibold"}>
         Messages
       </h2>
-      <div className={"bg-[color:--main-background] p-4 rounded-lg border border-[color:--divider] flex flex-col gap-4"}>
+      <div className={"bg-[color:--main-background] p-4 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow"}>
         <Accordion type={'multiple'} defaultValue={['0']}>
           {tx.messages.nodes.map((node, index) => (
             <AccordionItem value={index.toString()} key={index.toString()} className={index === tx.messages.nodes.length - 1 ? 'border-none' : undefined}>

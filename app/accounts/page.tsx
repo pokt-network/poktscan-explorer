@@ -6,6 +6,7 @@ import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import FourCard from '@/app/components/FourCard'
+import { getLatestBlock } from '@/app/api/blocks'
 
 export const dynamic = "force-dynamic";
 
@@ -54,17 +55,20 @@ interface PageProps {
 }
 
 export default async function AccountsPage({searchParams}: PageProps) {
-  const pageInfo = await getPageAndItems(searchParams)
+  const [pageInfo, latestBlock] = await Promise.all([
+    getPageAndItems(searchParams),
+    getLatestBlock()
+  ])
   let page = pageInfo.page
   const itemsPerPage = pageInfo.itemsPerPage
 
-  const todayDate = new Date()
+  const todayDate = new Date(latestBlock.timestamp)
   todayDate.setHours(0, 0, 0, 0)
 
-  const monthDate = new Date()
+  const monthDate = new Date(latestBlock.timestamp)
   monthDate.setMonth(monthDate.getMonth() - 1)
 
-  const last90Date = new Date()
+  const last90Date = new Date(latestBlock.timestamp)
   last90Date.setMonth(last90Date.getMonth() - 3)
 
   let {data} = await getClient().query({

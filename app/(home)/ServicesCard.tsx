@@ -146,8 +146,15 @@ function calculateChanges(current: Item[], past: Item[]): AugmentedItem[] {
   });
 }
 
-export default async function ServicesCard({defaultType}: {defaultType: string}) {
-  const currentDate = new Date()
+interface ServicesCardProps {
+  defaultType: string
+  currentDate: Date
+}
+
+export default async function ServicesCard({
+  defaultType,
+  currentDate
+}: ServicesCardProps) {
   const last24hDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000)
   const last48hDate = new Date(currentDate.getTime() - 48 * 60 * 60 * 1000)
 

@@ -10,12 +10,13 @@ import EntityLink from '@/app/components/EntityLink'
 import SupplierAndAppsEvolution from '@/app/(home)/SupplierAndAppsEvolution'
 import ServicesCard from '@/app/(home)/ServicesCard'
 import BoxLabel from '@/app/components/BoxLabel'
+import { getLatestBlock } from '@/app/api/blocks'
 
 export const dynamic = "force-dynamic";
 
 const summaryDocument = graphql(`
   query summary($currentDate: Datetime!, $last24HourDate: Datetime!, $last7DaysDate: Datetime!) {
-    blocks(filter: {timestamp: {greaterThanOrEqualTo: $last24HourDate, lessThanOrEqualTo: $currentDate}}, orderBy: HEIGHT_DESC, first: 1) {
+    lastBlock: blocks(orderBy: HEIGHT_DESC, first: 1) {
       nodes {
         height
         totalTxs
@@ -39,6 +40,8 @@ const summaryDocument = graphql(`
         }
         totalTxs
       }
+    }
+    blocks(filter: {timestamp: {greaterThanOrEqualTo: $last24HourDate, lessThanOrEqualTo: $currentDate}}) {
       aggregates {
         sum {
           totalRelays
@@ -67,8 +70,12 @@ function Title({title}: {title: string}) {
 }
 
 export default async function Home({searchParams}: {searchParams: Promise<Record<string, string | string[] | undefined>>}) {
-  const search = await searchParams
-  const currentDate = new Date()
+  const [search, latestBlock] = await Promise.all([
+    searchParams,
+    getLatestBlock()
+  ])
+
+  const currentDate = new Date(latestBlock.timestamp)
   const date24hBefore = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000)
   const date7DaysBefore = new Date(currentDate.getTime() - 6 * 24 * 60 * 60 * 1000)
   date7DaysBefore.setUTCHours(0, 0, 0, 0);
@@ -85,13 +92,19 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
         currentDate: currentDate.toISOString(),
       },
     }),
-    <SupplierAndAppsEvolution key={'supplier-and-apps-evolution'} />,
-    <ServicesCard defaultType={serviceContentType} key={'services-card'}/>
+    <SupplierAndAppsEvolution
+      key={'supplier-and-apps-evolution'}
+      currentDate={currentDate}
+    />,
+    <ServicesCard
+      defaultType={serviceContentType}
+      key={'services-card'}
+      currentDate={currentDate}
+    />
   ])
 
-  const lastBlock = data.blocks.nodes.at(0)
-  const currentSupply = lastBlock.supplies.nodes.at(0).supply
-  const totalStaked = BigInt(lastBlock.stakedSuppliersTokens) + BigInt(lastBlock.stakedAppsTokens) + BigInt(lastBlock.stakedGatewaysTokens)
+  const currentSupply = latestBlock.supplies.nodes.at(0).supply
+  const totalStaked = BigInt(latestBlock.stakedSuppliersTokens) + BigInt(latestBlock.stakedAppsTokens) + BigInt(latestBlock.stakedGatewaysTokens)
   const summary = data.blocks.aggregates.sum
   const groupByDay = fillMissingDays(data.groupByDay.groupedAggregates)
 
@@ -102,30 +115,30 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
         <div className={'text-sm font-bold mr-[-10px]'}>
           <EntityLink
             entity={'block'}
-            entityId={lastBlock.height}
+            entityId={latestBlock.height}
           />
         </div>
       )
     },
     {
       label: 'Timestamp',
-      value: lastBlock.timestamp
+      value: latestBlock.timestamp
     },
     {
       label: 'Took',
-      value: formatTimeDifference(lastBlock.timeToBlock)
+      value: formatTimeDifference(latestBlock.timeToBlock)
     },
     {
       label: 'Staked Apps',
-      value: lastBlock.stakedApps.toLocaleString()
+      value: latestBlock.stakedApps.toLocaleString()
     },
     {
       label: 'Staked Gateways',
-      value: lastBlock.stakedGateways.toLocaleString()
+      value: latestBlock.stakedGateways.toLocaleString()
     },
     {
       label: 'Staked Suppliers',
-      value: lastBlock.stakedSuppliers.toLocaleString()
+      value: latestBlock.stakedSuppliers.toLocaleString()
     },
   ]
 
@@ -137,16 +150,16 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
         <h1 className='text-white text-lg font-bold mb-1'>
           The Pocket Network Shannon Explorer
         </h1>
-        <div className={'absolute z-[-1] w-[calc(100vw-15px)] lg:w-[100vw] top-0 left-0 h-[330px] bg-sky-950 dark:bg-[color:--main-background]'}
+        <div className={'absolute z-[-1] top-0 left-0 right-0 h-[330px] bg-sky-950 dark:bg-[color:--main-background]'}
              style={{ backgroundImage: 'url(/waves-light.svg)' }}
         />
-        <div className={'w-full md:w-[480px] lg:w-[580px]'}>
+        <div className={'w-full md:w-[480px] lg:w-[580px] base-shadow'}>
           <SearchInput zIndex={1} height={44} />
         </div>
       </section>
       <div className={'px-4 md:px-10 pb-4 lg:pb-10 mt-[-44px]'}>
         <div
-          className={'bg-[color:--main-background] gap-y-[20px] p-5 min-h-[180px] lg:h-[180px] rounded-lg border border-[color:--divider] grid md:grid-cols-2 lg:grid-cols-3'}
+          className={'bg-[color:--main-background] gap-y-[20px] p-5 min-h-[180px] lg:h-[180px] rounded-lg border border-[color:--divider] grid md:grid-cols-2 lg:grid-cols-3 base-shadow'}
       >
         <div className={'flex flex-col gap-y-5 pr-5'}>
           <div className={'flex grow flex-col gap-2 h-full'}>
@@ -220,7 +233,7 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
               title={'Computed Units Last 7 Days'}
             />
           </div>
-          <div className={'h-[100px] w-full'}>
+          <div className={'h-[100px] w-[calc(100vw-80px)] md:w-full flex min-w-0'}>
             <ComputeUnitsLineChart data={groupByDay} />
           </div>
         </div>
@@ -229,7 +242,7 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
 
       <div className={'px-4 md:px-10 pb-10 flex lg:flex-row flex-col gap-4 lg:gap-10'}>
         <div className={'w-full lg:w-[50%] flex flex-col gap-4'}>
-          <div className={'bg-[color:--main-background]  pb-2 border-[color:--divider] border rounded-lg'}>
+          <div className={'bg-[color:--main-background]  pb-2 border-[color:--divider] border rounded-lg base-shadow'}>
             <div className={'h-[50px] p-4 flex items-center border-b border-[color:--divider]'}>
               <p className={'font-bold'}>
                 Latest Block

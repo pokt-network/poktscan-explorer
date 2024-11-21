@@ -129,9 +129,12 @@ export default async function GatewaysPage({searchParams}: PageProps) {
         amount: gateway.stakeAmount,
         denom: gateway.stakeDenom
       }),
-      balance: formatBalance(gateway.account.balances.nodes.at(0)!),
+      balance: formatBalance(gateway.account?.balances?.nodes?.at(0) || {
+        amount: '0',
+        denom: 'upokt'
+      }),
       applicationsDelegating: applications.length > 1 ? applications.length : applications.at(0) || 'None',
-      services: services.length > 1 ? services.length : services.at(0) || 'None',
+      services: services.length > 1 ? services.length : services.at(0)?.name || 'None',
       servicesData: services,
       allApplications: applications
     }
@@ -181,7 +184,7 @@ export default async function GatewaysPage({searchParams}: PageProps) {
                 },
                 {
                   label: 'Services',
-                  value: row.servicesData.length ?(
+                  value: row.servicesData.length ? (
                     <ul className={'pt-2 pl-5 list-disc'}>
                       {row.servicesData.map((service) => (
                         <li key={service!.id}>

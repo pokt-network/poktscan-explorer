@@ -61,8 +61,14 @@ function get24hoursBefore(date: Date) {
   return new Date(date.getTime() - 24 * 60 * 60 * 1000)
 }
 
-export default async function SupplierAndAppsEvolution() {
-  const currentDate = new Date()
+interface SupplierAndAppsEvolutionProps {
+  currentDate: Date
+}
+
+export default async function SupplierAndAppsEvolution({
+  currentDate: currentDateFromProps
+}: SupplierAndAppsEvolutionProps) {
+  const currentDate =  new Date(currentDateFromProps.getTime())
   currentDate.setUTCHours(0, 0, 0, 0)
   const yesterdayDate = get24hoursBefore(currentDate)
   const previous2Date = get24hoursBefore(yesterdayDate)
@@ -150,7 +156,7 @@ export default async function SupplierAndAppsEvolution() {
 
   return (
     <div className="flex flex-col gap-y-4 w-full">
-      <div className={'bg-[color:--main-background] pb-2 border-[color:--divider] border rounded-lg'}>
+      <div className={'bg-[color:--main-background] pb-2 border-[color:--divider] border rounded-lg base-shadow'}>
         <div className={'h-[50px] p-4 flex items-center border-b border-[color:--divider]'}>
           <p className={'font-bold'}>
             Staked Suppliers Evolution
@@ -158,7 +164,7 @@ export default async function SupplierAndAppsEvolution() {
         </div>
         <CommonLineChart data={supplierData} dataLabel={'Staked Suppliers'} />
       </div>
-      <div className={'bg-[color:--main-background] pb-2 border-[color:--divider] border rounded-lg'}>
+      <div className={'bg-[color:--main-background] pb-2 border-[color:--divider] border rounded-lg base-shadow'}>
         <div className={'h-[50px] p-4 flex items-center border-b border-[color:--divider]'}>
           <p className={'font-bold'}>
             Staked Apps Evolution

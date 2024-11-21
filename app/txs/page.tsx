@@ -4,6 +4,7 @@ import { getClient } from '@/app/config/apollo/rsc'
 import React from 'react'
 import FourCard from '@/app/components/FourCard'
 import TransactionTable from '@/app/(transactions)/TransactionTable'
+import { getLatestBlock } from '@/app/api/blocks'
 
 export const dynamic = "force-dynamic";
 
@@ -46,12 +47,6 @@ const transactionsPageDocument = graphql(`
     ) {
       totalCount
     }
-    latestBlock: blocks(first: 1, orderBy: HEIGHT_DESC) {
-      nodes {
-        height
-        totalTxs
-      }
-    }
   }
 `)
 
@@ -60,12 +55,15 @@ interface PageProps {
 }
 
 export default async function TransactionsPage({searchParams}: PageProps) {
-  const pageInfo = await getPageAndItems(searchParams)
+  const [pageInfo, latestBlock] = await Promise.all([
+    getPageAndItems(searchParams),
+    getLatestBlock()
+  ])
   let page = pageInfo.page
   const itemsPerPage = pageInfo.itemsPerPage
 
-  const startDate = new Date(Date.now() - (24 * 60 * 60 * 1000))
-  const endDate = new Date()
+  const currentDate = new Date(latestBlock.timestamp)
+  const startDate = new Date(currentDate.getTime() - (24 * 60 * 60 * 1000))
 
   let { data } = await getClient().query({
     query: transactionsPageDocument,
@@ -73,7 +71,7 @@ export default async function TransactionsPage({searchParams}: PageProps) {
       limit: itemsPerPage,
       offset: (page - 1) * itemsPerPage,
       startDate: startDate.toISOString(),
-      endDate: endDate.toISOString()
+      endDate: currentDate.toISOString()
     }
   })
 
@@ -116,7 +114,7 @@ export default async function TransactionsPage({searchParams}: PageProps) {
           },
           {
             label: 'Transactions (Last Block)',
-            children: data.latestBlock.nodes[0].totalTxs
+            children: latestBlock.totalTxs
           },
 
         ]}

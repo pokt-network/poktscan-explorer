@@ -128,7 +128,10 @@ export default async function AppsPage({searchParams}: PageProps) {
       amount: application!.stakeAmount,
       denom: application!.stakeDenom
     }),
-    balance: formatBalance(application!.account!.balances.nodes.at(0)!),
+    balance: formatBalance(application.account?.balances?.nodes?.at(0) || {
+      amount: '0',
+      denom: 'upokt'
+    }),
     services: application!.services.nodes.length === 1 ? application!.services.nodes.at(0)!.service!.name : application!.services.nodes.length,
     servicesData: application!.services!.nodes!,
     gateways: !application!.applicationGateways.nodes.length ? '-' : application!.applicationGateways.nodes.length === 1 ? application!.applicationGateways.nodes.at(0)!.gatewayId : `${application!.applicationGateways.nodes.length} Gateways`,

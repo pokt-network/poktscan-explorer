@@ -1,7 +1,4 @@
-import { getPageAndItems } from '@/app/utils/pagination'
-import TransactionByAddressTable from '@/app/(transactions)/TransactionsByAddress'
-import TransferTable from '@/app/(transactions)/TransferTable'
-import Tabs from '@/app/components/Tabs'
+import TransferAndTxTabs from '@/app/(transactions)/TransferAndTxTabs'
 
 export const dynamic = "force-dynamic";
 
@@ -11,49 +8,7 @@ interface PageProps {
 }
 
 export default async function SupplierPage({params, searchParams}: PageProps) {
-  const [{ id }, { page, itemsPerPage }, sParams] = await Promise.all([
-    params,
-    getPageAndItems(searchParams),
-    searchParams,
-  ])
-
-  const activeTab = sParams.tab || 'txs'
-
-  const [transfers] = await Promise.all([
-    activeTab === 'txs' ? (
-      <TransactionByAddressTable
-        address={id as string}
-        page={page}
-        itemsPerPage={itemsPerPage}
-        basePath={`/supplier/${id}?tab=txs`}
-      />
-    ) : (
-      <TransferTable
-        address={id as string}
-        page={page}
-        itemsPerPage={itemsPerPage}
-        basePath={`/supplier/${id}?tab=transfers`}
-      />
-    )
-  ])
-
   return (
-    <>
-      <Tabs
-        basePath={`/supplier/${id}`}
-        activeTab={activeTab}
-        tabs={[
-          {
-            label: 'Transactions',
-            tab: "txs"
-          },
-          {
-            label: 'Transfers',
-            tab: "transfers"
-          }
-        ]}
-      />
-      {transfers}
-    </>
+    <TransferAndTxTabs searchParams={searchParams} params={params} entity={'supplier'}/>
   )
 }

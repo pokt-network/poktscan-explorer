@@ -24,7 +24,7 @@ export default function ServiceCardContent({table, defaultType, chart, hasItems}
     content = (
       <div className={'flex flex-col items-center justify-center h-full mt-[-40px] min-h-[300px]'}>
         <CircleAlert className={"h-12 w-12 text-[color:--warning]"}/>
-        <p className={"text-sm font-semibold my-3"}>
+        <p className={"text-sm font-semibold my-3 text-[color:--secondary]"}>
           No data available in the last 24 hours.
         </p>
       </div>
@@ -32,7 +32,7 @@ export default function ServiceCardContent({table, defaultType, chart, hasItems}
   }
 
   return (
-    <div className={'bg-[color:--main-background] w-full lg:w-[50%] pb-4 border-[color:--divider] border rounded-lg sm:h-[650px]'}>
+    <div className={'bg-[color:--main-background] w-full lg:w-[50%] pb-4 border-[color:--divider] border rounded-lg sm:h-[650px] base-shadow'}>
       <div className={'h-[50px] p-4 w-full flex items-center border-b border-[color:--divider] justify-between'}>
         <div className={'flex items-center gap-2'}>
           <p className={'font-bold'}>

@@ -20,8 +20,8 @@ export default function Price({usd, usd_24h_change, showLabel = true, priceColor
 
   return (
     <p className={"text-xs text-[color:--secondary]"}>
-      {showLabel && "POKT Price: "}<span className={color}>${usd.toFixed(4)}</span> <span
-      className={changeColor}>({usd_24h_change.toFixed(2)}%)</span>
+      {showLabel && "POKT Price: "}<span className={color}>${usd?.toFixed(4) || '-'}</span> <span
+      className={changeColor}>({usd_24h_change?.toFixed(2)}%)</span>
     </p>
   )
 }

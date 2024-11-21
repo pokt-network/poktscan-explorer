@@ -163,7 +163,7 @@ export default async function RootLayout({children, params}: Readonly<{
       <h2 className={"text-xl font-semibold"}>
         Services
       </h2>
-      <div className={"bg-[color:--main-background] px-4 rounded-lg border border-[color:--divider] flex flex-col gap-4"}>
+      <div className={"bg-[color:--main-background] px-4 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow"}>
         <Accordion type={'multiple'} className={'p-0'}>
           {supplier.supplierServices.nodes.map((service, index) => {
             const revSharing = service.revShare.reduce((acc, item) => acc + Number(item.revSharePercentage), 0)
@@ -172,7 +172,7 @@ export default async function RootLayout({children, params}: Readonly<{
               <AccordionItem value={index.toString()} key={index.toString()} className={index === supplier.supplierServices.nodes.length - 1 ? 'border-none' : undefined}>
                 <AccordionTrigger className={'flex flex-row gap-2 justify-start items-center'}>
                   <p className={'font-bold text-lg'}>
-                    {service.service.name}{service.service.id !== service.service.name ? `(${service.service.id})` : ''}
+                    {service.service.name}{service.service.id !== service.service.name ? ` (${service.service.id})` : ''}
                   </p>
                   <p className={'text-xs bg-[color:--background] ml-1 mr-[2px] p-2 py-1 rounded-md border-[2px] border border-[color:--divider]'}>
                     {service.endpoints.length} endpoint{service.endpoints.length > 1 ? 's' : ''}

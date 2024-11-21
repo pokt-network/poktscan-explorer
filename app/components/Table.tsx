@@ -36,7 +36,7 @@ export interface TableProps {
 
 export default function Table({pagination, rows, columns, header, }: TableProps) {
   return (
-    <div className={"w-full h-full flex flex-col rounded-lg border border-[color:--divider] bg-[color:--main-background]"}>
+    <div className={"w-full h-full flex flex-col rounded-lg border border-[color:--divider] bg-[color:--main-background] base-shadow"}>
       <Table.Header
         title={header.title}
         subtitle={header.subtitle}

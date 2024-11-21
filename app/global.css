@@ -17,6 +17,10 @@
         --success-background: rgba(146, 250, 176, 0.33);
         --warning: #d59f02;
         --warning-background: rgba(255, 236, 163, 0.78);
+        .base-shadow {
+            box-shadow: 0 0.5rem 1.2rem rgb(189 197 209 / 20%);
+        }
+        --card-box-shadow: 0 0.5rem 1.2rem rgb(189 197 209 / 20%)
     }
 
     .light {
@@ -38,6 +42,10 @@
         --success-background: rgba(48, 255, 110, 0.1);
         --warning: #fdcb3f;
         --warning-background: rgba(183, 142, 13, 0.3);
+        .base-shadow {
+            box-shadow: 0 0.1rem 1.2rem rgba(82, 85, 92, .15)
+        }
+        --card-box-shadow: 0 0.5rem 1.2rem rgba(82, 85, 92, .15)
     }
 }
 

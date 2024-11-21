@@ -19,7 +19,7 @@ export default function EntityLink({entityId, entity, label, copy}: EntityLinkPr
   const copyEnabled = copy ? copy.enabled : true
 
   return (
-    <div className={"flex flex-row items-center gap-0.5"}>
+    <div className={"flex flex-row items-center gap-0.5 h-[24px]"}>
       <Link href={`/${entity}/${entityId}`} className={"text-[color:--primary] dark:hover:text-blue-300 hover:text-blue-600 decoration-none whitespace-nowrap overflow-hidden overflow-ellipsis"} prefetch>
         {label || entityId}
       </Link>

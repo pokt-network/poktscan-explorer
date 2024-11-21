@@ -20,6 +20,7 @@ const supplierListDocument = graphql(`
       totalCount
       nodes {
         id
+        ownerId
         owner {
           id
           balances {
@@ -29,6 +30,7 @@ const supplierListDocument = graphql(`
             }
           }
         }
+        operatorId
         operator {
           id
           balances {
@@ -116,7 +118,7 @@ export default async function SuppliersPage({searchParams}: PageProps) {
   }
 
   const rows: Array<RowSupplier> = data.suppliers?.nodes?.map((supplier) => {
-    const isCustodian = supplier!.status === 0 && supplier!.operator!.id === supplier!.owner!.id
+    const isCustodian = supplier!.stakeStatus === 0 && supplier!.operatorId === supplier!.ownerId
     return {
       id: supplier!.id,
       status: getStakeLabel(supplier!.stakeStatus),
@@ -125,9 +127,15 @@ export default async function SuppliersPage({searchParams}: PageProps) {
         amount: supplier!.stakeAmount,
         denom: supplier!.stakeDenom
       }),
-      balance: formatBalance(supplier!.operator!.balances.nodes.at(0)!),
-      outputBalance: isCustodian ? '-' : formatBalance(supplier!.owner!.balances.nodes.at(0)!),
-      outputAddress: isCustodian ? '-' : supplier!.owner!.id,
+      balance: formatBalance(supplier!.operator?.balances?.nodes?.at(0) || {
+        amount: 0,
+        denom: 'upokt'
+      }),
+      outputBalance: isCustodian ? '-' : formatBalance(supplier!.owner?.balances?.nodes?.at(0) || {
+        amount: 0,
+        denom: 'upokt'
+      }),
+      outputAddress: isCustodian ? '-' : supplier!.ownerId,
       services: supplier!.supplierServices.nodes.length === 1 ? supplier!.supplierServices.nodes.at(0)!.service!.name : supplier!.supplierServices.nodes.length,
       servicesData: supplier!.supplierServices!.nodes!
     }

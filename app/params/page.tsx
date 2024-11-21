@@ -184,7 +184,7 @@ export default async function ParamsPage() {
       {Object.entries(data).filter(([,params]) => params.nodes.length).map(([paramName, params]) => (
         <div
           key={paramName}
-          className={"bg-[color:--main-background] p-5 rounded-lg border border-[color:--divider] flex flex-col gap-4"}
+          className={"bg-[color:--main-background] p-5 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow"}
         >
           <h2 className={'text-lg font-medium'}>
             {paramName.at(0).toUpperCase() + paramName.substring(1)} Parameters
