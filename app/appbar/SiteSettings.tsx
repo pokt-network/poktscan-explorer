@@ -19,11 +19,11 @@ export default function SiteSettings() {
         <Moon className={"h-4 w-4 hidden dark:block"}/>
       </DropdownMenuTrigger>
       <DropdownMenuContent align={"end"} className={'z-[1026] border-[color:--divider] bg-[color:--main-background] '}>
-        <DropdownMenuLabel onClick={() => setTheme('light')} className={"flex flex-row items-center gap-2 hover:bg-[color:--highlight-option] cursor-pointer"}>
+        <DropdownMenuLabel onClick={() => setTheme('light')} className={"flex font-medium flex-row items-center gap-2 hover:bg-[color:--highlight-option] cursor-pointer"}>
           <Sun className="h-4 w-4" />
           Light
         </DropdownMenuLabel>
-        <DropdownMenuLabel onClick={() => setTheme('dark')} className={"flex flex-row items-center gap-2 hover:bg-[color:--highlight-option] cursor-pointer"}>
+        <DropdownMenuLabel onClick={() => setTheme('dark')} className={"flex font-medium flex-row items-center gap-2 hover:bg-[color:--highlight-option] cursor-pointer"}>
           <Moon className="h-4 w-4" />
           Dark
         </DropdownMenuLabel>

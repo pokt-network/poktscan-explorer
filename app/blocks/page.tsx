@@ -6,8 +6,8 @@ import EntityLink from '@/app/components/EntityLink'
 import { getPageAndItems } from '@/app/utils/pagination'
 import millify from 'millify'
 import { formatTimeDifference } from '@/app/(home)/utils'
-import { formatBalance } from '@/app/utils/balances'
 import { getLatestBlock } from '@/app/api/blocks'
+import { formatAmount, formatSimpleAmount, formatSize } from '@/app/utils/format'
 
 export const dynamic = "force-dynamic";
 
@@ -113,15 +113,15 @@ export default async function BlocksPage({searchParams}: PageProps) {
     id: block.id,
     height: Number(block.height),
     timestamp: block.timestamp,
-    txAmount: block.totalTxs,
+    txAmount: formatSimpleAmount(block.totalTxs),
     proposer: block.proposerAddress,
-    nodes: block.stakedSuppliers,
-    apps: block.stakedApps,
+    nodes: formatSimpleAmount(block.stakedSuppliers),
+    apps: formatSimpleAmount(block.stakedApps),
     took: formatTimeDifference(block.timeToBlock),
-    gateways: block.stakedGateways,
-    relays: block.totalRelays,
-    size: block.size,
-    supply: formatBalance(block.supplies.nodes.find((item) => item.supply.denom === 'upokt')?.supply || {
+    gateways: formatSimpleAmount(block.stakedGateways),
+    relays: formatSimpleAmount(block.totalRelays),
+    size: formatSize(block.size),
+    supply: formatAmount(block.supplies.nodes.find((item) => item.supply.denom === 'upokt')?.supply || {
       amount: '0',
       denom: 'upokt'
     }),
@@ -131,18 +131,19 @@ export default async function BlocksPage({searchParams}: PageProps) {
     {
       field: 'height',
       headerName: 'Height',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      renderCell: (cell: any) => (
-        <EntityLink
-          entity={'block'}
-          entityId={cell.height}
-        />
+      renderCell: (cell: RowBlock) => (
+        <div className={'text-xs md:text-sm'}>
+          <EntityLink
+            entity={'block'}
+            entityId={cell.height}
+          />
+        </div>
       )
     },
     {
       field: 'timestamp',
       headerName: 'Timestamp',
-      minWidth: 200,
+      maxWidth: 180,
     },
     {
       field: 'took',
@@ -151,6 +152,7 @@ export default async function BlocksPage({searchParams}: PageProps) {
     {
       field: 'proposer',
       headerName: 'Proposer',
+      maxWidth: 200,
     },
     {
       field: 'supply',
@@ -179,14 +181,6 @@ export default async function BlocksPage({searchParams}: PageProps) {
     {
       field: 'size',
       headerName: 'Size',
-      renderCell: (cell: RowBlock) => (
-        <p className={"text-xs"}>
-          {millify(cell.size, {
-            units: ["B", "KB", "MB", "GB", "TB"],
-            space: true,
-          })}
-        </p>
-      )
     }
   ]
 
@@ -223,7 +217,20 @@ export default async function BlocksPage({searchParams}: PageProps) {
           },
         ]}
       />
-      <Table columns={columns} rows={rows} header={{title: `${data.blocks?.totalCount} blocks found`}} pagination={{currentPage: page, totalPages, itemsPerPage, basePath: '/blocks'}} />
+      <Table
+        columns={columns}
+        rows={rows}
+        header={{
+          title: `${data.blocks?.totalCount} blocks found`
+        }}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          itemsPerPage,
+          basePath: '/blocks'
+        }}
+        defaultMinWidth={70}
+      />
     </div>
   )
 }

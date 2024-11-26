@@ -2,12 +2,11 @@ import { graphql } from '@/app/config/gql'
 import { isValidHash, isValidPoktAddress } from '@/app/utils/poktroll'
 import { useSuspenseQuery } from '@apollo/client'
 import { EntityLinkProps } from '@/app/components/EntityLink'
-import { formatBalance } from '@/app/utils/balances'
 import React from 'react'
 import { getStakeLabel } from '@/app/utils/stake'
 import Link from 'next/link'
 import { CircleAlert } from 'lucide-react'
-import { truncateBothSides } from '@/app/utils/format'
+import { formatAmount, truncateBothSides } from '@/app/utils/format'
 
 const searchByAddressDocument = graphql(`
   query searchByAddress($address: String!) {
@@ -112,7 +111,7 @@ export default function SearchContent({value, close}: SearchContentProps) {
         rows.push({
           entity: 'account',
           entityId: data.account.id,
-          description: formatBalance(data.account.balances.nodes[0]!)
+          description: formatAmount(data.account.balances.nodes[0]!)
         })
       }
 
@@ -131,7 +130,7 @@ export default function SearchContent({value, close}: SearchContentProps) {
               className={stakeStatus === 0 ? 'text-[color:--success]' : stakeStatus === 1 ? 'text-[color:--warning]' : 'text-[color:-error]'}
             >
               {getStakeLabel(stakeStatus)}
-            </span> - {formatBalance({
+            </span> - {formatAmount({
               amount: stakeAmount,
               denom: stakeDenom
             })}

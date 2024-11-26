@@ -4,13 +4,13 @@ import SearchInput from '@/app/Search/Search'
 import ComputeUnitsLineChart from '@/app/(home)/ComputeUnitsLineChart'
 import { graphql } from '@/app/config/gql'
 import { getClient } from '@/app/config/apollo/rsc'
-import { formatBalance } from '@/app/utils/balances'
 import { fillMissingDays, formatTimeDifference } from '@/app/(home)/utils'
 import EntityLink from '@/app/components/EntityLink'
 import SupplierAndAppsEvolution from '@/app/(home)/SupplierAndAppsEvolution'
 import ServicesCard from '@/app/(home)/ServicesCard'
 import BoxLabel from '@/app/components/BoxLabel'
 import { getLatestBlock } from '@/app/api/blocks'
+import { formatAmount, formatUpokt } from '@/app/utils/format'
 
 export const dynamic = "force-dynamic";
 
@@ -130,15 +130,21 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
     },
     {
       label: 'Staked Apps',
-      value: latestBlock.stakedApps.toLocaleString()
+      value: formatAmount({
+        amount: latestBlock.stakedApps as string,
+      })
     },
     {
       label: 'Staked Gateways',
-      value: latestBlock.stakedGateways.toLocaleString()
+      value: formatAmount({
+        amount: latestBlock.stakedGateways as string,
+      })
     },
     {
       label: 'Staked Suppliers',
-      value: latestBlock.stakedSuppliers.toLocaleString()
+      value: formatAmount({
+        amount: latestBlock.stakedSuppliers as string,
+      })
     },
   ]
 
@@ -175,7 +181,9 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
               title={'Market Cap'}
             />
             <p className={'text-xs'}>
-              ${Number(price?.usd_market_cap?.toFixed(2) || 0).toLocaleString()}
+              ${formatAmount({
+                amount: price?.usd_market_cap?.toFixed(2) || 0,
+              })}
             </p>
           </div>
         </div>
@@ -187,11 +195,15 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
             <div className={'flex flex-col gap-2'}>
               <div className={'flex'}>
                 <Title
-                  title={'Compute Units'}
+                  title={'Computed Units'}
                 />
                 <BoxLabel label={'24H'} />
               </div>
-              <p className={'text-xs'}>{summary.totalComputedUnits.toLocaleString()}</p>
+              <p className={'text-xs'}>
+                {formatAmount({
+                  amount: summary.totalComputedUnits,
+                })}
+              </p>
             </div>
             <div className={'flex flex-col items-end gap-2'}>
               <div className={'flex gap-2'}>
@@ -200,7 +212,11 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
                   title={'Relays'}
                 />
               </div>
-              <p className={'text-xs'}>{summary.totalRelays.toLocaleString()}</p>
+              <p className={'text-xs'}>
+                {formatAmount({
+                  amount: summary.totalRelays,
+                })}
+              </p>
             </div>
           </div>
           <hr className={'border-[color:--divider]'} />
@@ -209,7 +225,12 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
               <Title
                 title={'Total Supply'}
               />
-              <p className={'text-xs'}>{formatBalance(currentSupply)}</p>
+              <p className={'text-xs'}>
+                {formatAmount({
+                  amount: currentSupply.amount,
+                  denom: currentSupply.denom,
+                })}
+              </p>
             </div>
             <div className={'flex flex-col items-end gap-2'}>
               <div className={'flex'}>
@@ -217,11 +238,11 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
                   Total Staked
                 </p>
               </div>
-              <p className={'text-xs'}>{formatBalance({
-                // todo remove number, this must accept BigInt
-                amount: Number(totalStaked),
-                denom: 'upokt',
-              })}</p>
+              <p className={'text-xs'}>
+                {formatUpokt({
+                  amount: totalStaked,
+                })}
+              </p>
             </div>
           </div>
         </div>
@@ -233,7 +254,7 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
               title={'Computed Units Last 7 Days'}
             />
           </div>
-          <div className={'h-[100px] w-[calc(100vw-80px)] md:w-full flex min-w-0'}>
+          <div className={'h-[100px] w-[calc(100vw-90px)] md:w-full flex min-w-0'}>
             <ComputeUnitsLineChart data={groupByDay} />
           </div>
         </div>

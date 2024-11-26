@@ -1,8 +1,8 @@
 import { Transaction } from '@/app/config/gql/graphql'
-import { formatBalance } from '@/app/utils/balances'
 import Table, { GridColDef, TableProps } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
+import { formatAmount } from '@/app/utils/format'
 
 export interface RowTransaction {
   id: string
@@ -38,8 +38,8 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       messages: transaction?.messages?.nodes?.map((msg) => msg?.typeUrl?.split('.')?.at(-1)?.replace('Msg', '') || '') || [],
       height: Number(transaction.block!.height),
       timestamp: transaction.block!.timestamp!,
-      amount: sendMessage?.amount?.length ? formatBalance(sendMessage.amount.at(0)) : '-',
-      fee: formatBalance(transaction.fees!.at(0) || {
+      amount: sendMessage?.amount?.length ? formatAmount(sendMessage.amount.at(0)) : '-',
+      fee: formatAmount(transaction.fees!.at(0) || {
         amount: '0',
         denom: 'upokt'
       }),
@@ -51,25 +51,28 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
     {
       field: 'id',
       headerName: 'Tx Hash',
-      maxWidth: 200,
+      maxWidth: 210,
       renderCell: (cell: RowTransaction) => (
-        <EntityLink
-          entity={'tx'}
-          entityId={cell.id}
-          copy={{
-            enabled: true,
-            tooltip: 'Copy transaction hash'
-          }}
-        />
+        <div className={'text-xs md:text-sm'}>
+          <EntityLink
+            entity={'tx'}
+            entityId={cell.id}
+            copy={{
+              enabled: true,
+              tooltip: 'Copy transaction hash'
+            }}
+          />
+        </div>
       )
     },
     {
       field: 'result',
       headerName: 'Result',
+      minWidth: 84,
       renderCell: (cell: RowTransaction) => (
-        <p className={`text-[color:--success] ${cell.result === 1 ? 'text-[color:--error]' : ''}`}>
+        <span className={`text-[color:--success] text-xs md:text-sm ${cell.result === 1 ? 'text-[color:--error]' : ''}`}>
           {cell.result === 1 ? 'Failed' : 'Success'}
-        </p>
+        </span>
       )
     },
     {
@@ -77,13 +80,13 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       headerName: 'Messages',
       renderCell: (cell: RowTransaction) => (
         <div className={"flex flex-row grow gap-1.5 items-center"}>
-          <div className={"flex flex-row items-center justify-center gap-1 bg-[color:--background] px-4 py-1 rounded-lg border border-[color:--divider]"}>
-            <p className={"whitespace-nowrap overflow-hidden overflow-ellipsis text-xs"}>
+          <div className={"flex flex-row items-center justify-center gap-1 bg-[color:--background] px-3 md:px-4 py-[2px] md:py-1 rounded-lg border border-[color:--divider]"}>
+            <p className={"whitespace-nowrap overflow-hidden overflow-ellipsis text-[10px] md:text-xs"}>
               {cell.messages.at(0) || 'Unknown'}
             </p>
           </div>
           {cell.messages.length > 1 && (
-            <p className={"text-[color:--secondary] text-xs font-semibold"}>
+            <p className={"text-[color:--secondary] text-[10px] md:text-xs font-semibold"}>
               +{cell.messages.length - 1}
             </p>
           )}
@@ -93,20 +96,23 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
     {
       field: 'height',
       headerName: 'Height',
+      minWidth: 50,
       renderCell: (cell: RowTransaction) => (
-        <EntityLink
-          entity={'block'}
-          entityId={cell.height}
-          copy={{
-            enabled: true
-          }}
-        />
+        <div className={'text-xs md:text-sm'}>
+          <EntityLink
+            entity={'block'}
+            entityId={cell.height}
+            copy={{
+              enabled: true
+            }}
+          />
+        </div>
       )
     },
     {
       field: 'timestamp',
       headerName: 'Timestamp',
-      maxWidth: 140,
+      maxWidth: 180,
     },
     {
       field: 'amount',
@@ -123,15 +129,17 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       description: 'Address of the first signer of the transaction',
       field: 'signer',
       headerName: 'Signer',
-      maxWidth: 150,
+      maxWidth: 190,
       renderCell: (cell: RowTransaction) => (
-        <EntityLink
-          entity={'account'}
-          entityId={cell.signer}
-          copy={{
-            enabled: true
-          }}
-        />
+        <div className={'text-xs md:text-sm'}>
+          <EntityLink
+            entity={'account'}
+            entityId={cell.signer}
+            copy={{
+              enabled: true
+            }}
+          />
+        </div>
       )
     },)
   }

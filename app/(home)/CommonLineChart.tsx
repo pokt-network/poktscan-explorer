@@ -117,7 +117,6 @@ export default function CommonLineChart({data, dataLabel}: CommonLineChartProps)
           datasets: {
             line: {
               tension: 0,
-              // borderColor: theme.customColors.dark50,
               borderWidth: 2,
             },
           },
@@ -141,7 +140,6 @@ export default function CommonLineChart({data, dataLabel}: CommonLineChartProps)
             },
           },
         }}
-        // plugins={[chartAreaBorder, backgroundPlugin, staticIndicator]}
       />
     </div>
   )

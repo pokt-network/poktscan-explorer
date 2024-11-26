@@ -3,7 +3,7 @@ import { getClient } from '@/app/config/apollo/rsc'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
-import { formatBalance } from '@/app/utils/balances'
+import { formatAmount } from '@/app/utils/format'
 
 const transfersByAddressDocument = graphql(`
   query transfersList($limit: Int!, $offset: Int!, $address: String!) {
@@ -91,8 +91,8 @@ export default async function TransferTable({address, page, itemsPerPage, basePa
     from: transfer?.senderId,
     flow: transfer?.senderId === address ? 'OUT' : 'IN',
     to: transfer?.recipientId,
-    amount: formatBalance(transfer?.amounts?.at(0)),
-    fee: formatBalance(transfer?.transaction?.fees?.at(0) || {
+    amount: formatAmount(transfer?.amounts?.at(0)),
+    fee: formatAmount(transfer?.transaction?.fees?.at(0) || {
       amount: '0',
       denom: 'upokt'
     }),

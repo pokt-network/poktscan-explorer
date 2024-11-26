@@ -2,9 +2,9 @@ import { graphql } from '@/app/config/gql'
 import { ReactNode } from 'react'
 import { getClient } from '@/app/config/apollo/rsc'
 import EntityDetail, { Item } from '@/app/components/EntityDetail'
-import { formatBalance } from '@/app/utils/balances'
 import EntityLink from '@/app/components/EntityLink'
 import TextWithCopyButton from '@/app/components/TextWithCopyButton'
+import { formatAmount } from '@/app/utils/format'
 
 const accountByIdDocument = graphql(`
   query accountById($id: String!) {
@@ -51,7 +51,7 @@ export default async function AccountLayout({children, params}: {
     {
       type: 'row',
       label: 'Balance',
-      value: formatBalance(upoktBalance)
+      value: formatAmount(upoktBalance)
     },
     {
       type: 'divider'

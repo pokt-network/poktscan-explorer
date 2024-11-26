@@ -1,6 +1,5 @@
 import { graphql } from '@/app/config/gql'
 import { getClient } from '@/app/config/apollo/rsc'
-import { formatBalance } from '@/app/utils/balances'
 import Table, { GridColDef } from '@/app/components/Table'
 import { getPageAndItems } from '@/app/utils/pagination'
 import EntityLink from '@/app/components/EntityLink'
@@ -11,6 +10,7 @@ import React from 'react'
 import DetailCell from '@/app/components/DetailCell'
 import { SupplierServiceConfig } from '@/app/config/gql/graphql'
 import { getStakeLabel } from '@/app/utils/stake'
+import { formatAmount } from '@/app/utils/format'
 
 export const dynamic = "force-dynamic";
 
@@ -123,15 +123,15 @@ export default async function SuppliersPage({searchParams}: PageProps) {
       id: supplier!.id,
       status: getStakeLabel(supplier!.stakeStatus),
       stakeType: supplier!.stakeStatus === 0 ? isCustodian ? "Custodian" : "Non-Custodian" : "-",
-      stakeAmount: formatBalance({
+      stakeAmount: formatAmount({
         amount: supplier!.stakeAmount,
         denom: supplier!.stakeDenom
       }),
-      balance: formatBalance(supplier!.operator?.balances?.nodes?.at(0) || {
+      balance: formatAmount(supplier!.operator?.balances?.nodes?.at(0) || {
         amount: 0,
         denom: 'upokt'
       }),
-      outputBalance: isCustodian ? '-' : formatBalance(supplier!.owner?.balances?.nodes?.at(0) || {
+      outputBalance: isCustodian ? '-' : formatAmount(supplier!.owner?.balances?.nodes?.at(0) || {
         amount: 0,
         denom: 'upokt'
       }),
@@ -145,8 +145,8 @@ export default async function SuppliersPage({searchParams}: PageProps) {
   const columns: Array<GridColDef> = [
     {
       field: 'detail',
-      minWidth: 50,
-      maxWidth: 50,
+      minWidth: 60,
+      maxWidth: 60,
       headerName: (
         <div className={'w-full h-full flex items-center justify-center'}>
           <TooltipProvider delayDuration={150}>
@@ -194,10 +194,12 @@ export default async function SuppliersPage({searchParams}: PageProps) {
       headerName: 'Address',
       minWidth: 200,
       renderCell: (cell: RowSupplier) => (
-        <EntityLink
-          entity={'supplier'}
-          entityId={cell.id}
-        />
+        <div className={'text-xs md:text-sm'}>
+          <EntityLink
+            entity={'supplier'}
+            entityId={cell.id}
+          />
+        </div>
       )
     },
     {
@@ -220,10 +222,12 @@ export default async function SuppliersPage({searchParams}: PageProps) {
       field: "outputAddress",
       headerName: "Output Address",
       renderCell: (cell: RowSupplier) => cell.outputAddress === '-' ? '-' : (
-        <EntityLink
-          entity={'supplier'}
-          entityId={cell.outputAddress}
-        />
+        <div className={'text-xs md:text-sm'}>
+          <EntityLink
+            entity={'supplier'}
+            entityId={cell.outputAddress}
+          />
+        </div>
       )
     },
     {
@@ -249,7 +253,7 @@ export default async function SuppliersPage({searchParams}: PageProps) {
           },
           {
             label: 'Staked Tokens',
-            children: formatBalance({
+            children: formatAmount({
               denom: 'upokt',
               amount: data.stakedSuppliers?.aggregates?.sum?.stakeAmount
             })
@@ -260,14 +264,27 @@ export default async function SuppliersPage({searchParams}: PageProps) {
           },
           {
             label: 'Unstaking Tokens',
-            children: formatBalance({
+            children: formatAmount({
               denom: 'upokt',
               amount: data.unstakingSuppliers?.aggregates?.sum?.stakeAmount
             })
           },
         ]}
       />
-      <Table columns={columns} rows={rows} header={{title: `${data.suppliers?.totalCount} suppliers found`}} pagination={{currentPage: page, totalPages, itemsPerPage, basePath: '/suppliers'}} />
+      <Table
+        columns={columns}
+        rows={rows}
+        header={{
+          title: `${data.suppliers?.totalCount} suppliers found`,
+        }}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          itemsPerPage,
+          basePath: '/suppliers',
+        }}
+        defaultMinWidth={70}
+      />
     </div>
   )
 }

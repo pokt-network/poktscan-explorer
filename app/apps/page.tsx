@@ -6,7 +6,6 @@ import {
   ApplicationService,
 } from '@/app/config/gql/graphql'
 import { getStakeLabel } from '@/app/utils/stake'
-import { formatBalance } from '@/app/utils/balances'
 import Table, { GridColDef } from '@/app/components/Table'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { CircleHelp } from 'lucide-react'
@@ -14,6 +13,7 @@ import DetailCell from '@/app/components/DetailCell'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import FourCard from '@/app/components/FourCard'
+import { formatAmount } from '@/app/utils/format'
 
 export const dynamic = "force-dynamic";
 
@@ -124,11 +124,11 @@ export default async function AppsPage({searchParams}: PageProps) {
   const rows: Array<RowApp> = data.applications?.nodes?.map((application) => ({
     id: application!.id,
     status: getStakeLabel(application!.stakeStatus),
-    stakeAmount: formatBalance({
+    stakeAmount: formatAmount({
       amount: application!.stakeAmount,
       denom: application!.stakeDenom
     }),
-    balance: formatBalance(application.account?.balances?.nodes?.at(0) || {
+    balance: formatAmount(application.account?.balances?.nodes?.at(0) || {
       amount: '0',
       denom: 'upokt'
     }),
@@ -142,8 +142,8 @@ export default async function AppsPage({searchParams}: PageProps) {
   const columns: Array<GridColDef> = [
     {
       field: 'detail',
-      minWidth: 50,
-      maxWidth: 50,
+      minWidth: 60,
+      maxWidth: 60,
       headerName: (
         <div className={'w-full h-full flex items-center justify-center'}>
           <TooltipProvider delayDuration={150}>
@@ -207,10 +207,12 @@ export default async function AppsPage({searchParams}: PageProps) {
       headerName: 'Address',
       minWidth: 200,
       renderCell: (cell: RowApp) => (
-        <EntityLink
-          entity={'app'}
-          entityId={cell.id}
-        />
+        <div className={'text-xs md:text-sm'}>
+          <EntityLink
+            entity={'app'}
+            entityId={cell.id}
+          />
+        </div>
       )
     },
     {
@@ -249,7 +251,7 @@ export default async function AppsPage({searchParams}: PageProps) {
           },
           {
             label: 'Staked Tokens',
-            children: formatBalance({
+            children: formatAmount({
               denom: 'upokt',
               amount: data.stakedApps?.aggregates?.sum?.stakeAmount
             })
@@ -260,7 +262,7 @@ export default async function AppsPage({searchParams}: PageProps) {
           },
           {
             label: 'Unstaking Tokens',
-            children: formatBalance({
+            children: formatAmount({
               denom: 'upokt',
               amount: data.unstakingApps?.aggregates?.sum?.stakeAmount
             })

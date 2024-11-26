@@ -52,7 +52,7 @@ export default function EntityDetail({items}: EntityDetailProps) {
                 {item.label}
               </p>
             </div>
-            <div className={"flex flex-row gap-1.5 items-center w-full md:w-[75%]"}>
+            <div className={"flex flex-row gap-1.5 items-center w-full md:w-[75%] md:min-w-[75%]"}>
               {['string', 'number'].includes(typeof item.value) ? (
                 <p className={"text-sm text-[color:--foreground] break-all md:whitespace-nowrap md:overflow-hidden md:overflow-ellipsis"}>
                   {item.value}

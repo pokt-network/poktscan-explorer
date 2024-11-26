@@ -2,10 +2,10 @@ import React from 'react'
 import { graphql } from '@/app/config/gql'
 import { getClient } from '@/app/config/apollo/rsc'
 import EntityDetail, { Item } from '@/app/components/EntityDetail'
-import { formatBalance } from '@/app/utils/balances'
 import { getStakeLabel } from '@/app/utils/stake'
 import EntityLink from '@/app/components/EntityLink'
 import TextWithCopyButton from '@/app/components/TextWithCopyButton'
+import { formatAmount } from '@/app/utils/format'
 
 const gatewayByIdDocument = graphql(`
   query gatewayById($id: String!) {
@@ -73,7 +73,7 @@ export default async function GatewayLayout({children, params}: Readonly<{
     {
       type: 'row',
       label: 'Balance',
-      value: formatBalance(gateway.account?.balances?.nodes?.at(0) || {
+      value: formatAmount(gateway.account?.balances?.nodes?.at(0) || {
         amount: '0',
         denom: 'upokt'
       })
@@ -89,7 +89,7 @@ export default async function GatewayLayout({children, params}: Readonly<{
     {
       type: 'row',
       label: 'Stake Amount',
-      value: formatBalance({
+      value: formatAmount({
         amount: gateway.stakeAmount,
         denom: gateway.stakeDenom
       })
@@ -102,7 +102,7 @@ export default async function GatewayLayout({children, params}: Readonly<{
         <ul className={''}>
           {gateway.applications?.nodes.map(({ application }) => (
             <li key={application.id}>
-              <p className={"text-sm"}>
+              <div className={"text-sm"}>
                 <EntityLink entity={'app'} entityId={application.id}/>
                 <ul className={'pt-2 pl-1'}>
                   {application.applicationServices.nodes.map(({ service }) => (
@@ -113,7 +113,7 @@ export default async function GatewayLayout({children, params}: Readonly<{
                     </li>
                   ))}
                 </ul>
-              </p>
+              </div>
             </li>
           ))}
         </ul>

@@ -1,7 +1,7 @@
 import { GridColDef } from '@/app/components/Table'
 import { AugmentedItem } from '@/app/(home)/ServicesCard'
-import { convertUpoktToPokt } from '@/app/utils/balances'
 import BaseTable from '@/app/components/BaseTable'
+import { formatAmount, formatUpokt } from '@/app/utils/format'
 
 interface Row {
   id: string
@@ -9,7 +9,7 @@ interface Row {
   change: number
   network: number
   relays: string
-  claimedUpokt: string
+  claimedUpokt: number
 }
 
 export default function ServicesTable({data}: {data: AugmentedItem[]}) {
@@ -33,7 +33,10 @@ export default function ServicesTable({data}: {data: AugmentedItem[]}) {
       renderCell: (row: Row) => {
         return (
           <span className={'text-xs'}>
-            {row.computedUnits}
+            {formatAmount({
+              amount: row.computedUnits,
+              abbreviateThreshold: 1e6,
+            })}
           </span>
         )
       }
@@ -75,11 +78,28 @@ export default function ServicesTable({data}: {data: AugmentedItem[]}) {
       field: 'relays',
       headerName: 'Relays',
       minWidth: 100,
+      renderCell: (row: Row) => {
+        return (
+          <span className={'text-xs'}>
+            {formatAmount({
+              amount: row.relays,
+              abbreviateThreshold: 1e6,
+            })}
+          </span>
+        )
+      }
     },
     {
       field: 'claimedUpokt',
       headerName: 'POKT',
       minWidth: 100,
+      renderCell: (row: Row) => {
+        return (
+          <span className={'text-xs'}>
+            {formatUpokt({amount: row.claimedUpokt})}
+          </span>
+        )
+      }
     }
   ]
 
@@ -90,7 +110,7 @@ export default function ServicesTable({data}: {data: AugmentedItem[]}) {
       change: item.changes.computedUnits,
       network: item.percentages.computedUnits,
       relays: item.sum.relays.toLocaleString(),
-      claimedUpokt: convertUpoktToPokt(item.sum.claimedUpokt).toLocaleString(),
+      claimedUpokt: item.sum.claimedUpokt,
     }
   })
 

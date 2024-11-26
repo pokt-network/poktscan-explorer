@@ -1,12 +1,12 @@
 import { graphql } from '@/app/config/gql'
 import { getPageAndItems } from '@/app/utils/pagination'
 import { getClient } from '@/app/config/apollo/rsc'
-import { formatBalance } from '@/app/utils/balances'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import FourCard from '@/app/components/FourCard'
 import { getLatestBlock } from '@/app/api/blocks'
+import { formatAmount } from '@/app/utils/format'
 
 export const dynamic = "force-dynamic";
 
@@ -106,7 +106,7 @@ export default async function AccountsPage({searchParams}: PageProps) {
 
     return {
       id: account?.id || '',
-      balance: formatBalance(upoktBalance || {
+      balance: formatAmount(upoktBalance || {
         amount: '0',
         denom: 'upokt'
       }),
@@ -120,10 +120,12 @@ export default async function AccountsPage({searchParams}: PageProps) {
       field: 'id',
       headerName: 'Address',
       renderCell: (cell: RowAccount) => (
-        <EntityLink
-          entity={'account'}
-          entityId={cell.id}
-        />
+        <div className={'text-xs md:text-sm'}>
+          <EntityLink
+            entity={'account'}
+            entityId={cell.id}
+          />
+        </div>
       )
     },
     {
@@ -132,16 +134,19 @@ export default async function AccountsPage({searchParams}: PageProps) {
     },
     {
       field: 'lastUpdatedTime',
-      headerName: 'Updated At'
+      headerName: 'Updated Date',
+      maxWidth: 180,
     },
     {
       field: 'lastUpdatedBlock',
-      headerName: 'Updated At',
+      headerName: 'Updated Height',
       renderCell: (cell: RowAccount) => (
-        <EntityLink
-          entity={'block'}
-          entityId={cell.lastUpdatedBlock}
-        />
+        <div className={'text-xs md:text-sm'}>
+          <EntityLink
+            entity={'block'}
+            entityId={cell.lastUpdatedBlock}
+          />
+        </div>
       )
     },
   ]

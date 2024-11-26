@@ -8,9 +8,10 @@ interface BaseTableProps {
   columns: Array<GridColDef>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rows: Array<any>
+  defaultMinWidth?: number
 }
 
-export default function BaseTable({rows, columns}: BaseTableProps) {
+export default function BaseTable({rows, columns, defaultMinWidth}: BaseTableProps) {
   return (
     <ShadTable>
       <TableHeader>
@@ -21,11 +22,11 @@ export default function BaseTable({rows, columns}: BaseTableProps) {
               <TableHead
                 key={column.field}
                 style={{
-                  minWidth: column.minWidth,
+                  minWidth: column.minWidth || defaultMinWidth,
                   maxWidth: column.maxWidth,
                   width: column.width,
                 }}
-                className={`${index ? 'pl-2' : 'pl-4'} text-[13px] text-left whitespace-nowrap py-[10px] ${index === columns.length - 1 ? 'pr-4' : 'pr-2'}`}
+                className={`${index ? 'pl-2 md:pl-4' : 'pl-4'} text-xs md:text-[0.8125rem] text-left whitespace-nowrap py-[10px] ${index === columns.length - 1 ? 'pr-4' : 'pr-2 md:pr-4'}`}
               >
                   <span>
                     {column.headerName}
@@ -61,14 +62,14 @@ export default function BaseTable({rows, columns}: BaseTableProps) {
                 <TableCell
                   key={column.field}
                   style={{
-                    minWidth: column.minWidth,
+                    minWidth: column.minWidth || defaultMinWidth,
                     maxWidth: column.maxWidth,
                     width: column.width,
                   }}
-                  className={`h-[48px] py-[10px] ${index ? 'pl-2' : 'pl-4'} ${index === columns.length - 1 ? 'pr-4' : 'pr-2'}`}
+                  className={`h-[48px] py-[10px] ${index ? 'pl-2 md:pl-4' : 'pl-4'} ${index === columns.length - 1 ? 'pr-4' : 'pr-2 md:pr-4'}`}
                 >
                   {column.renderCell ? column.renderCell(row) : (
-                    <p className={"text-[14px] whitespace-nowrap overflow-hidden overflow-ellipsis"}>
+                    <p className={"text-xs md:text-sm whitespace-nowrap overflow-hidden overflow-ellipsis"}>
                       {row[column.field]}
                     </p>
                   )}

@@ -30,11 +30,12 @@ export interface TableProps {
     itemsPerPage: number
     basePath: string
   }
+  defaultMinWidth?: number
 }
 
 
 
-export default function Table({pagination, rows, columns, header, }: TableProps) {
+export default function Table({pagination, rows, columns, header, defaultMinWidth = 100}: TableProps) {
   return (
     <div className={"w-full h-full flex flex-col rounded-lg border border-[color:--divider] bg-[color:--main-background] base-shadow"}>
       <Table.Header
@@ -46,7 +47,7 @@ export default function Table({pagination, rows, columns, header, }: TableProps)
         basePath={pagination.basePath}
         hidePagination={rows.length === 0}
       />
-      <BaseTable columns={columns} rows={rows} />
+      <BaseTable columns={columns} rows={rows} defaultMinWidth={defaultMinWidth} />
       {
         rows.length > 0 ? (
           <Table.Footer
@@ -173,7 +174,7 @@ Table.Pagination = function TablePagination({currentPage, totalPages, itemsPerPa
 
 Table.Header = function TableHeader({title, subtitle, hidePagination,currentPage, totalPages, itemsPerPage, basePath}: TableHeaderProps) {
   return (
-    <div className={"flex p-4 flex-row w-full h-74 items-center justify-between"}>
+    <div className={"flex pt-4 px-3 md:px-4 pb-3 flex-row w-full min-h-[74px] flex-wrap items-center justify-between gap-3"}>
       <div>
         <p className={"text-sm"}>
           {title}
@@ -210,7 +211,7 @@ Table.Footer = function TableFooter({currentPage, itemsPerPage, totalPages, base
   const itemsPerPageOption = validItemsPerPage.includes(itemsPerPage) ? itemsPerPage : 25
 
   return (
-    <div className={"flex flex-row p-4 w-full h-[74px] items-center justify-between border-t border-[color:--divider]"}>
+    <div className={"flex flex-row py-4 px-3 md:px-4 w-full min-h-[74px] items-center justify-between border-t border-[color:--divider] flex-wrap gap-3"}>
       <div className={"flex flex-row items-center gap-2"}>
         <p className={"text-sm text-[color:--secondary] whitespace-nowrap"}>
           Show rows:

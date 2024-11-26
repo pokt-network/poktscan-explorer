@@ -25,7 +25,7 @@ export default function SelectItemsPerRow({value, currentPage, basePath, options
 
       router.push(newUrl)
     }}>
-      <SelectTrigger className={"w-[80px]"}>
+      <SelectTrigger className={"w-[80px] h-[30px] text-xs"}>
         <SelectValue placeholder={"Items"} />
       </SelectTrigger>
       <SelectContent>

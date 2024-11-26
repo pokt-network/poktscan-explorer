@@ -2,10 +2,10 @@ import { getClient } from '@/app/config/apollo/rsc'
 import { graphql } from '@/app/config/gql'
 import EntityDetail, { Item } from '@/app/components/EntityDetail'
 import { getEndpointLabel, getStakeLabel, getStakeType } from '@/app/utils/stake'
-import { formatBalance } from '@/app/utils/balances'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import EntityLink from '@/app/components/EntityLink'
 import TextWithCopyButton from '@/app/components/TextWithCopyButton'
+import { formatAmount } from '@/app/utils/format'
 
 const supplierByIdDocument = graphql(`
   query supplierById($id: String!) {
@@ -88,7 +88,7 @@ export default async function RootLayout({children, params}: Readonly<{
     {
       type: 'row',
       label: 'Stake Amount',
-      value: formatBalance({
+      value: formatAmount({
         amount: supplier.stakeAmount,
         denom: supplier.stakeDenom
       })
@@ -108,7 +108,7 @@ export default async function RootLayout({children, params}: Readonly<{
   rows.push({
     type: 'row',
     label: 'Balance',
-    value: formatBalance(supplier.operator.balances.nodes.at(0)!)
+    value: formatAmount(supplier.operator.balances.nodes.at(0)!)
   })
 
   if (stakeType === 'Non-Custodian') {
@@ -122,7 +122,7 @@ export default async function RootLayout({children, params}: Readonly<{
       {
         type: 'row',
         label: 'Owner Balance',
-        value: formatBalance(supplier.owner.balances.nodes.at(0)!)
+        value: formatAmount(supplier.owner.balances.nodes.at(0)!)
       })
   }
 

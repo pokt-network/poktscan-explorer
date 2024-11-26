@@ -8,7 +8,7 @@ import DetailCell from '@/app/components/DetailCell'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import { getStakeLabel } from '@/app/utils/stake'
-import { formatBalance } from '@/app/utils/balances'
+import { formatAmount } from '@/app/utils/format'
 
 export const dynamic = "force-dynamic";
 
@@ -125,11 +125,11 @@ export default async function GatewaysPage({searchParams}: PageProps) {
     return {
       id: gateway.id,
       status: getStakeLabel(gateway.stakeStatus),
-      stakeAmount: formatBalance({
+      stakeAmount: formatAmount({
         amount: gateway.stakeAmount,
         denom: gateway.stakeDenom
       }),
-      balance: formatBalance(gateway.account?.balances?.nodes?.at(0) || {
+      balance: formatAmount(gateway.account?.balances?.nodes?.at(0) || {
         amount: '0',
         denom: 'upokt'
       }),
@@ -143,8 +143,8 @@ export default async function GatewaysPage({searchParams}: PageProps) {
   const columns: Array<GridColDef> = [
     {
       field: 'detail',
-      minWidth: 50,
-      maxWidth: 50,
+      minWidth: 60,
+      maxWidth: 60,
       headerName: (
         <div className={'w-full h-full flex items-center justify-center'}>
           <TooltipProvider delayDuration={150}>
@@ -214,10 +214,12 @@ export default async function GatewaysPage({searchParams}: PageProps) {
       headerName: 'Address',
       minWidth: 200,
       renderCell: (row: RowGateway) => (
-        <EntityLink
-          entity={'gateway'}
-          entityId={row.id}
-        />
+        <div className={'text-xs md:text-sm'}>
+          <EntityLink
+            entity={'gateway'}
+            entityId={row.id}
+          />
+        </div>
       )
     },
     {
@@ -260,6 +262,7 @@ export default async function GatewaysPage({searchParams}: PageProps) {
           itemsPerPage,
           basePath: '/gateways'
         }}
+        defaultMinWidth={70}
       />
     </div>
   )

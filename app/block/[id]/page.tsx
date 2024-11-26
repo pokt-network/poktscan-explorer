@@ -3,9 +3,8 @@ import { Block } from '@/app/config/gql/graphql'
 import { getClient } from '@/app/config/apollo/rsc'
 import EntityDetail from '@/app/components/EntityDetail'
 import { formatTimeDifference } from '@/app/(home)/utils'
-import { formatBalance } from '@/app/utils/balances'
-import millify from 'millify'
 import TextWithCopyButton from '@/app/components/TextWithCopyButton'
+import { formatAmount, formatSimpleAmount, formatSize } from '@/app/utils/format'
 
 export const dynamic = "force-dynamic";
 
@@ -117,20 +116,17 @@ export default async function BlockDetailPage({
           {
             type: 'row',
             label: 'Transactions',
-            value: block.totalTxs
+            value: formatSimpleAmount(block.totalTxs)
           },
           {
             type: 'row',
             label: 'Proposer',
-            value: block.proposerAddress
+            value: formatSimpleAmount(block.proposerAddress)
           },
           {
             type: 'row',
             label: 'Size',
-            value: millify(block.size, {
-              units: ["B", "KB", "MB", "GB", "TB"],
-              space: true,
-            })
+            value: formatSize(block.size)
           },
           {
             type: 'divider'
@@ -138,7 +134,7 @@ export default async function BlockDetailPage({
           {
             type: 'row',
             label: 'Total Supply',
-            value: formatBalance(block.supplies.nodes.find((item) => item?.supply?.denom === 'upokt')?.supply || {
+            value: formatAmount(block.supplies.nodes.find((item) => item?.supply?.denom === 'upokt')?.supply || {
               amount: '0',
               denom: 'upokt'
             })
@@ -146,7 +142,7 @@ export default async function BlockDetailPage({
           {
             type: 'row',
             label: 'Apps Staked Tokens',
-            value: formatBalance({
+            value: formatAmount({
               amount: block.stakedAppsTokens,
               denom: 'upokt'
             })
@@ -154,12 +150,12 @@ export default async function BlockDetailPage({
           {
             type: 'row',
             label: 'Apps Staked',
-            value: block.stakedApps
+            value: formatSimpleAmount(block.stakedApps)
           },
           {
             type: 'row',
             label: 'Suppliers Staked Tokens',
-            value: formatBalance({
+            value: formatAmount({
               amount: block.stakedSuppliersTokens,
               denom: 'upokt'
             })
@@ -167,12 +163,12 @@ export default async function BlockDetailPage({
           {
             type: 'row',
             label: 'Suppliers Staked',
-            value: block.stakedSuppliers
+            value: formatSimpleAmount(block.stakedSuppliers)
           },
           {
             type: 'row',
             label: 'Gateways Staked Tokens',
-            value: formatBalance({
+            value: formatAmount({
               amount: block.stakedGatewaysTokens,
               denom: 'upokt'
             })
@@ -180,17 +176,17 @@ export default async function BlockDetailPage({
           {
             type: 'row',
             label: 'Gateways Staked',
-            value: block.stakedGateways
+            value: formatSimpleAmount(block.stakedGateways)
           },
           {
             type: 'row',
             label: 'Relays',
-            value: block.totalRelays
+            value: formatSimpleAmount(block.totalRelays)
           },
           {
             type: 'row',
             label: 'Computed Units',
-            value: block.totalComputedUnits
+            value: formatSimpleAmount(block.totalComputedUnits)
           },
         ]}
       />

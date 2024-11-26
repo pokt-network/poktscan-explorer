@@ -2,10 +2,10 @@ import { graphql } from '@/app/config/gql'
 import { getClient } from '@/app/config/apollo/rsc'
 import React from 'react'
 import EntityDetail, { Item } from '@/app/components/EntityDetail'
-import { formatBalance } from '@/app/utils/balances'
 import { getStakeLabel } from '@/app/utils/stake'
 import EntityLink from '@/app/components/EntityLink'
 import TextWithCopyButton from '@/app/components/TextWithCopyButton'
+import { formatAmount } from '@/app/utils/format'
 
 const appByIdDocument = graphql(`
   query appById($id: String!) {
@@ -82,7 +82,7 @@ export default async function AppLayout({children, params}: {
     {
       type: 'row',
       label: 'Balance',
-      value: formatBalance(app?.account?.balances?.nodes?.at(0) || {
+      value: formatAmount(app?.account?.balances?.nodes?.at(0) || {
         amount: '0',
         denom: 'upokt'
       })
@@ -98,7 +98,7 @@ export default async function AppLayout({children, params}: {
     {
       type: 'row',
       label: 'Stake Amount',
-      value: formatBalance({
+      value: formatAmount({
         amount: app.stakeAmount,
         denom: app.stakeDenom
       })

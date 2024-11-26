@@ -2,11 +2,11 @@ import { graphql } from '@/app/config/gql'
 import { getClient } from '@/app/config/apollo/rsc'
 import EntityDetail, { Item } from '@/app/components/EntityDetail'
 import EntityLink from '@/app/components/EntityLink'
-import { formatBalance } from '@/app/utils/balances'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { isValidPoktAddress } from '@/app/utils/poktroll'
 import React from 'react'
 import TextWithCopyButton from '@/app/components/TextWithCopyButton'
+import { formatAmount } from '@/app/utils/format'
 
 export const dynamic = "force-dynamic";
 
@@ -124,7 +124,7 @@ export default async function TransactionDetailPage({
     {
       type: 'row',
       label: 'Fee',
-      value: formatBalance(tx.fees.at(0) || {
+      value: formatAmount(tx.fees.at(0) || {
         amount: '0',
         denom: 'upokt'
       })
@@ -207,14 +207,14 @@ function renderJSON(data: any, level = 0) {
           const arr = !Array.isArray(value)? [value] : value
           valueComponent = (
             <p className={'text-xs font-semibold whitespace-pre leading-[24px] md:leading-5 md:mt-[-4px] ml-[10px] md:ml-0'}>
-              {arr.map((item) => formatBalance(item)).join('\n')}
+              {arr.map((item) => formatAmount(item)).join('\n')}
             </p>
           )
         } else if (isObject) {
           valueComponent = renderJSON(value, level + 1)
         } else if (isAddress) {
           valueComponent = (
-            <div className={'text-xs font-semibold whitespace-nowrap overflow-hidden overflow-ellipsis'}>
+            <div className={'text-xs font-semibold whitespace-nowrap overflow-hidden overflow-ellipsis mt-[-6px]'}>
               <EntityLink
                 entity={'account'}
                 entityId={value}
