@@ -56,7 +56,7 @@
         --success-background: rgba(48, 255, 110, 0.1);
         --warning: #fdcb3f;
         --warning-background: rgba(183, 142, 13, 0.3);
-        --tooltip-background: 333;
+        --tooltip-background: #333;
         .base-shadow {
             box-shadow: 0 0.1rem 1.2rem rgba(82, 85, 92, .15)
         }
