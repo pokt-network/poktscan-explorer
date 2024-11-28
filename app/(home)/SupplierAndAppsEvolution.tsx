@@ -158,7 +158,7 @@ export default async function SupplierAndAppsEvolution({
     <div className="flex flex-col gap-y-4 w-full">
       <div className={'bg-[color:--main-background] pb-2 border-[color:--divider] border rounded-lg base-shadow'}>
         <div className={'h-[50px] p-4 flex items-center border-b border-[color:--divider]'}>
-          <p className={'font-bold'}>
+          <p className={'font-semibold text-[15px]'}>
             Staked Suppliers Evolution
           </p>
         </div>
@@ -166,7 +166,7 @@ export default async function SupplierAndAppsEvolution({
       </div>
       <div className={'bg-[color:--main-background] pb-2 border-[color:--divider] border rounded-lg base-shadow'}>
         <div className={'h-[50px] p-4 flex items-center border-b border-[color:--divider]'}>
-          <p className={'font-bold'}>
+          <p className={'font-semibold text-[15px]'}>
             Staked Apps Evolution
           </p>
         </div>

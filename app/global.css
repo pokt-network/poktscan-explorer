@@ -4,23 +4,35 @@
 
 @layer base {
     :root {
-        --background: #f8f8f8;
+        --background: #fafbfd;
         --foreground: #212121;
         --main-background: #ffffff;
         --radius: 0.5rem;
-        --divider: #d4d4d4;
+        --divider: #e9ecef;
         --error: #dc2626;
-        --primary: #3b82f6;
-        --secondary: #505050;
+        --primary: rgb(7,132,195);
+        --secondary: #6c757d;
         --highlight-option: #efefef;
-        --success: #15b639;
+        --success: rgb(0,161,134);
         --success-background: rgba(146, 250, 176, 0.33);
         --warning: #ffbe00;
-        --warning-background: rgba(255, 236, 163, 0.78);
+        --warning-background: rgba(255, 244, 209, 0.78);
+        --tooltip-background: #081D35;
         .base-shadow {
-            box-shadow: 0 0.5rem 1.2rem rgb(189 197 209 / 20%);
+            box-shadow: 0 0.5rem 1.2rem rgb(189 197 209 / 40%);
         }
-        --card-box-shadow: 0 0.5rem 1.2rem rgb(189 197 209 / 20%)
+        --card-box-shadow: 0 0.5rem 1.2rem rgb(189 197 209 / 20%);
+        --bg-gradient-to: 246,247,248;
+
+        footer {
+            background-color: --background;
+            a {
+                background-color: rgb(233, 236, 239);
+                path {
+                    fill: var(--foreground);
+                }
+            }
+        }
     }
 
     .light {
@@ -29,27 +41,39 @@
         }
     }
 
+
+
     .dark {
-        --background: #1a1a1a;
+        --background: #181818;
         --main-background: #121212;
         --foreground: #ededed;
-        --divider: #262626;
+        --divider: #222;
         --error: #f87171;
-        --primary: #60a5fa;
-        --secondary: #d4d4d4;
+        --primary: rgb(106,181,219);
+        --secondary: #bbb;
         --highlight-option: #262626;
-        --success: #44da66;
+        --success: rgb(0,161,134);
         --success-background: rgba(48, 255, 110, 0.1);
         --warning: #fdcb3f;
         --warning-background: rgba(183, 142, 13, 0.3);
+        --tooltip-background: 333;
         .base-shadow {
             box-shadow: 0 0.1rem 1.2rem rgba(82, 85, 92, .15)
         }
         --card-box-shadow: 0 0.5rem 1.2rem rgba(82, 85, 92, .15);
+        --bg-gradient-to: 255,255,255;
+
         .pocket_logo {
             path {
-                fill: white;
-                fill-rule: evenodd;
+                fill: white!important;
+                fill-rule: evenodd!important;
+            }
+        }
+
+        footer {
+            background-color: rgb(21,21,21);
+            a {
+                background-color: rgb(40, 40, 40);
             }
         }
     }
@@ -57,8 +81,11 @@
 
 body {
     color: var(--foreground);
-    background: var(--background);
+    /*background: var(--background);*/
     font-family: Arial, Helvetica, sans-serif;
+    background-image: linear-gradient(var(--background) 0, rgba(var(--bg-gradient-to), 0) 85rem);
 }
 
-
+* {
+    font-family: var(--font-roboto);
+}

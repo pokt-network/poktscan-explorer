@@ -4,6 +4,7 @@ import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import { formatAmount } from '@/app/utils/format'
+import FailedTransactionFeedback from '@/app/(transactions)/FailedTransactionFeedback'
 
 const transfersByAddressDocument = graphql(`
   query transfersList($limit: Int!, $offset: Int!, $address: String!) {
@@ -39,7 +40,8 @@ const transfersByAddressDocument = graphql(`
 
 interface RowTransfer {
   id: string
-  result: string
+  result: number
+  codespace?: string
   height: string
   timestamp: string
   from: string
@@ -85,7 +87,8 @@ export default async function TransferTable({address, page, itemsPerPage, basePa
 
   const rows = data?.transfers?.nodes?.map((transfer) => ({
     id: transfer?.transaction?.id,
-    result: transfer?.transaction?.code === 0 ? 'Success' : 'Failed',
+    result: transfer?.transaction?.code,
+    codespace: transfer?.transaction?.codespace,
     height: transfer?.block?.height,
     timestamp: transfer?.block?.timestamp,
     from: transfer?.senderId,
@@ -104,36 +107,35 @@ export default async function TransferTable({address, page, itemsPerPage, basePa
       headerName: 'Tx Hash',
       maxWidth: 200,
       renderCell: (cell: RowTransfer) => (
-        <EntityLink
-          entity={'tx'}
-          entityId={cell.id}
-          copy={{
-            enabled: true,
-            tooltip: 'Copy transaction hash'
-          }}
-        />
-      )
-    },
-    {
-      field: 'result',
-      headerName: 'Result',
-      renderCell: (cell: RowTransfer) => (
-        <p className={`text-[color:--success] ${cell.result === 'Failed' ? 'text-[color:--error]' : ''}`}>
-          {cell.result}
-        </p>
+        <div className={'flex min-w-0 flex-row items-center gap-[6px]'}>
+          {cell.result !== 0 && (
+            <FailedTransactionFeedback
+              text={`Transaction failed with code ${cell.result}${cell.codespace ? ` and codespace: ${cell.codespace}` : ''}`}
+            />
+          )}
+          <div className={'text-xs md:text-sm flex grow min-w-0'}>
+            <EntityLink
+              entity={'tx'}
+              entityId={cell.id}
+              copy={{
+                enabled: true,
+                tooltip: 'Copy transaction hash',
+              }}
+            />
+          </div>
+        </div>
       )
     },
     {
       field: 'height',
       headerName: 'Height',
       renderCell: (cell: RowTransfer) => (
-        <EntityLink
-          entity={'block'}
-          entityId={cell.height}
-          copy={{
-            enabled: true
-          }}
-        />
+        <div className={'text-xs md:text-sm'}>
+          <EntityLink
+            entity={'block'}
+            entityId={cell.height}
+          />
+        </div>
       )
     },
     {
@@ -147,24 +149,26 @@ export default async function TransferTable({address, page, itemsPerPage, basePa
       headerName: 'From',
       maxWidth: 150,
       renderCell: (cell: RowTransfer) => (
-        <EntityLink
-          entity={'account'}
-          entityId={cell.from}
-          copy={{
-            enabled: true
-          }}
-        />
+        <div className={'text-xs md:text-sm'}>
+          <EntityLink
+            entity={'account'}
+            entityId={cell.from}
+            copy={{
+              enabled: true
+            }}
+          />
+        </div>
       )
     },
     {
       field: 'flow',
       headerName: '',
-      maxWidth: 52,
-      minWidth: 52,
-      width: 52,
+      maxWidth: 55,
+      minWidth: 55,
+      width: 55,
       renderCell: (cell: RowTransfer) => {
         return (
-          <span className={`text-[10px] px-[7px] leading-[22px] pt-[1px] font-bold w-[36px] text-center rounded-sm border ${cell.flow === 'IN' ? 'border-[color:--success] text-[color:--success] bg-[color:--success-background]' : 'border-[color:--warning] text-[color:--warning] bg-[color:--warning-background]'} inline-block`}>
+          <span className={`text-[10px] mx-[-6px] px-[7px] leading-[22px] pt-[1px] font-bold w-[36px] text-center rounded-sm border ${cell.flow === 'IN' ? 'border-[color:--success] text-[color:--success] bg-[color:--success-background]' : 'border-[color:--warning] text-[color:--warning] bg-[color:--warning-background]'} inline-block`}>
             {cell.flow}
           </span>
         )
@@ -176,22 +180,26 @@ export default async function TransferTable({address, page, itemsPerPage, basePa
       headerName: 'To',
       maxWidth: 150,
       renderCell: (cell: RowTransfer) => (
-        <EntityLink
-          entity={'account'}
-          entityId={cell.to}
-          copy={{
-            enabled: true
-          }}
-        />
+        <div className={'text-xs md:text-sm'}>
+          <EntityLink
+            entity={'account'}
+            entityId={cell.to}
+            copy={{
+              enabled: true
+            }}
+          />
+        </div>
       )
     },
     {
       field: 'amount',
       headerName: 'Amount',
+      align: 'right',
     },
     {
       field: 'fee',
       headerName: 'Fee',
+      align: 'right',
     }
   ]
 

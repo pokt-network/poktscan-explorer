@@ -3,8 +3,9 @@ import { Block } from '@/app/config/gql/graphql'
 import { getClient } from '@/app/config/apollo/rsc'
 import EntityDetail from '@/app/components/EntityDetail'
 import { formatTimeDifference } from '@/app/(home)/utils'
-import TextWithCopyButton from '@/app/components/TextWithCopyButton'
 import { formatAmount, formatSimpleAmount, formatSize } from '@/app/utils/format'
+import TitleEntity from '@/app/components/TitleEntity'
+import React from 'react'
 
 export const dynamic = "force-dynamic";
 
@@ -97,10 +98,8 @@ export default async function BlockDetailPage({
   }
 
   return (
-    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
-      <h1 className={'text-2xl font-semibold'}>
-        Block <TextWithCopyButton text={'#' + block.height.toString()} />
-      </h1>
+    <div className={'px-3 py-5 md:px-4 gap-4 flex flex-col'}>
+      <TitleEntity title={'Block'} text={'#' + block.height.toString()} />
       <EntityDetail
         items={[
           {

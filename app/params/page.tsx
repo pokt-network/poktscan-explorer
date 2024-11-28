@@ -175,9 +175,9 @@ export default async function ParamsPage() {
   })
 
   return (
-    <div className={"p-10 gap-5 flex flex-col"}>
+    <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <div className={"flex flex-row items-center gap-3"}>
-        <h1 className={'text-2xl font-semibold'}>
+        <h1 className={'text-lg font-medium'}>
           Parameters
         </h1>
       </div>
@@ -186,7 +186,7 @@ export default async function ParamsPage() {
           key={paramName}
           className={"bg-[color:--main-background] p-5 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow"}
         >
-          <h2 className={'text-lg font-medium'}>
+          <h2 className={'text-sm font-medium'}>
             {paramName.at(0).toUpperCase() + paramName.substring(1)} Parameters
           </h2>
           <div className={"grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4"}>

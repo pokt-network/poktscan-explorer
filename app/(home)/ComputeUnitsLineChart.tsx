@@ -65,7 +65,8 @@ export default function ComputeUnitsLineChart({data}: ComputeUnitsLineChartProps
             pointHoverRadius: 8,
             pointBorderColor: 'transparent',
             pointBackgroundColor: 'transparent',
-            pointBorderWidth: 0
+            pointBorderWidth: 0,
+            borderWidth: 1.5,
           }
         ]
       }}

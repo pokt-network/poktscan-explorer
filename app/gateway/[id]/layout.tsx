@@ -4,8 +4,8 @@ import { getClient } from '@/app/config/apollo/rsc'
 import EntityDetail, { Item } from '@/app/components/EntityDetail'
 import { getStakeLabel } from '@/app/utils/stake'
 import EntityLink from '@/app/components/EntityLink'
-import TextWithCopyButton from '@/app/components/TextWithCopyButton'
 import { formatAmount } from '@/app/utils/format'
+import TitleEntity from '@/app/components/TitleEntity'
 
 const gatewayByIdDocument = graphql(`
   query gatewayById($id: String!) {
@@ -140,13 +140,8 @@ export default async function GatewayLayout({children, params}: Readonly<{
   }
 
   return (
-    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
-      <div className={"flex flex-row items-center gap-3"}>
-        <h1 className={'text-2xl font-semibold'}>
-          Gateway
-        </h1>
-        <TextWithCopyButton text={gateway.id} />
-      </div>
+    <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
+      <TitleEntity title={'Gateway'} text={gateway.id} />
       <EntityDetail
         items={rows}
       />

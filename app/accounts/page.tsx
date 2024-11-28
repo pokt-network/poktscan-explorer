@@ -7,6 +7,7 @@ import React from 'react'
 import FourCard from '@/app/components/FourCard'
 import { getLatestBlock } from '@/app/api/blocks'
 import { formatAmount } from '@/app/utils/format'
+import ListTitle from '@/app/components/ListTitle'
 
 export const dynamic = "force-dynamic";
 
@@ -129,10 +130,6 @@ export default async function AccountsPage({searchParams}: PageProps) {
       )
     },
     {
-      field: 'balance',
-      headerName: 'Balance',
-    },
-    {
       field: 'lastUpdatedTime',
       headerName: 'Updated Date',
       maxWidth: 180,
@@ -149,13 +146,16 @@ export default async function AccountsPage({searchParams}: PageProps) {
         </div>
       )
     },
+    {
+      field: 'balance',
+      headerName: 'Balance',
+      align: 'right',
+    },
   ]
 
   return (
-    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
-      <h1 className={'text-2xl font-semibold'}>
-        Accounts
-      </h1>
+    <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
+      <ListTitle title={'Accounts'} />
       <FourCard
         items={[
           {

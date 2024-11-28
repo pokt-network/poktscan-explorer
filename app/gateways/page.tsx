@@ -8,7 +8,9 @@ import DetailCell from '@/app/components/DetailCell'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import { getStakeLabel } from '@/app/utils/stake'
-import { formatAmount } from '@/app/utils/format'
+import { formatAmount, truncateAddress } from '@/app/utils/format'
+import Chip from '@/app/components/Chip'
+import ListTitle from '@/app/components/ListTitle'
 
 export const dynamic = "force-dynamic";
 
@@ -69,8 +71,8 @@ interface RowGateway {
   status: string
   stakeAmount: string
   balance: string
-  applicationsDelegating: string
-  services: string
+  applicationsDelegating: Array<React.ReactNode>
+  services: Array<string>
   servicesData: Array<{ id: string, name: string }>
   allApplications: Array<string>
 }
@@ -133,8 +135,19 @@ export default async function GatewaysPage({searchParams}: PageProps) {
         amount: '0',
         denom: 'upokt'
       }),
-      applicationsDelegating: applications.length > 1 ? applications.length : applications.at(0) || 'None',
-      services: services.length > 1 ? services.length : services.at(0)?.name || 'None',
+      applicationsDelegating: applications.map((app, index) => !index ? (
+        <div className={'text-[10px] md:text-xs h-[20px] mt-[-4px]'} key={app}>
+          <EntityLink
+            entity={'app'}
+            entityId={app}
+            label={truncateAddress(app)}
+            copy={{
+              enabled: false
+            }}
+          />
+        </div>
+      ) : app),
+      services: services.map(service => service?.name),
       servicesData: services,
       allApplications: applications
     }
@@ -229,27 +242,33 @@ export default async function GatewaysPage({searchParams}: PageProps) {
     {
       field: 'stakeAmount',
       headerName: 'Stake Amount',
+      align: 'right',
     },
     {
       field: 'balance',
       headerName: 'Balance',
+      align: 'right',
     },
     {
       field: 'applicationsDelegating',
       headerName: 'Applications Delegating',
-      description: "Applications that this gateways have permissions"
+      description: "Applications that this gateways have permissions",
+      renderCell: (cell: RowGateway) => (
+        cell.applicationsDelegating.length ? <Chip values={cell.applicationsDelegating} /> : 'None'
+      )
     },
     {
       field: 'services',
       headerName: 'Services',
+      renderCell: (cell: RowGateway) => (
+        cell.services.length ? <Chip values={cell.services} /> : 'None'
+      )
     },
   ]
 
   return (
-    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
-      <h1 className={'text-2xl font-semibold'}>
-        Gateways
-      </h1>
+    <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
+      <ListTitle title={'Gateways'} />
       <Table
         columns={columns}
         rows={rows}

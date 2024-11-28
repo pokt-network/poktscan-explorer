@@ -4,8 +4,9 @@ import EntityDetail, { Item } from '@/app/components/EntityDetail'
 import { getEndpointLabel, getStakeLabel, getStakeType } from '@/app/utils/stake'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import EntityLink from '@/app/components/EntityLink'
-import TextWithCopyButton from '@/app/components/TextWithCopyButton'
 import { formatAmount } from '@/app/utils/format'
+import TitleEntity from '@/app/components/TitleEntity'
+import React from 'react'
 
 const supplierByIdDocument = graphql(`
   query supplierById($id: String!) {
@@ -150,31 +151,29 @@ export default async function RootLayout({children, params}: Readonly<{
   }
 
   return (
-    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
-      <div className={"flex flex-row items-center gap-3"}>
-        <h1 className={'text-2xl font-semibold'}>
-          Supplier
-        </h1>
-        <TextWithCopyButton text={supplier.id} />
-      </div>
+    <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
+      <TitleEntity title={'Supplier'} text={supplier.id} />
       <EntityDetail
         items={rows}
       />
       <h2 className={"text-xl font-semibold"}>
         Services
       </h2>
-      <div className={"bg-[color:--main-background] px-4 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow"}>
+      <div
+        className={"bg-[color:--main-background] px-4 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow"}>
         <Accordion type={'multiple'} className={'p-0'}>
           {supplier.supplierServices.nodes.map((service, index) => {
             const revSharing = service.revShare.reduce((acc, item) => acc + Number(item.revSharePercentage), 0)
 
             return (
-              <AccordionItem value={index.toString()} key={index.toString()} className={index === supplier.supplierServices.nodes.length - 1 ? 'border-none' : undefined}>
+              <AccordionItem value={index.toString()} key={index.toString()}
+                             className={index === supplier.supplierServices.nodes.length - 1 ? 'border-none' : undefined}>
                 <AccordionTrigger className={'flex flex-row gap-2 justify-start items-center'}>
-                  <p className={'font-bold text-lg'}>
+                  <p className={'font-medium text-md'}>
                     {service.service.name}{service.service.id !== service.service.name ? ` (${service.service.id})` : ''}
                   </p>
-                  <p className={'text-xs bg-[color:--background] ml-1 mr-[2px] p-2 py-1 rounded-md border-[2px] border border-[color:--divider]'}>
+                  <p
+                    className={'text-xs bg-[color:--background] ml-1 mr-[2px] p-2 py-1 rounded-md border-[2px] border border-[color:--divider]'}>
                     {service.endpoints.length} endpoint{service.endpoints.length > 1 ? 's' : ''}
                   </p>
                   {revSharing > 0 && (
@@ -185,14 +184,14 @@ export default async function RootLayout({children, params}: Readonly<{
                   )}
                 </AccordionTrigger>
                 <AccordionContent className={"p-4 bg-[color:--background]"}>
-                  <h3 className={"text-sm font-semibold mb-2"}>
+                  <h3 className={"text-sm font-medium mb-2"}>
                     Endpoints
                   </h3>
                   <ul className={'pl-2'}>
                     {service.endpoints.map((endpoint, index) => (
                       <li key={index} className={'flex flex-row gap-2 items-center'}>
                         -
-                        <p className={'text-xs text-[color:--secondary]'}>
+                        <p className={'text-xs'}>
                           {endpoint.url}
                         </p>
                         <p
@@ -202,7 +201,7 @@ export default async function RootLayout({children, params}: Readonly<{
                       </li>
                     ))}
                   </ul>
-                  <h3 className={"text-sm font-semibold mt-4 mb-2"}>
+                  <h3 className={"text-sm font-medium mt-4 mb-2"}>
                     Rev Share
                   </h3>
                   {service.revShare.length > 0 ? (

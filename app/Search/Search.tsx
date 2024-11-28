@@ -72,7 +72,7 @@ export default function SearchInput({ showIcon = true, zIndex = 1024, pathToHide
           }
         }}
         style={{ zIndex: zIndex + 1 }}
-        className={"flex w-full flex-row items-center gap-2 border px-2 border-[color:--divider] rounded-md relative bg-[color:--main-background]"}
+        className={"flex my-1 w-full flex-row items-center gap-2 border px-2 border-[color:--divider] rounded-md relative bg-[color:--main-background]"}
       >
         {showIcon && (
           <Search className={'h-5 w-5 text-[color:--secondary]'} />

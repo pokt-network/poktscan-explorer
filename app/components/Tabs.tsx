@@ -24,7 +24,7 @@ export default function Tabs({tabs, activeTab, basePath}: TabsProps) {
             <span
               key={tab.tab}
               className={`text-xs px-[10px] font-semibold cursor-not-allowed select-none leading-[24px] py-1 rounded-lg transition-transform duration-300 ${
-               isActive  ? 'bg-blue-600 text-white'
+               isActive  ? 'bg-[color:#0784c3] text-white'
                 : 'bg-[color:rgba(141,141,141,0.12)]'
               }`}
             >
@@ -36,7 +36,7 @@ export default function Tabs({tabs, activeTab, basePath}: TabsProps) {
         return (
           <Link
             className={`text-xs px-[10px] font-semibold aria-disabled:cursor-not-allowed leading-[24px] py-1 rounded-lg transition-transform duration-300 ${
-              isActive  ? 'bg-blue-600 text-white'
+              isActive  ? 'bg-[color:#0784c3] text-white'
               : 'bg-[color:rgba(141,141,141,0.12)]'
             }`}
             href={`${basePath}?tab=${tab.tab}`}

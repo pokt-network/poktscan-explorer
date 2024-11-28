@@ -13,6 +13,10 @@ export function truncateBothSides(str: string, length: number) {
   return `${str.substring(0, length)}...${str.substring(str.length - length)}`
 }
 
+export function truncateAddress(address: string) {
+  return truncateBothSides(address.replace('pokt', ''), 8)
+}
+
 function toScientificNotation(num: number): string {
   if (num === 0) return "0";
 

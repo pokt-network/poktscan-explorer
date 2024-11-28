@@ -9,6 +9,9 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+			fontFamily: {
+				mono: ['var(--font-roboto)'],
+			},
   		colors: {
   			background: 'hsl(var(--background))',
   			'main-background': 'hsl(var(--main-background))',

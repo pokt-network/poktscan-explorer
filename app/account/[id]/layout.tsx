@@ -3,8 +3,8 @@ import { ReactNode } from 'react'
 import { getClient } from '@/app/config/apollo/rsc'
 import EntityDetail, { Item } from '@/app/components/EntityDetail'
 import EntityLink from '@/app/components/EntityLink'
-import TextWithCopyButton from '@/app/components/TextWithCopyButton'
 import { formatAmount } from '@/app/utils/format'
+import TitleEntity from '@/app/components/TitleEntity'
 
 const accountByIdDocument = graphql(`
   query accountById($id: String!) {
@@ -73,13 +73,8 @@ export default async function AccountLayout({children, params}: {
   ]
 
   return (
-    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
-      <div className={"flex flex-row items-center gap-3"}>
-        <h1 className={'text-2xl font-semibold'}>
-          Account
-        </h1>
-        <TextWithCopyButton text={account.id} />
-      </div>
+    <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
+      <TitleEntity title={'Account'} text={account.id} />
       <EntityDetail
         items={rows}
       />

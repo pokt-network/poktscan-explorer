@@ -4,9 +4,10 @@ import { formatAmount } from '@/app/utils/format'
 interface PriceProps extends PriceType {
   showLabel?: boolean;
   priceColor?: string
+  fontSize?: string
 }
 
-export default function Price({usd, usd_24h_change, showLabel = true, priceColor='--primary'}: PriceProps) {
+export default function Price({usd, usd_24h_change, showLabel = true, priceColor='--primary', fontSize = 'xs'}: PriceProps) {
   let changeColor: string
 
   if (usd_24h_change > 0) {
@@ -18,9 +19,10 @@ export default function Price({usd, usd_24h_change, showLabel = true, priceColor
   }
 
   const color = `text-[color:${priceColor}]`
+  const text = `text-${fontSize}`
 
   return (
-    <p className={"text-xs text-[color:--secondary]"}>
+    <p className={`${text} text-[color:--secondary]`}>
       {showLabel && "POKT Price: "}<span className={color}>${usd ? formatAmount({
         amount: usd,
       }) : '-'}</span> <span

@@ -5,7 +5,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import PocketLogo from './pocket_logo.svg'
+import PocketLogo from '../assets/pocket_logo.svg'
 import { useEffect, useState } from 'react'
 
 export default function ExplorerSelector() {

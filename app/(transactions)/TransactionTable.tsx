@@ -3,10 +3,13 @@ import Table, { GridColDef, TableProps } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import { formatAmount } from '@/app/utils/format'
+import Chip from '@/app/components/Chip'
+import FailedTransactionFeedback from '@/app/(transactions)/FailedTransactionFeedback'
 
 export interface RowTransaction {
   id: string
-  result: 0 | 1
+  result: number
+  codespace?: string
   messages: Array<string>
   height: number
   timestamp: string
@@ -34,7 +37,8 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
 
     return {
       id: transaction.id || '',
-      result: transaction.code === 0 ? 0 : 1,
+      result: transaction.code,
+      codespace: transaction.codespace,
       messages: transaction?.messages?.nodes?.map((msg) => msg?.typeUrl?.split('.')?.at(-1)?.replace('Msg', '') || '') || [],
       height: Number(transaction.block!.height),
       timestamp: transaction.block!.timestamp!,
@@ -53,45 +57,31 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       headerName: 'Tx Hash',
       maxWidth: 210,
       renderCell: (cell: RowTransaction) => (
-        <div className={'text-xs md:text-sm'}>
-          <EntityLink
-            entity={'tx'}
-            entityId={cell.id}
-            copy={{
-              enabled: true,
-              tooltip: 'Copy transaction hash'
-            }}
-          />
+        <div className={'flex min-w-0 flex-row items-center gap-[6px]'}>
+          {cell.result !== 0 && (
+            <FailedTransactionFeedback
+              text={`Transaction failed with code ${cell.result}${cell.codespace ? ` and codespace: ${cell.codespace}` : ''}`}
+            />
+          )}
+          <div className={'text-xs md:text-sm flex grow min-w-0'}>
+            <EntityLink
+              entity={'tx'}
+              entityId={cell.id}
+              copy={{
+                enabled: true,
+                tooltip: 'Copy transaction hash',
+              }}
+            />
+          </div>
         </div>
-      )
-    },
-    {
-      field: 'result',
-      headerName: 'Result',
-      minWidth: 84,
-      renderCell: (cell: RowTransaction) => (
-        <span className={`text-[color:--success] text-xs md:text-sm ${cell.result === 1 ? 'text-[color:--error]' : ''}`}>
-          {cell.result === 1 ? 'Failed' : 'Success'}
-        </span>
       )
     },
     {
       field: 'messages',
       headerName: 'Messages',
       renderCell: (cell: RowTransaction) => (
-        <div className={"flex flex-row grow gap-1.5 items-center"}>
-          <div className={"flex flex-row items-center justify-center gap-1 bg-[color:--background] px-3 md:px-4 py-[2px] md:py-1 rounded-lg border border-[color:--divider]"}>
-            <p className={"whitespace-nowrap overflow-hidden overflow-ellipsis text-[10px] md:text-xs"}>
-              {cell.messages.at(0) || 'Unknown'}
-            </p>
-          </div>
-          {cell.messages.length > 1 && (
-            <p className={"text-[color:--secondary] text-[10px] md:text-xs font-semibold"}>
-              +{cell.messages.length - 1}
-            </p>
-          )}
-        </div>
-      )
+        <Chip values={cell.messages} />
+      ),
     },
     {
       field: 'height',
@@ -117,10 +107,12 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
     {
       field: 'amount',
       headerName: 'Amount',
+      align: 'right',
     },
     {
       field: 'fee',
       headerName: 'Fee',
+      align: 'right',
     }
   ]
 

@@ -12,6 +12,7 @@ export interface GridColDef {
   minWidth?: number
   maxWidth?: number
   description?: string
+  align?: 'left' | 'center' | 'right';
   // eslint-disable @typescript-eslint/no-explicit-any
   renderCell?: (cell: any) => React.ReactNode
 }

@@ -15,8 +15,8 @@ export default function SiteSettings() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className={"border p-2 bg-[color:--background] border-[color:--divider] rounded-md h-[34px] w-[34px]"}>
-        <Sun className={"h-4 w-4 dark:hidden"}/>
-        <Moon className={"h-4 w-4 hidden dark:block"}/>
+        <Sun className={"h-4 w-4 dark:hidden stroke-sky-600"}/>
+        <Moon className={"h-4 w-4 hidden dark:block stroke-sky-600"}/>
       </DropdownMenuTrigger>
       <DropdownMenuContent align={"end"} className={'z-[1026] border-[color:--divider] bg-[color:--main-background] '}>
         <DropdownMenuLabel onClick={() => setTheme('light')} className={"flex font-medium flex-row items-center gap-2 hover:bg-[color:--highlight-option] cursor-pointer"}>

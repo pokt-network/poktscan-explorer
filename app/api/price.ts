@@ -1,4 +1,5 @@
 import { unstable_cache } from 'next/cache'
+import { cache } from 'react'
 
 export interface Price {
   usd: number
@@ -6,7 +7,9 @@ export interface Price {
   usd_24h_change: number
 }
 
-const getPrice = unstable_cache(async (): Promise<Price> => {
+// We are using unstable_cache here because we want to cache the response for 60 seconds
+// and React.cache to only make one request per page render
+const getPrice = cache(unstable_cache(async (): Promise<Price> => {
   const data = await fetch(
     'https://api.coingecko.com/api/v3/simple/price?ids=pocket-network&vs_currencies=usd&include_24hr_change=true&include_market_cap=true',
     {
@@ -19,6 +22,6 @@ const getPrice = unstable_cache(async (): Promise<Price> => {
 ['price'],
 {
     revalidate: 60
-})
+}))
 
 export default getPrice;

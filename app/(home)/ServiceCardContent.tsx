@@ -34,8 +34,8 @@ export default function ServiceCardContent({table, defaultType, chart, hasItems}
   return (
     <div className={'bg-[color:--main-background] w-full lg:w-[50%] pb-4 border-[color:--divider] border rounded-lg sm:h-[650px] base-shadow'}>
       <div className={'h-[50px] p-4 w-full flex items-center border-b border-[color:--divider] justify-between'}>
-        <div className={'flex items-center gap-2'}>
-          <p className={'font-bold'}>
+        <div className={'flex items-center gap-1'}>
+          <p className={'font-semibold text-[15px]'}>
             Services
           </p>
           <BoxLabel label={'24H'} />

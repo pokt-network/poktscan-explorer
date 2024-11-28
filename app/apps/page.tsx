@@ -13,7 +13,9 @@ import DetailCell from '@/app/components/DetailCell'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import FourCard from '@/app/components/FourCard'
-import { formatAmount } from '@/app/utils/format'
+import { formatAmount, truncateAddress } from '@/app/utils/format'
+import Chip from '@/app/components/Chip'
+import ListTitle from '@/app/components/ListTitle'
 
 export const dynamic = "force-dynamic";
 
@@ -82,9 +84,9 @@ interface RowApp {
   status: string
   stakeAmount: string
   balance: string
-  services: string
+  services: Array<string>
   servicesData: Array<ApplicationService>
-  gateways: string
+  gateways: Array<React.ReactNode>
   gatewaysData: Array<ApplicationGateway>
 }
 
@@ -132,9 +134,20 @@ export default async function AppsPage({searchParams}: PageProps) {
       amount: '0',
       denom: 'upokt'
     }),
-    services: application!.services.nodes.length === 1 ? application!.services.nodes.at(0)!.service!.name : application!.services.nodes.length,
+    services: application!.services.nodes.map(service => service.service!.name),
     servicesData: application!.services!.nodes!,
-    gateways: !application!.applicationGateways.nodes.length ? '-' : application!.applicationGateways.nodes.length === 1 ? application!.applicationGateways.nodes.at(0)!.gatewayId : `${application!.applicationGateways.nodes.length} Gateways`,
+    gateways: application!.applicationGateways.nodes.map((gateway, index) => !index ? (
+      <div className={'text-[10px] md:text-xs h-[20px] mt-[-4px]'} key={gateway!.gatewayId}>
+        <EntityLink
+          entity={'gateway'}
+          entityId={gateway!.gatewayId}
+          label={truncateAddress(gateway!.gatewayId)}
+          copy={{
+            enabled: false
+          }}
+        />
+      </div>
+    ) : gateway.gatewayId),
     gatewaysData: application!.applicationGateways!.nodes!
   }))
 
@@ -205,7 +218,7 @@ export default async function AppsPage({searchParams}: PageProps) {
     {
       field: 'id',
       headerName: 'Address',
-      minWidth: 200,
+      maxWidth: 250,
       renderCell: (cell: RowApp) => (
         <div className={'text-xs md:text-sm'}>
           <EntityLink
@@ -230,19 +243,23 @@ export default async function AppsPage({searchParams}: PageProps) {
     {
       field: 'services',
       headerName: 'Services',
+      renderCell: (cell: RowApp) => (
+        <Chip values={cell.services} />
+      )
     },
     {
       field: 'gateways',
       headerName: 'Delegated To',
-      description: "Gateways that have permissions to send relays on behalf of this application"
+      description: "Gateways that have permissions to send relays on behalf of this application",
+      renderCell: (cell: RowApp) => (
+        cell.gateways.length ? <Chip values={cell.gateways} /> : 'None'
+      )
     }
   ]
 
   return (
-    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
-      <h1 className={'text-2xl font-semibold'}>
-        Applications
-      </h1>
+    <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
+      <ListTitle title={'Applications'} />
       <FourCard
         items={[
           {
@@ -269,7 +286,8 @@ export default async function AppsPage({searchParams}: PageProps) {
           },
         ]}
       />
-      <Table columns={columns} rows={rows} header={{title: `${data.applications?.totalCount} applications found`}} pagination={{currentPage: page, totalPages, itemsPerPage, basePath: '/apps'}} />
+      <Table columns={columns} rows={rows} header={{ title: `${data.applications?.totalCount} applications found` }}
+             pagination={{ currentPage: page, totalPages, itemsPerPage, basePath: '/apps' }} />
     </div>
   )
 }

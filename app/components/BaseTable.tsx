@@ -11,12 +11,26 @@ interface BaseTableProps {
   defaultMinWidth?: number
 }
 
+function getAlignClass(column: GridColDef) {
+  switch (column.align) {
+    case 'left':
+      return 'text-left'
+    case 'center':
+      return 'text-center'
+    case 'right':
+      return 'text-right'
+    default:
+      return 'text-left'
+  }
+}
+
 export default function BaseTable({rows, columns, defaultMinWidth}: BaseTableProps) {
   return (
     <ShadTable>
       <TableHeader>
         <TableRow>
           {columns.map((column, index) => {
+            const align = getAlignClass(column)
 
             return (
               <TableHead
@@ -26,7 +40,7 @@ export default function BaseTable({rows, columns, defaultMinWidth}: BaseTablePro
                   maxWidth: column.maxWidth,
                   width: column.width,
                 }}
-                className={`${index ? 'pl-2 md:pl-4' : 'pl-4'} text-xs md:text-[0.8125rem] text-left whitespace-nowrap py-[10px] ${index === columns.length - 1 ? 'pr-4' : 'pr-2 md:pr-4'}`}
+                className={`${index ? 'pl-2 md:pl-4' : 'pl-4'} ${align} text-xs md:text-[0.8125rem] whitespace-nowrap py-[10px] ${index === columns.length - 1 ? 'pr-4' : 'pr-2 md:pr-4'}`}
               >
                   <span>
                     {column.headerName}
@@ -58,6 +72,7 @@ export default function BaseTable({rows, columns, defaultMinWidth}: BaseTablePro
         {rows.map((row) => (
           <TableRow key={row.id}>
             {columns.map((column, index) => {
+              const align = getAlignClass(column)
               return (
                 <TableCell
                   key={column.field}
@@ -66,7 +81,7 @@ export default function BaseTable({rows, columns, defaultMinWidth}: BaseTablePro
                     maxWidth: column.maxWidth,
                     width: column.width,
                   }}
-                  className={`h-[48px] py-[10px] ${index ? 'pl-2 md:pl-4' : 'pl-4'} ${index === columns.length - 1 ? 'pr-4' : 'pr-2 md:pr-4'}`}
+                  className={`h-[48px] py-[10px] ${align} ${index ? 'pl-2 md:pl-4' : 'pl-4'} ${index === columns.length - 1 ? 'pr-4' : 'pr-2 md:pr-4'}`}
                 >
                   {column.renderCell ? column.renderCell(row) : (
                     <p className={"text-xs md:text-sm whitespace-nowrap overflow-hidden overflow-ellipsis"}>

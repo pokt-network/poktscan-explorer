@@ -5,8 +5,8 @@ import EntityLink from '@/app/components/EntityLink'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { isValidPoktAddress } from '@/app/utils/poktroll'
 import React from 'react'
-import TextWithCopyButton from '@/app/components/TextWithCopyButton'
 import { formatAmount } from '@/app/utils/format'
+import TitleEntity from '@/app/components/TitleEntity'
 
 export const dynamic = "force-dynamic";
 
@@ -157,32 +157,29 @@ export default async function TransactionDetailPage({
   }
 
   return (
-    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
-      <div className={"flex flex-row items-center gap-3"}>
-        <h1 className={'text-2xl font-semibold'}>
-          Tx
-        </h1>
-        <TextWithCopyButton text={tx.id} />
-      </div>
+    <div className={'px-3 py-5 md:px-4 gap-4 flex flex-col'}>
+      <TitleEntity title={'Tx'} text={tx.id} />
       <EntityDetail
         items={rows}
       />
-      <h2 className={"text-xl font-semibold"}>
+      <h2 className={'text-xl font-semibold'}>
         Messages
       </h2>
-      <div className={"bg-[color:--main-background] p-4 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow"}>
+      <div
+        className={'bg-[color:--main-background] p-4 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow'}>
         <Accordion type={'multiple'} defaultValue={['0']}>
           {tx.messages.nodes.map((node, index) => (
-            <AccordionItem value={index.toString()} key={index.toString()} className={index === tx.messages.nodes.length - 1 ? 'border-none' : undefined}>
+            <AccordionItem value={index.toString()} key={index.toString()}
+                           className={index === tx.messages.nodes.length - 1 ? 'border-none' : undefined}>
               <AccordionTrigger className={'flex flex-row gap-2 min-w-0 justify-start items-center'}>
                 <span className={'font-semibold'}>
-                  {node.typeUrl.split('.').at(-1).replace('Msg','')}
+                  {node.typeUrl.split('.').at(-1).replace('Msg', '')}
                 </span>
                 <p className={'whitespace-nowrap overflow-hidden overflow-ellipsis text-[color:--secondary]'}>
                   {node.typeUrl}
                 </p>
               </AccordionTrigger>
-              <AccordionContent className={"p-4 bg-[color:--background]"}>
+              <AccordionContent className={'p-4 bg-[color:--background]'}>
                 {renderJSON(JSON.parse(node.json), 0)}
               </AccordionContent>
             </AccordionItem>
@@ -196,7 +193,7 @@ export default async function TransactionDetailPage({
 function renderJSON(data: any, level = 0) {
   return (
     <div className={'flex flex-col gap-4 md:gap-[10px]'}>
-      {Object.entries(data).map(([key, value]) => {
+    {Object.entries(data).map(([key, value]) => {
         const isObject = typeof value === 'object' && value !== null
         const areAmounts = (Array.isArray(value) && value.every((value) => 'amount' in value && 'denom' in value && Object.keys(value).length === 2)) || (isObject && 'amount' in value && 'denom' in value && Object.keys(value).length === 2)
         const isAddress = typeof value === 'string' && isValidPoktAddress(value)
@@ -206,7 +203,7 @@ function renderJSON(data: any, level = 0) {
         if (areAmounts) {
           const arr = !Array.isArray(value)? [value] : value
           valueComponent = (
-            <p className={'text-xs font-semibold whitespace-pre leading-[24px] md:leading-5 md:mt-[-4px] ml-[10px] md:ml-0'}>
+            <p className={'text-xs font-medium whitespace-pre leading-[24px] md:leading-5 md:mt-[-4px] ml-[10px] md:ml-0'}>
               {arr.map((item) => formatAmount(item)).join('\n')}
             </p>
           )
@@ -214,7 +211,7 @@ function renderJSON(data: any, level = 0) {
           valueComponent = renderJSON(value, level + 1)
         } else if (isAddress) {
           valueComponent = (
-            <div className={'text-xs font-semibold whitespace-nowrap overflow-hidden overflow-ellipsis mt-[-6px]'}>
+            <div className={'text-xs font-medium whitespace-nowrap overflow-hidden overflow-ellipsis mt-[-6px]'}>
               <EntityLink
                 entity={'account'}
                 entityId={value}
@@ -223,7 +220,7 @@ function renderJSON(data: any, level = 0) {
           )
         } else {
           valueComponent = (
-            <p className={'text-xs font-semibold whitespace-nowrap overflow-hidden overflow-ellipsis'}>
+            <p className={'text-xs font-medium whitespace-nowrap overflow-hidden overflow-ellipsis'}>
               {value}
             </p>
           )

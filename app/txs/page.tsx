@@ -5,6 +5,7 @@ import React from 'react'
 import FourCard from '@/app/components/FourCard'
 import TransactionTable from '@/app/(transactions)/TransactionTable'
 import { getLatestBlock } from '@/app/api/blocks'
+import ListTitle from '@/app/components/ListTitle'
 
 export const dynamic = "force-dynamic";
 
@@ -94,10 +95,8 @@ export default async function TransactionsPage({searchParams}: PageProps) {
   }
 
   return (
-    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
-      <h1 className={'text-2xl font-semibold'}>
-        Transactions
-      </h1>
+    <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
+      <ListTitle title={'Transactions'} />
       <FourCard
         items={[
           {

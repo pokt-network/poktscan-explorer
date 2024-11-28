@@ -8,6 +8,8 @@ import millify from 'millify'
 import { formatTimeDifference } from '@/app/(home)/utils'
 import { getLatestBlock } from '@/app/api/blocks'
 import { formatAmount, formatSimpleAmount, formatSize } from '@/app/utils/format'
+import ListTitle from '@/app/components/ListTitle'
+import React from 'react'
 
 export const dynamic = "force-dynamic";
 
@@ -146,49 +148,55 @@ export default async function BlocksPage({searchParams}: PageProps) {
       maxWidth: 180,
     },
     {
-      field: 'took',
-      headerName: 'Took',
-    },
-    {
       field: 'proposer',
       headerName: 'Proposer',
       maxWidth: 200,
     },
     {
+      field: 'took',
+      headerName: 'Took',
+      align: 'right',
+    },
+    {
       field: 'supply',
       headerName: 'Total Supply',
+      align: 'right',
     },
     {
       field: 'txAmount',
       headerName: 'Transactions',
+      align: 'right',
     },
     {
       field: 'nodes',
       headerName: 'Suppliers',
+      align: 'right',
     },
     {
       field: 'apps',
       headerName: 'Apps',
+      align: 'right',
     },
     {
       field: 'gateways',
       headerName: 'Gateways',
+      align: 'right',
     },
     {
       field: 'relays',
       headerName: 'Relays',
+      align: 'right',
     },
     {
       field: 'size',
       headerName: 'Size',
+      align: 'right',
     }
   ]
 
   return (
-    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
-      <h1 className={'text-2xl font-semibold'}>
-        Blocks
-      </h1>
+    <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
+      <ListTitle title={'Blocks'} />
       <FourCard
         items={[
           {

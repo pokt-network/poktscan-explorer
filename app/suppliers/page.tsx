@@ -11,6 +11,8 @@ import DetailCell from '@/app/components/DetailCell'
 import { SupplierServiceConfig } from '@/app/config/gql/graphql'
 import { getStakeLabel } from '@/app/utils/stake'
 import { formatAmount } from '@/app/utils/format'
+import Chip from '@/app/components/Chip'
+import ListTitle from '@/app/components/ListTitle'
 
 export const dynamic = "force-dynamic";
 
@@ -80,7 +82,7 @@ interface RowSupplier {
   balance: string
   outputAddress: string
   outputBalance: string
-  services: string
+  services: Array<string>
   servicesData: Array<SupplierServiceConfig>
 }
 
@@ -136,7 +138,7 @@ export default async function SuppliersPage({searchParams}: PageProps) {
         denom: 'upokt'
       }),
       outputAddress: isCustodian ? '-' : supplier!.ownerId,
-      services: supplier!.supplierServices.nodes.length === 1 ? supplier!.supplierServices.nodes.at(0)!.service!.name : supplier!.supplierServices.nodes.length,
+      services: supplier!.supplierServices.nodes.map(service => service!.service!.name),
       servicesData: supplier!.supplierServices!.nodes!
     }
   })
@@ -213,10 +215,12 @@ export default async function SuppliersPage({searchParams}: PageProps) {
     {
       field: 'stakeAmount',
       headerName: 'Stake Amount',
+      align: 'right',
     },
     {
       field: 'balance',
       headerName: 'Balance',
+      align: 'right',
     },
     {
       field: "outputAddress",
@@ -233,18 +237,20 @@ export default async function SuppliersPage({searchParams}: PageProps) {
     {
       field: 'outputBalance',
       headerName: 'Output Balance',
+      align: 'right',
     },
     {
       field: 'services',
       headerName: 'Services',
+      renderCell: (cell: RowSupplier) => (
+        <Chip values={cell.services} />
+      )
     }
   ]
 
   return (
-    <div className={"px-3 py-10 md:px-10 gap-5 flex flex-col"}>
-      <h1 className={'text-2xl font-semibold'}>
-        Suppliers
-      </h1>
+    <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
+      <ListTitle title={'Suppliers'} />
       <FourCard
         items={[
           {

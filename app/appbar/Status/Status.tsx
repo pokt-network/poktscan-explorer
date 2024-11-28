@@ -19,14 +19,6 @@ const indexerMetadataDocument = graphql(`
 export default async function Status() {
   const {data} = await getClient().query({
     query: indexerMetadataDocument,
-    context: {
-      fetchOptions: {
-        cache: 'default',
-        next: {
-          revalidate: 15
-        },
-      }
-    }
   })
 
   let icon: React.ReactNode, color: string, content: React.ReactNode
