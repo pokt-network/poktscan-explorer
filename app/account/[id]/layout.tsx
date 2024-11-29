@@ -5,6 +5,8 @@ import EntityDetail, { Item } from '@/app/components/EntityDetail'
 import EntityLink from '@/app/components/EntityLink'
 import { formatAmount } from '@/app/utils/format'
 import TitleEntity from '@/app/components/TitleEntity'
+import DateColumn from '@/app/dates/DateColumn'
+import DateCellText from '@/app/dates/DateCellText'
 
 const accountByIdDocument = graphql(`
   query accountById($id: String!) {
@@ -58,15 +60,19 @@ export default async function AccountLayout({children, params}: {
     },
     {
       type: 'row',
-      label: 'Updated At',
-      value: upoktBalance.lastUpdatedBlock!.timestamp
-    },
-    {
-      type: 'row',
       label: 'Updated At Block',
       value: (
         <div className={"text-sm"}>
           <EntityLink entity={'block'} entityId={upoktBalance.lastUpdatedBlock!.height} copy={{enabled: true}}/>
+        </div>
+      )
+    },
+    {
+      type: 'row',
+      label: <DateColumn />,
+      value: (
+        <div className={"text-sm"}>
+          <DateCellText value={upoktBalance.lastUpdatedBlock!.timestamp} />
         </div>
       )
     },

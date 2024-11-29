@@ -91,14 +91,23 @@ export default function SearchInput({ showIcon = true, zIndex = 1024, pathToHide
               setShow(true)
             }
           }}
-          style={{ height }}
+          style={{
+            height,
+            minHeight: height,
+            maxHeight: height,
+          }}
           className={"grow md:w-[480px] border-none p-0 placeholder:text-[color:--secondary] text-xs md:text-sm"}
           placeholder={"Search by Address / Txn Hash / Block"}
         />
       </PopoverAnchor>
       <PopoverContent
         onOpenAutoFocus={(event) => event.preventDefault()}
-        style={{width: inputWidth, zIndex}}
+        style={{
+          width: inputWidth,
+          minWidth: inputWidth,
+          maxWidth: inputWidth,
+          zIndex
+      }}
         className={'p-0 relative border-t-0 w-auto border-[color:--divider] rounded-t-none bg-[color:--background]'}
         sideOffset={-4}
       >

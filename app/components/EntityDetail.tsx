@@ -8,7 +8,7 @@ type DividerItem = {
 
 type LabelValueItem = {
   type: 'row'
-  label: string
+  label: React.ReactNode
   value: React.ReactNode
   description?: string
 }

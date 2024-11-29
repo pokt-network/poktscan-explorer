@@ -5,6 +5,8 @@ import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import { formatAmount } from '@/app/utils/format'
 import FailedTransactionFeedback from '@/app/(transactions)/FailedTransactionFeedback'
+import DateColumn from '@/app/dates/DateColumn'
+import DateCellText from '@/app/dates/DateCellText'
 
 const transfersByAddressDocument = graphql(`
   query transfersList($limit: Int!, $offset: Int!, $address: String!) {
@@ -90,7 +92,7 @@ export default async function TransferTable({address, page, itemsPerPage, basePa
     result: transfer?.transaction?.code,
     codespace: transfer?.transaction?.codespace,
     height: transfer?.block?.height,
-    timestamp: transfer?.block?.timestamp,
+    timestamp: <DateCellText value={transfer?.block?.timestamp}/>,
     from: transfer?.senderId,
     flow: transfer?.senderId === address ? 'OUT' : 'IN',
     to: transfer?.recipientId,
@@ -140,8 +142,9 @@ export default async function TransferTable({address, page, itemsPerPage, basePa
     },
     {
       field: 'timestamp',
-      headerName: 'Timestamp',
-      maxWidth: 140,
+      headerName: <DateColumn />,
+      width: 180,
+      align: 'center',
     },
     {
       description: 'Address of the sender',

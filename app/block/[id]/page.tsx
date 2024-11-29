@@ -6,6 +6,8 @@ import { formatTimeDifference } from '@/app/(home)/utils'
 import { formatAmount, formatSimpleAmount, formatSize } from '@/app/utils/format'
 import TitleEntity from '@/app/components/TitleEntity'
 import React from 'react'
+import DateColumn from '@/app/dates/DateColumn'
+import DateCellText from '@/app/dates/DateCellText'
 
 export const dynamic = "force-dynamic";
 
@@ -104,8 +106,12 @@ export default async function BlockDetailPage({
         items={[
           {
             type: 'row',
-            label: 'Timestamp',
-            value: new Date(block.timestamp).toISOString()
+            label: <DateColumn />,
+            value: (
+              <div className={"text-sm"}>
+                <DateCellText value={block.timestamp} />
+              </div>
+            )
           },
           {
             type: 'row',

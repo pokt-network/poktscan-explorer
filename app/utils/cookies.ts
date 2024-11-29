@@ -15,9 +15,7 @@ export function setCookie(name: string, value: string, options: {
     cookieString += `; expires=${expires}`;
   }
 
-  if (options.path) {
-    cookieString += `; path=${options.path}`;
-  }
+  cookieString += `; path=${options.path || '/'}`;
 
   if (options.domain) {
     cookieString += `; domain=${options.domain}`;

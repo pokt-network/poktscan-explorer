@@ -5,6 +5,8 @@ import React from 'react'
 import { formatAmount } from '@/app/utils/format'
 import Chip from '@/app/components/Chip'
 import FailedTransactionFeedback from '@/app/(transactions)/FailedTransactionFeedback'
+import DateCellText from '@/app/dates/DateCellText'
+import DateColumn from '@/app/dates/DateColumn'
 
 export interface RowTransaction {
   id: string
@@ -41,7 +43,7 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       codespace: transaction.codespace,
       messages: transaction?.messages?.nodes?.map((msg) => msg?.typeUrl?.split('.')?.at(-1)?.replace('Msg', '') || '') || [],
       height: Number(transaction.block!.height),
-      timestamp: transaction.block!.timestamp!,
+      timestamp: <DateCellText value={transaction.block!.timestamp!} />,
       amount: sendMessage?.amount?.length ? formatAmount(sendMessage.amount.at(0)) : '-',
       fee: formatAmount(transaction.fees!.at(0) || {
         amount: '0',
@@ -101,8 +103,9 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
     },
     {
       field: 'timestamp',
-      headerName: 'Timestamp',
-      maxWidth: 180,
+      headerName: <DateColumn />,
+      width: 180,
+      align: 'center',
     },
     {
       field: 'amount',

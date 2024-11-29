@@ -7,6 +7,7 @@ import { getStakeLabel } from '@/app/utils/stake'
 import Link from 'next/link'
 import { CircleAlert } from 'lucide-react'
 import { formatAmount, truncateBothSides } from '@/app/utils/format'
+import DateCellText from '@/app/dates/DateCellText'
 
 const searchByAddressDocument = graphql(`
   query searchByAddress($address: String!) {
@@ -153,7 +154,11 @@ export default function SearchContent({value, close}: SearchContentProps) {
         rows.push({
           entity: 'block',
           entityId: data.block.height,
-          description: `${data.block.timestamp} - ${data.block.totalTxs} Transactions`
+          description: (
+            <>
+              <DateCellText value={data.block.timestamp}/> - {data.block.totalTxs} Transactions
+            </>
+          )
         })
       }
 
@@ -196,7 +201,11 @@ export default function SearchContent({value, close}: SearchContentProps) {
         rows.push({
           entity: 'block',
           entityId: data.blocks.nodes[0]!.height,
-          description: `${data.blocks.nodes[0]!.timestamp} - ${data.blocks.nodes[0]!.totalTxs} Transactions`
+          description: (
+            <>
+              <DateCellText value={data.blocks.nodes[0]!.timestamp}/> - {data.blocks.nodes[0]!.totalTxs} Transactions
+            </>
+          )
         })
       }
     }

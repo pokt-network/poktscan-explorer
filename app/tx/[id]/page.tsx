@@ -7,6 +7,8 @@ import { isValidPoktAddress } from '@/app/utils/poktroll'
 import React from 'react'
 import { formatAmount } from '@/app/utils/format'
 import TitleEntity from '@/app/components/TitleEntity'
+import DateColumn from '@/app/dates/DateColumn'
+import DateCellText from '@/app/dates/DateCellText'
 
 export const dynamic = "force-dynamic";
 
@@ -110,8 +112,12 @@ export default async function TransactionDetailPage({
     },
     {
       type: 'row',
-      label: 'Timestamp',
-      value: tx.block.timestamp
+      label: <DateColumn />,
+      value: (
+        <div className={'text-sm'}>
+          <DateCellText value={tx.block.timestamp} />
+        </div>
+      )
     },
     {
       type: 'divider'

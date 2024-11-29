@@ -23,10 +23,7 @@ export default function Tabs({tabs, activeTab, basePath}: TabsProps) {
           return (
             <span
               key={tab.tab}
-              className={`text-xs px-[10px] font-semibold cursor-not-allowed select-none leading-[24px] py-1 rounded-lg transition-transform duration-300 ${
-               isActive  ? 'bg-[color:#0784c3] text-white'
-                : 'bg-[color:rgba(141,141,141,0.12)]'
-              }`}
+              className={`text-xs px-[10px] font-semibold cursor-not-allowed select-none leading-[24px] py-1 rounded-lg transition-transform duration-300 bg-[color:--primary-background] text-white`}
             >
               {tab.label}
             </span>
@@ -35,10 +32,7 @@ export default function Tabs({tabs, activeTab, basePath}: TabsProps) {
 
         return (
           <Link
-            className={`text-xs px-[10px] font-semibold aria-disabled:cursor-not-allowed leading-[24px] py-1 rounded-lg transition-transform duration-300 ${
-              isActive  ? 'bg-[color:#0784c3] text-white'
-              : 'bg-[color:rgba(141,141,141,0.12)]'
-            }`}
+            className={`text-xs px-[10px] font-semibold aria-disabled:cursor-not-allowed leading-[24px] py-1 rounded-lg transition-transform duration-300 bg-[color:rgba(141,141,141,0.12)]`}
             href={`${basePath}?tab=${tab.tab}`}
             key={tab.tab}
             aria-disabled={isActive}

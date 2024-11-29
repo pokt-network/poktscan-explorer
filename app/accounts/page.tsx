@@ -8,6 +8,8 @@ import FourCard from '@/app/components/FourCard'
 import { getLatestBlock } from '@/app/api/blocks'
 import { formatAmount } from '@/app/utils/format'
 import ListTitle from '@/app/components/ListTitle'
+import DateColumn from '@/app/dates/DateColumn'
+import DateCellText from '@/app/dates/DateCellText'
 
 export const dynamic = "force-dynamic";
 
@@ -112,7 +114,7 @@ export default async function AccountsPage({searchParams}: PageProps) {
         denom: 'upokt'
       }),
       lastUpdatedBlock: upoktBalance?.lastUpdatedBlock?.height,
-      lastUpdatedTime: upoktBalance?.lastUpdatedBlock?.timestamp,
+      lastUpdatedTime: <DateCellText value={upoktBalance?.lastUpdatedBlock?.timestamp} />,
     } as RowAccount
   }) || []
 
@@ -130,11 +132,6 @@ export default async function AccountsPage({searchParams}: PageProps) {
       )
     },
     {
-      field: 'lastUpdatedTime',
-      headerName: 'Updated Date',
-      maxWidth: 180,
-    },
-    {
       field: 'lastUpdatedBlock',
       headerName: 'Updated Height',
       renderCell: (cell: RowAccount) => (
@@ -145,6 +142,12 @@ export default async function AccountsPage({searchParams}: PageProps) {
           />
         </div>
       )
+    },
+    {
+      field: 'lastUpdatedTime',
+      headerName: <DateColumn />,
+      align: 'center',
+      width: 180,
     },
     {
       field: 'balance',

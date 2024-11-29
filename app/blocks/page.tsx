@@ -10,6 +10,8 @@ import { getLatestBlock } from '@/app/api/blocks'
 import { formatAmount, formatSimpleAmount, formatSize } from '@/app/utils/format'
 import ListTitle from '@/app/components/ListTitle'
 import React from 'react'
+import DateColumn from '@/app/dates/DateColumn'
+import DateCellText from '@/app/dates/DateCellText'
 
 export const dynamic = "force-dynamic";
 
@@ -114,7 +116,7 @@ export default async function BlocksPage({searchParams}: PageProps) {
   const rows: Array<RowBlock> = data.blocks?.nodes?.map((block) => ({
     id: block.id,
     height: Number(block.height),
-    timestamp: block.timestamp,
+    timestamp: <DateCellText value={block.timestamp} />,
     txAmount: formatSimpleAmount(block.totalTxs),
     proposer: block.proposerAddress,
     nodes: formatSimpleAmount(block.stakedSuppliers),
@@ -144,8 +146,9 @@ export default async function BlocksPage({searchParams}: PageProps) {
     },
     {
       field: 'timestamp',
-      headerName: 'Timestamp',
-      maxWidth: 180,
+      headerName: <DateColumn />,
+      align: 'center',
+      width: 180,
     },
     {
       field: 'proposer',
