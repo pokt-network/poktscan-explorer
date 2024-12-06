@@ -7,6 +7,8 @@ import { formatAmount } from '@/app/utils/format'
 import TitleEntity from '@/app/components/TitleEntity'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
+import { isValidPoktAddress } from '@/app/utils/poktroll'
+import NotFound from '@/app/not-found'
 
 const accountByIdDocument = graphql(`
   query accountById($id: String!) {
@@ -39,21 +41,21 @@ export default async function AccountLayout({children, params}: {
     }
   })
 
-  if (!data.account) {
+  if (!data.account && !isValidPoktAddress(id)) {
     return (
-      <div>not found</div>
+      <NotFound />
     )
   }
 
-  const { account } = data
+  const { account } = data || {}
 
-  const upoktBalance = account.balances.nodes.find((item) => item!.denom === 'upokt')!
+  const upoktBalance = account?.balances?.nodes?.find((item) => item?.denom === 'upokt')
 
   const rows: Array<Item> = [
     {
       type: 'row',
       label: 'Balance',
-      value: formatAmount(upoktBalance)
+      value: formatAmount(upoktBalance || {amount: '0', denom: 'upokt'})
     },
     {
       type: 'divider'
@@ -61,26 +63,26 @@ export default async function AccountLayout({children, params}: {
     {
       type: 'row',
       label: 'Updated At Block',
-      value: (
+      value: upoktBalance ? (
         <div className={"text-sm"}>
           <EntityLink entity={'block'} entityId={upoktBalance.lastUpdatedBlock!.height} copy={{enabled: true}}/>
         </div>
-      )
+      ) : '-'
     },
     {
       type: 'row',
       label: <DateColumn />,
-      value: (
+      value: upoktBalance ? (
         <div className={"text-sm"}>
           <DateCellText value={upoktBalance.lastUpdatedBlock!.timestamp} />
         </div>
-      )
+      ) : '-'
     },
   ]
 
   return (
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
-      <TitleEntity title={'Account'} text={account.id} />
+      <TitleEntity title={'Account'} text={account?.id || id} />
       <EntityDetail
         items={rows}
       />

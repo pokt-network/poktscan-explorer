@@ -6,7 +6,7 @@ import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import FourCard from '@/app/components/FourCard'
 import { getLatestBlock } from '@/app/api/blocks'
-import { formatAmount } from '@/app/utils/format'
+import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import ListTitle from '@/app/components/ListTitle'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
@@ -15,32 +15,33 @@ export const dynamic = "force-dynamic";
 
 const accountListDocument = graphql(`
   query accountList($limit: Int!, $offset: Int!, $todayDate: Datetime!, $monthDate: Datetime!, $last90Date: Datetime!) {
-    accounts(first: $limit, offset: $offset, orderBy: BALANCES_SUM_AMOUNT_DESC) {
+    balances (
+      first: $limit,
+      offset: $offset,
+      orderBy: AMOUNT_DESC
+      filter: {denom: {equalTo: "upokt"}}
+    ) {
       totalCount
       nodes {
-        id
-        balances {
-          nodes {
-            amount
-            denom
-            lastUpdatedBlock {
-              height
-              timestamp
-            }
-          }
+        amount
+        denom
+        accountId
+        lastUpdatedBlock {
+          height
+          timestamp
         }
       }
     }
-    accountsWithBalance: accounts(filter: {balances: {some: {amount: {greaterThan: "0"}}}}) {
+    accountsWithBalance: balances(filter: {amount: {greaterThan: "0"}}) {
       totalCount
     }
-    todayAccounts: accounts(filter: {balances: {some: {lastUpdatedBlock: {timestamp: {greaterThanOrEqualTo: $todayDate}}}}}) {
+    todayAccounts: balances(filter: {lastUpdatedBlock: {timestamp: {greaterThanOrEqualTo: $todayDate}}, denom: {equalTo: "upokt"}}) {
       totalCount
     }
-    monthAccounts: accounts(filter: {balances: {some: {lastUpdatedBlock: {timestamp: {greaterThanOrEqualTo: $monthDate}}}}}) {
+    monthAccounts: balances(filter: {lastUpdatedBlock: {timestamp: {greaterThanOrEqualTo: $monthDate}}, denom: {equalTo: "upokt"}}) {
       totalCount
     }
-    last90DaysAccounts: accounts(filter: {balances: {some: {lastUpdatedBlock: {timestamp: {greaterThanOrEqualTo: $last90Date}}}}}) {
+    last90DaysAccounts: balances(filter: {lastUpdatedBlock: {timestamp: {greaterThanOrEqualTo: $last90Date}}, denom: {equalTo: "upokt"}}) {
       totalCount
     }
   }
@@ -85,7 +86,7 @@ export default async function AccountsPage({searchParams}: PageProps) {
     }
   })
 
-  const totalPages = Math.ceil((data.accounts?.totalCount || 0) / itemsPerPage)
+  const totalPages = Math.ceil((data.balances?.totalCount || 0) / itemsPerPage)
 
   if (page > totalPages) {
     page = 1
@@ -104,17 +105,16 @@ export default async function AccountsPage({searchParams}: PageProps) {
     data = result.data
   }
 
-  const rows: Array<RowAccount> = data?.accounts?.nodes?.map((account) => {
-    const upoktBalance = account?.balances?.nodes?.find((item) => item?.denom === 'upokt')
-
+  const rows: Array<RowAccount> = data?.balances?.nodes?.map((balance) => {
     return {
-      id: account?.id || '',
-      balance: formatAmount(upoktBalance || {
+      id: balance?.accountId || '',
+      balance: formatAmount(balance || {
         amount: '0',
         denom: 'upokt'
       }),
-      lastUpdatedBlock: upoktBalance?.lastUpdatedBlock?.height,
-      lastUpdatedTime: <DateCellText value={upoktBalance?.lastUpdatedBlock?.timestamp} />,
+      raw_balance: convertUpoktToPokt(balance?.amount),
+      lastUpdatedBlock: balance?.lastUpdatedBlock?.height,
+      lastUpdatedTime: balance?.lastUpdatedBlock?.timestamp,
     } as RowAccount
   }) || []
 
@@ -148,6 +148,9 @@ export default async function AccountsPage({searchParams}: PageProps) {
       headerName: <DateColumn />,
       align: 'center',
       width: 180,
+      renderCell: (row: RowAccount) => (
+        <DateCellText value={row.lastUpdatedTime} />
+      )
     },
     {
       field: 'balance',
@@ -183,7 +186,7 @@ export default async function AccountsPage({searchParams}: PageProps) {
         columns={columns}
         rows={rows}
         header={{
-          title: `${data.accounts?.totalCount} accounts found`,
+          title: `${data.balances?.totalCount} accounts found`,
         }}
         pagination={{
           currentPage: page,

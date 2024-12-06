@@ -2,7 +2,7 @@ import { Transaction } from '@/app/config/gql/graphql'
 import Table, { GridColDef, TableProps } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
-import { formatAmount } from '@/app/utils/format'
+import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import Chip from '@/app/components/Chip'
 import FailedTransactionFeedback from '@/app/(transactions)/FailedTransactionFeedback'
 import DateCellText from '@/app/dates/DateCellText'
@@ -37,18 +37,24 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       sendMessage = JSON.parse(sendMessageString.json!)
     }
 
+    const amount = sendMessage?.amount?.at(0)
+
+    const fee = transaction.fees!.at(0) || {
+      amount: '0',
+      denom: 'upokt'
+    }
+
     return {
       id: transaction.id || '',
       result: transaction.code,
       codespace: transaction.codespace,
       messages: transaction?.messages?.nodes?.map((msg) => msg?.typeUrl?.split('.')?.at(-1)?.replace('Msg', '') || '') || [],
       height: Number(transaction.block!.height),
-      timestamp: <DateCellText value={transaction.block!.timestamp!} />,
-      amount: sendMessage?.amount?.length ? formatAmount(sendMessage.amount.at(0)) : '-',
-      fee: formatAmount(transaction.fees!.at(0) || {
-        amount: '0',
-        denom: 'upokt'
-      }),
+      timestamp: transaction.block!.timestamp!,
+      amount: amount ? formatAmount(amount) : '-',
+      raw_amount: amount ? convertUpoktToPokt(amount.amount) : '',
+      fee: formatAmount(fee),
+      raw_fee: convertUpoktToPokt(fee?.amount),
       signer: transaction.signerAddress!,
     } as RowTransaction
   })
@@ -106,6 +112,9 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       headerName: <DateColumn />,
       width: 180,
       align: 'center',
+      renderCell: (cell: RowTransaction) => (
+        <DateCellText value={cell.timestamp} />
+      )
     },
     {
       field: 'amount',

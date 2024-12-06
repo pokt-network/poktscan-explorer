@@ -8,7 +8,7 @@ import DetailCell from '@/app/components/DetailCell'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import { getStakeLabel } from '@/app/utils/stake'
-import { formatAmount, truncateAddress } from '@/app/utils/format'
+import { convertUpoktToPokt, formatAmount, truncateAddress } from '@/app/utils/format'
 import Chip from '@/app/components/Chip'
 import ListTitle from '@/app/components/ListTitle'
 
@@ -71,7 +71,7 @@ interface RowGateway {
   status: string
   stakeAmount: string
   balance: string
-  applicationsDelegating: Array<React.ReactNode>
+  applicationsDelegating: Array<string>
   services: Array<string>
   servicesData: Array<{ id: string, name: string }>
   allApplications: Array<string>
@@ -124,6 +124,11 @@ export default async function GatewaysPage({searchParams}: PageProps) {
       }
     }
 
+    const balance = gateway.account?.balances?.nodes?.at(0) || {
+      amount: '0',
+      denom: 'upokt'
+    }
+
     return {
       id: gateway.id,
       status: getStakeLabel(gateway.stakeStatus),
@@ -131,22 +136,10 @@ export default async function GatewaysPage({searchParams}: PageProps) {
         amount: gateway.stakeAmount,
         denom: gateway.stakeDenom
       }),
-      balance: formatAmount(gateway.account?.balances?.nodes?.at(0) || {
-        amount: '0',
-        denom: 'upokt'
-      }),
-      applicationsDelegating: applications.map((app, index) => !index ? (
-        <div className={'text-[10px] md:text-xs h-[20px] mt-[-4px]'} key={app}>
-          <EntityLink
-            entity={'app'}
-            entityId={app}
-            label={truncateAddress(app)}
-            copy={{
-              enabled: false
-            }}
-          />
-        </div>
-      ) : app),
+      raw_stakeAmount: convertUpoktToPokt(gateway.stakeAmount),
+      balance: formatAmount(balance),
+      raw_balance: convertUpoktToPokt(balance?.amount),
+      applicationsDelegating: applications,
       services: services.map(service => service?.name),
       servicesData: services,
       allApplications: applications
@@ -254,7 +247,18 @@ export default async function GatewaysPage({searchParams}: PageProps) {
       headerName: 'Applications Delegating',
       description: "Applications that this gateways have permissions",
       renderCell: (cell: RowGateway) => (
-        cell.applicationsDelegating.length ? <Chip values={cell.applicationsDelegating} /> : 'None'
+        cell.applicationsDelegating.length ? <Chip values={cell.applicationsDelegating.map((app, index) => !index ? (
+          <div className={'text-[10px] md:text-xs h-[20px] mt-[-4px]'} key={app}>
+            <EntityLink
+              entity={'app'}
+              entityId={app}
+              label={truncateAddress(app)}
+              copy={{
+                enabled: false
+              }}
+            />
+          </div>
+        ) : app)} /> : 'None'
       )
     },
     {

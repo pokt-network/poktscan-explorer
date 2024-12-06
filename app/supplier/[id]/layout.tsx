@@ -7,6 +7,7 @@ import EntityLink from '@/app/components/EntityLink'
 import { formatAmount } from '@/app/utils/format'
 import TitleEntity from '@/app/components/TitleEntity'
 import React from 'react'
+import NotFound from '@/app/not-found'
 
 const supplierByIdDocument = graphql(`
   query supplierById($id: String!) {
@@ -68,7 +69,7 @@ export default async function RootLayout({children, params}: Readonly<{
 
   if (!data.supplier) {
     return (
-      <div>not found</div>
+      <NotFound />
     )
   }
 
@@ -173,12 +174,12 @@ export default async function RootLayout({children, params}: Readonly<{
                     {service.service.name}{service.service.id !== service.service.name ? ` (${service.service.id})` : ''}
                   </p>
                   <p
-                    className={'text-xs bg-[color:--background] ml-1 mr-[2px] p-2 py-1 rounded-md border-[2px] border border-[color:--divider]'}>
+                    className={'text-xs bg-[color:--background] ml-1 mr-[2px] p-2 py-1 rounded-md border-[2px] border-[color:--divider]'}>
                     {service.endpoints.length} endpoint{service.endpoints.length > 1 ? 's' : ''}
                   </p>
                   {revSharing > 0 && (
                     <p
-                      className={'text-xs bg-[color:--background] ml-1 mr-[2px] p-2 py-1 rounded-md border-[2px] border border-[color:--divider]'}>
+                      className={'text-xs bg-[color:--background] ml-1 mr-[2px] p-2 py-1 rounded-md border-[2px] border-[color:--divider]'}>
                       Rev Sharing: {revSharing}%
                     </p>
                   )}

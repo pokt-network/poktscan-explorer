@@ -11,7 +11,11 @@ export const dynamic = "force-dynamic";
 
 const transactionsPageDocument = graphql(`
   query transactions($limit: Int!, $offset: Int!, $startDate: Datetime!, $endDate: Datetime!) {
-    transactions(first: $limit, offset: $offset, orderBy: BLOCK_ID_DESC) {
+    transactions(
+      first: $limit, 
+      offset: $offset,
+      orderBy: BLOCK_BY_BLOCK_ID__HEIGHT_DESC
+    ) {
       totalCount
       nodes {
         id

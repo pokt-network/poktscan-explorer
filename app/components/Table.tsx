@@ -3,6 +3,7 @@ import React from 'react'
 import SelectItemsPerRow from '@/app/components/SelectItemsPerRow'
 import { CircleAlert } from 'lucide-react';
 import BaseTable from '@/app/components/BaseTable'
+import TableDownloadButton from '@/app/components/TableDownloadButton'
 
 export interface GridColDef {
   field: string
@@ -47,6 +48,8 @@ export default function Table({pagination, rows, columns, header, defaultMinWidt
         itemsPerPage={pagination.itemsPerPage}
         basePath={pagination.basePath}
         hidePagination={rows.length === 0}
+        columns={columns}
+        rows={rows}
       />
       <BaseTable columns={columns} rows={rows} defaultMinWidth={defaultMinWidth} />
       {
@@ -110,9 +113,16 @@ interface TableHeaderProps {
   itemsPerPage: number
   basePath: string
   hidePagination?: boolean
+  rows: Array<any>
+  columns: Array<GridColDef>
 }
 
-type TablePaginationProps = Omit<TableHeaderProps, 'title' | 'subtitle'  | 'hidePagination'>
+type TablePaginationProps = {
+  currentPage: number
+  totalPages: number
+  itemsPerPage: number
+  basePath: string
+}
 
 Table.Pagination = function TablePagination({currentPage, totalPages, itemsPerPage, basePath}: TablePaginationProps) {
   const commonClasses = "text-[13px] inline-block rounded-md border border-[color:--divider] m-w-8 px-2 py-1 text-center leading-[18px]"
@@ -173,7 +183,7 @@ Table.Pagination = function TablePagination({currentPage, totalPages, itemsPerPa
   )
 }
 
-Table.Header = function TableHeader({title, subtitle, hidePagination,currentPage, totalPages, itemsPerPage, basePath}: TableHeaderProps) {
+Table.Header = function TableHeader({title, subtitle, hidePagination,currentPage, totalPages, itemsPerPage, basePath, rows, columns}: TableHeaderProps) {
   return (
     <div className={"flex pt-4 px-3 md:px-4 pb-3 flex-row w-full min-h-[74px] flex-wrap items-center justify-between gap-3"}>
       <div>
@@ -187,14 +197,17 @@ Table.Header = function TableHeader({title, subtitle, hidePagination,currentPage
         )}
       </div>
 
-      {!hidePagination && (
-        <Table.Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          itemsPerPage={itemsPerPage}
-          basePath={basePath}
-        />
-      )}
+      <div className={'flex flex-row items-center justify-between gap-2 flex-wrap'}>
+        <TableDownloadButton rows={rows} columns={columns.map((col) => ({...col, renderCell: undefined}))} />
+        {!hidePagination && (
+          <Table.Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            basePath={basePath}
+          />
+        )}
+      </div>
     </div>
   )
 }

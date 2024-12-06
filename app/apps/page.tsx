@@ -13,7 +13,7 @@ import DetailCell from '@/app/components/DetailCell'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import FourCard from '@/app/components/FourCard'
-import { formatAmount, truncateAddress } from '@/app/utils/format'
+import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import Chip from '@/app/components/Chip'
 import ListTitle from '@/app/components/ListTitle'
 
@@ -86,7 +86,7 @@ interface RowApp {
   balance: string
   services: Array<string>
   servicesData: Array<ApplicationService>
-  gateways: Array<React.ReactNode>
+  gateways: Array<string>
   gatewaysData: Array<ApplicationGateway>
 }
 
@@ -123,33 +123,28 @@ export default async function AppsPage({searchParams}: PageProps) {
     data = result.data
   }
 
-  const rows: Array<RowApp> = data.applications?.nodes?.map((application) => ({
-    id: application!.id,
-    status: getStakeLabel(application!.stakeStatus),
-    stakeAmount: formatAmount({
-      amount: application!.stakeAmount,
-      denom: application!.stakeDenom
-    }),
-    balance: formatAmount(application.account?.balances?.nodes?.at(0) || {
+  const rows: Array<RowApp> = data.applications?.nodes?.map((application) => {
+    const balance = application.account?.balances?.nodes?.at(0) || {
       amount: '0',
       denom: 'upokt'
-    }),
-    services: application!.services.nodes.map(service => service.service!.name),
-    servicesData: application!.services!.nodes!,
-    gateways: application!.applicationGateways.nodes.map((gateway, index) => !index ? (
-      <div className={'text-[10px] md:text-xs h-[20px] mt-[-4px]'} key={gateway!.gatewayId}>
-        <EntityLink
-          entity={'gateway'}
-          entityId={gateway!.gatewayId}
-          label={truncateAddress(gateway!.gatewayId)}
-          copy={{
-            enabled: false
-          }}
-        />
-      </div>
-    ) : gateway.gatewayId),
-    gatewaysData: application!.applicationGateways!.nodes!
-  }))
+    }
+
+    return {
+      id: application!.id,
+      status: getStakeLabel(application!.stakeStatus),
+      stakeAmount: formatAmount({
+        amount: application!.stakeAmount,
+        denom: application!.stakeDenom,
+      }),
+      raw_stakeAmount: convertUpoktToPokt(application!.stakeAmount),
+      balance: formatAmount(balance),
+      raw_balance: convertUpoktToPokt(balance?.amount),
+      services: application!.services.nodes.map(service => service.service!.name),
+      servicesData: application!.services!.nodes!,
+      gateways: application!.applicationGateways.nodes.map((gateway) => gateway.gatewayId),
+      gatewaysData: application!.applicationGateways!.nodes!,
+    }
+  })
 
 
   const columns: Array<GridColDef> = [
@@ -235,10 +230,12 @@ export default async function AppsPage({searchParams}: PageProps) {
     {
       field: 'stakeAmount',
       headerName: 'Stake Amount',
+      align: 'right',
     },
     {
       field: 'balance',
       headerName: 'Balance',
+      align: 'right',
     },
     {
       field: 'services',
@@ -252,7 +249,17 @@ export default async function AppsPage({searchParams}: PageProps) {
       headerName: 'Delegated To',
       description: "Gateways that have permissions to send relays on behalf of this application",
       renderCell: (cell: RowApp) => (
-        cell.gateways.length ? <Chip values={cell.gateways} /> : 'None'
+        cell.gateways.length ? <Chip values={cell.gateways.map((gateway, index) =>  !index ? (
+          <div className={'text-[10px] md:text-xs h-[20px] mt-[-4px]'} key={gateway}>
+            <EntityLink
+              entity={'gateway'}
+              entityId={gateway}
+              copy={{
+                enabled: false
+              }}
+            />
+          </div>
+        ) : gateway)} /> : 'None'
       )
     }
   ]

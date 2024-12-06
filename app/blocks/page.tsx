@@ -7,7 +7,7 @@ import { getPageAndItems } from '@/app/utils/pagination'
 import millify from 'millify'
 import { formatTimeDifference } from '@/app/(home)/utils'
 import { getLatestBlock } from '@/app/api/blocks'
-import { formatAmount, formatSimpleAmount, formatSize } from '@/app/utils/format'
+import { convertUpoktToPokt, formatAmount, formatSimpleAmount, formatSize } from '@/app/utils/format'
 import ListTitle from '@/app/components/ListTitle'
 import React from 'react'
 import DateColumn from '@/app/dates/DateColumn'
@@ -113,23 +113,27 @@ export default async function BlocksPage({searchParams}: PageProps) {
     data = result.data
   }
 
-  const rows: Array<RowBlock> = data.blocks?.nodes?.map((block) => ({
-    id: block.id,
-    height: Number(block.height),
-    timestamp: <DateCellText value={block.timestamp} />,
-    txAmount: formatSimpleAmount(block.totalTxs),
-    proposer: block.proposerAddress,
-    nodes: formatSimpleAmount(block.stakedSuppliers),
-    apps: formatSimpleAmount(block.stakedApps),
-    took: formatTimeDifference(block.timeToBlock),
-    gateways: formatSimpleAmount(block.stakedGateways),
-    relays: formatSimpleAmount(block.totalRelays),
-    size: formatSize(block.size),
-    supply: formatAmount(block.supplies.nodes.find((item) => item.supply.denom === 'upokt')?.supply || {
+  const rows: Array<RowBlock> = data.blocks?.nodes?.map((block) => {
+    const supply = block.supplies.nodes.find((item) => item.supply.denom === 'upokt')?.supply || {
       amount: '0',
-      denom: 'upokt'
-    }),
-  })) || []
+      denom: 'upokt',
+    }
+    return ({
+      id: block.id,
+      height: Number(block.height),
+      timestamp: block.timestamp,
+      txAmount: formatSimpleAmount(block.totalTxs),
+      proposer: block.proposerAddress,
+      nodes: formatSimpleAmount(block.stakedSuppliers),
+      apps: formatSimpleAmount(block.stakedApps),
+      took: formatTimeDifference(block.timeToBlock),
+      gateways: formatSimpleAmount(block.stakedGateways),
+      relays: formatSimpleAmount(block.totalRelays),
+      size: formatSize(block.size),
+      supply: formatAmount(supply),
+      raw_supply: convertUpoktToPokt(supply?.amount),
+    })
+  }) || []
 
   const columns: Array<GridColDef> = [
     {
@@ -149,6 +153,9 @@ export default async function BlocksPage({searchParams}: PageProps) {
       headerName: <DateColumn />,
       align: 'center',
       width: 180,
+      renderCell: (row: RowBlock) => (
+        <DateCellText value={row.timestamp} />
+      )
     },
     {
       field: 'proposer',

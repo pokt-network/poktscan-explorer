@@ -10,7 +10,7 @@ import React from 'react'
 import DetailCell from '@/app/components/DetailCell'
 import { SupplierServiceConfig } from '@/app/config/gql/graphql'
 import { getStakeLabel } from '@/app/utils/stake'
-import { formatAmount } from '@/app/utils/format'
+import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import Chip from '@/app/components/Chip'
 import ListTitle from '@/app/components/ListTitle'
 
@@ -121,6 +121,14 @@ export default async function SuppliersPage({searchParams}: PageProps) {
 
   const rows: Array<RowSupplier> = data.suppliers?.nodes?.map((supplier) => {
     const isCustodian = supplier!.stakeStatus === 0 && supplier!.operatorId === supplier!.ownerId
+    const balance =supplier!.operator?.balances?.nodes?.at(0) || {
+      amount: 0,
+      denom: 'upokt'
+    }
+    const outputBalance = supplier!.owner?.balances?.nodes?.at(0) || {
+      amount: 0,
+      denom: 'upokt'
+    }
     return {
       id: supplier!.id,
       status: getStakeLabel(supplier!.stakeStatus),
@@ -129,14 +137,11 @@ export default async function SuppliersPage({searchParams}: PageProps) {
         amount: supplier!.stakeAmount,
         denom: supplier!.stakeDenom
       }),
-      balance: formatAmount(supplier!.operator?.balances?.nodes?.at(0) || {
-        amount: 0,
-        denom: 'upokt'
-      }),
-      outputBalance: isCustodian ? '-' : formatAmount(supplier!.owner?.balances?.nodes?.at(0) || {
-        amount: 0,
-        denom: 'upokt'
-      }),
+      raw_stakeAmount: convertUpoktToPokt(supplier!.stakeAmount),
+      balance: formatAmount(balance),
+      raw_balance: convertUpoktToPokt(balance?.amount),
+      outputBalance: isCustodian ? '-' : formatAmount(outputBalance),
+      raw_outputBalance: isCustodian ? '' : formatAmount(outputBalance),
       outputAddress: isCustodian ? '-' : supplier!.ownerId,
       services: supplier!.supplierServices.nodes.map(service => service!.service!.name),
       servicesData: supplier!.supplierServices!.nodes!

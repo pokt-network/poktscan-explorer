@@ -3,7 +3,7 @@ import { getClient } from '@/app/config/apollo/rsc'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
-import { formatAmount } from '@/app/utils/format'
+import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import FailedTransactionFeedback from '@/app/(transactions)/FailedTransactionFeedback'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
@@ -13,6 +13,7 @@ const transfersByAddressDocument = graphql(`
     transfers:nativeTransfers(
       first: $limit
       offset: $offset
+      orderBy: BLOCK_BY_BLOCK_ID__HEIGHT_DESC
       filter: {
         or: [{ senderId: { equalTo: $address } }, { recipientId: { equalTo: $address } }]
       }
@@ -87,21 +88,28 @@ export default async function TransferTable({address, page, itemsPerPage, basePa
     data = result.data
   }
 
-  const rows = data?.transfers?.nodes?.map((transfer) => ({
-    id: transfer?.transaction?.id,
-    result: transfer?.transaction?.code,
-    codespace: transfer?.transaction?.codespace,
-    height: transfer?.block?.height,
-    timestamp: <DateCellText value={transfer?.block?.timestamp}/>,
-    from: transfer?.senderId,
-    flow: transfer?.senderId === address ? 'OUT' : 'IN',
-    to: transfer?.recipientId,
-    amount: formatAmount(transfer?.amounts?.at(0)),
-    fee: formatAmount(transfer?.transaction?.fees?.at(0) || {
+  const rows = data?.transfers?.nodes?.map((transfer) => {
+    const amount = transfer?.amounts?.at(0)
+    const fee = transfer?.transaction?.fees?.at(0) || {
       amount: '0',
       denom: 'upokt'
-    }),
-  } as RowTransfer)) || []
+    }
+
+    return {
+      id: transfer?.transaction?.id,
+      result: transfer?.transaction?.code,
+      codespace: transfer?.transaction?.codespace,
+      height: transfer?.block?.height,
+      timestamp: transfer?.block?.timestamp,
+      from: transfer?.senderId,
+      flow: transfer?.senderId === address ? 'OUT' : 'IN',
+      to: transfer?.recipientId,
+      amount: formatAmount(amount),
+      raw_amount: convertUpoktToPokt(amount?.amount),
+      fee: formatAmount(fee),
+      raw_fee: convertUpoktToPokt(fee?.amount),
+    }
+  }) || []
 
   const columns: Array<GridColDef> = [
     {
@@ -145,6 +153,9 @@ export default async function TransferTable({address, page, itemsPerPage, basePa
       headerName: <DateColumn />,
       width: 180,
       align: 'center',
+      renderCell: (cell: RowTransfer) => (
+        <DateCellText value={cell.timestamp} />
+      )
     },
     {
       description: 'Address of the sender',

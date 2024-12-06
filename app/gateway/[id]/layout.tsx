@@ -6,6 +6,7 @@ import { getStakeLabel } from '@/app/utils/stake'
 import EntityLink from '@/app/components/EntityLink'
 import { formatAmount } from '@/app/utils/format'
 import TitleEntity from '@/app/components/TitleEntity'
+import NotFound from '@/app/not-found'
 
 const gatewayByIdDocument = graphql(`
   query gatewayById($id: String!) {
@@ -63,7 +64,7 @@ export default async function GatewayLayout({children, params}: Readonly<{
 
   if (!data.gateway) {
     return (
-      <div>not found</div>
+      <NotFound />
     )
   }
 

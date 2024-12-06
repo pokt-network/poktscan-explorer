@@ -6,6 +6,7 @@ import { getStakeLabel } from '@/app/utils/stake'
 import EntityLink from '@/app/components/EntityLink'
 import { formatAmount } from '@/app/utils/format'
 import TitleEntity from '@/app/components/TitleEntity'
+import NotFound from '@/app/not-found'
 
 const appByIdDocument = graphql(`
   query appById($id: String!) {
@@ -72,7 +73,7 @@ export default async function AppLayout({children, params}: {
 
   if (!data.application) {
     return (
-      <div>not found</div>
+      <NotFound />
     )
   }
 

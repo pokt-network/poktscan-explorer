@@ -14,6 +14,8 @@ import { formatAmount, formatUpokt } from '@/app/utils/format'
 import PocketLogo from '@/app/assets/pocket_logo.svg'
 import { Blend, Globe, Landmark } from 'lucide-react'
 import SponsoredLabel from '@/app/components/SponsoredLabel'
+import DateCellText from '@/app/dates/DateCellText'
+import DateColumn from '@/app/dates/DateColumn'
 
 export const dynamic = "force-dynamic";
 
@@ -124,8 +126,10 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
       )
     },
     {
-      label: 'Timestamp',
-      value: latestBlock.timestamp
+      label: (
+        <DateColumn />
+      ),
+      value: <DateCellText value={latestBlock.timestamp} />
     },
     {
       label: 'Took',

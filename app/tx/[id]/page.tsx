@@ -9,6 +9,7 @@ import { formatAmount } from '@/app/utils/format'
 import TitleEntity from '@/app/components/TitleEntity'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
+import NotFound from '@/app/not-found'
 
 export const dynamic = "force-dynamic";
 
@@ -53,9 +54,7 @@ export default async function TransactionDetailPage({
 
   if (!tx) {
     return (
-      <div>
-        not found
-      </div>
+      <NotFound />
     )
   }
 

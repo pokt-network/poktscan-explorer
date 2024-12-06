@@ -9,7 +9,7 @@
     "start": "next start -p 3001",
     "lint": "next lint",
     "codegen": "graphql-codegen --config codegen.ts",
-    "docker:build": "pnpm codegen && docker build -t registry.digitalocean.com/poktscan/shannon-web:alpha ."
+    "docker:build": "pnpm codegen && docker build -t registry.digitalocean.com/poktscan/shannon-web:beta ."
   },
   "dependencies": {
     "@apollo/client": "^3.11.8",
@@ -32,6 +32,7 @@
     "date-fns": "^4.1.0",
     "graphql": "^16.9.0",
     "graphql-cli": "^4.1.0",
+    "graphql-ws": "^5.16.0",
     "lucide-react": "^0.454.0",
     "millify": "^6.1.0",
     "next": "15.0.2",

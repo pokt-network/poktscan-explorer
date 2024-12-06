@@ -23,6 +23,8 @@ interface DateSettingsProps {
   onOpenChange: (open: boolean) => void
 }
 
+const date = new Date()
+
 export default function DateSettingsDialog({open, onOpenChange}: DateSettingsProps) {
   const {changeValues, dateTimeColumn, dateTimeZone, formatText} = useDateContext()
   const [formatInput, setFormat] = React.useState(formatText)
@@ -36,7 +38,7 @@ export default function DateSettingsDialog({open, onOpenChange}: DateSettingsPro
   let formattedDateText: string, invalidFormat = false
 
   try {
-    formattedDateText = `This is how the date times are going to look: ${format(new Date(), formatInput)}`
+    formattedDateText = `This is how the date times are going to look: ${format(date, formatInput)}`
   } catch {
     invalidFormat = true
   }
@@ -60,6 +62,9 @@ export default function DateSettingsDialog({open, onOpenChange}: DateSettingsPro
     setTimeout(() => {
       setSubmitted(false)
     }, 1500)
+    setTimeout(() => {
+      onOpenChange(false)
+    }, 600)
   }
 
   return (
@@ -146,17 +151,17 @@ export default function DateSettingsDialog({open, onOpenChange}: DateSettingsPro
             className={'border-t border-[color:--divider] px-4 py-5 bg-[color:--background] sm:rounded-b-lg h-[78px]'}>
             <Button
               type="submit"
-              className={`min-w-[130px] ${submitted ? 'bg-[color:--success] hover:bg-[color:--success] disabled:opacity-[1!important]' : 'bg-[color:--primary-background] hover:bg-[color:--primary]'}`}
+              className={`min-w-[130px] ${submitted ? 'bg-[color:--success] hover:bg-[color:--success] disabled:opacity-[1!important]' : 'bg-[color:--primary-background] hover:bg-[color:--primary]'} text-white`}
               disabled={invalidFormat}
             >
               {submitted ? (
-                  <>
-                    <Check className={'h-4 w-4'} />
-                    <span className={'text-white'}>
-              Submitted!
-            </span>
-                  </>
-                ) :'Save changes'}
+                <>
+                  <Check className={'h-4 w-4 text-white'} />
+                  <span className={'text-white'}>
+                    Submitted!
+                  </span>
+                </>
+              ) :'Save changes'}
             </Button>
           </DialogFooter>
         </form>
