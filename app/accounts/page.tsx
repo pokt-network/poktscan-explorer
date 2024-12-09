@@ -1,51 +1,18 @@
-import { graphql } from '@/app/config/gql'
 import { getPageAndItems } from '@/app/utils/pagination'
 import { getClient } from '@/app/config/apollo/rsc'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
-import FourCard from '@/app/components/FourCard'
 import { getLatestBlock } from '@/app/api/blocks'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import ListTitle from '@/app/components/ListTitle'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
+import { accountListDocument, accountSummaryDocument } from '@/app/accounts/operations'
+import { getSummaryVariables } from '@/app/accounts/utils'
+import Summary from '@/app/accounts/Summary'
 
 export const dynamic = "force-dynamic";
-
-const accountListDocument = graphql(`
-  query accountList($limit: Int!, $offset: Int!, $todayDate: Datetime!, $monthDate: Datetime!, $last90Date: Datetime!) {
-    balances (
-      first: $limit,
-      offset: $offset,
-      orderBy: AMOUNT_DESC
-      filter: {denom: {equalTo: "upokt"}}
-    ) {
-      totalCount
-      nodes {
-        amount
-        denom
-        accountId
-        lastUpdatedBlock {
-          height
-          timestamp
-        }
-      }
-    }
-    accountsWithBalance: balances(filter: {amount: {greaterThan: "0"}}) {
-      totalCount
-    }
-    todayAccounts: balances(filter: {lastUpdatedBlock: {timestamp: {greaterThanOrEqualTo: $todayDate}}, denom: {equalTo: "upokt"}}) {
-      totalCount
-    }
-    monthAccounts: balances(filter: {lastUpdatedBlock: {timestamp: {greaterThanOrEqualTo: $monthDate}}, denom: {equalTo: "upokt"}}) {
-      totalCount
-    }
-    last90DaysAccounts: balances(filter: {lastUpdatedBlock: {timestamp: {greaterThanOrEqualTo: $last90Date}}, denom: {equalTo: "upokt"}}) {
-      totalCount
-    }
-  }
-`)
 
 interface RowAccount {
   id: string
@@ -66,39 +33,33 @@ export default async function AccountsPage({searchParams}: PageProps) {
   let page = pageInfo.page
   const itemsPerPage = pageInfo.itemsPerPage
 
-  const todayDate = new Date(latestBlock.timestamp)
-  todayDate.setHours(0, 0, 0, 0)
+  const client = getClient()
 
-  const monthDate = new Date(latestBlock.timestamp)
-  monthDate.setMonth(monthDate.getMonth() - 1)
-
-  const last90Date = new Date(latestBlock.timestamp)
-  last90Date.setMonth(last90Date.getMonth() - 3)
-
-  let {data} = await getClient().query({
-    query: accountListDocument,
-    variables: {
-      limit: itemsPerPage,
-      offset: (page - 1) * itemsPerPage,
-      todayDate: todayDate.toISOString(),
-      monthDate: monthDate.toISOString(),
-      last90Date: last90Date.toISOString()
-    }
-  })
+  // eslint-disable-next-line prefer-const
+  let [{data}, {data: summaryData}] = await Promise.all([
+    client.query({
+      query: accountListDocument,
+      variables: {
+        limit: itemsPerPage,
+        offset: (page - 1) * itemsPerPage,
+      }
+    }),
+    client.query({
+      query: accountSummaryDocument,
+      variables: getSummaryVariables(latestBlock.timestamp)
+    })
+  ])
 
   const totalPages = Math.ceil((data.balances?.totalCount || 0) / itemsPerPage)
 
   if (page > totalPages) {
     page = 1
 
-    const result = await getClient().query({
+    const result = await client.query({
       query: accountListDocument,
       variables: {
         limit: itemsPerPage,
         offset: (page - 1) * itemsPerPage,
-        todayDate: todayDate.toISOString(),
-        monthDate: monthDate.toISOString(),
-        last90Date: last90Date.toISOString()
       }
     })
 
@@ -108,9 +69,9 @@ export default async function AccountsPage({searchParams}: PageProps) {
   const rows: Array<RowAccount> = data?.balances?.nodes?.map((balance) => {
     return {
       id: balance?.accountId || '',
-      balance: formatAmount(balance || {
-        amount: '0',
-        denom: 'upokt'
+      balance: formatAmount({
+        amount: balance?.amount ||'0',
+        denom: balance?.denom || 'upokt'
       }),
       raw_balance: convertUpoktToPokt(balance?.amount),
       lastUpdatedBlock: balance?.lastUpdatedBlock?.height,
@@ -162,26 +123,7 @@ export default async function AccountsPage({searchParams}: PageProps) {
   return (
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <ListTitle title={'Accounts'} />
-      <FourCard
-        items={[
-          {
-            label: 'Active Accounts',
-            children: data.accountsWithBalance?.totalCount
-          },
-          {
-            label: 'Today Active Accounts',
-            children: data.todayAccounts?.totalCount
-          },
-          {
-            label: '30d Active Accounts',
-            children: data.monthAccounts?.totalCount
-          },
-          {
-            label: '90d Active Accounts',
-            children: data.monthAccounts?.totalCount
-          },
-        ]}
-      />
+      <Summary initialData={summaryData} />
       <Table
         columns={columns}
         rows={rows}

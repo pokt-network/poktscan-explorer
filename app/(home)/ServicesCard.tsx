@@ -1,36 +1,12 @@
-import { graphql } from '@/app/config/gql'
-import { getClient } from '@/app/config/apollo/rsc'
+'use client'
+
 import ServicesTable from '@/app/(home)/ServicesTable'
 import ServicesDoughnutChart from '@/app/(home)/ServicesChart'
-import React from 'react'
+import React, { useCallback } from 'react'
 import ServiceCardContent from '@/app/(home)/ServiceCardContent'
-
-const servicesDocument = graphql(`
-  query services($currentDate: Datetime!, $last24hDate: Datetime!, $last48hDate: Datetime!) {
-    current24h: relayByBlockAndServices(filter: {block: {timestamp: {greaterThanOrEqualTo: $last24hDate, lessThanOrEqualTo: $currentDate}}}) {
-      aggregated: groupedAggregates(groupBy: SERVICE_ID) {
-        keys
-        sum {
-          relays
-          computedUnits
-          amount
-          claimedUpokt
-        }
-      }
-    }
-    last24h: relayByBlockAndServices(filter: {block: {timestamp: {greaterThanOrEqualTo: $last48hDate, lessThan: $last24hDate}}}) {
-      aggregated: groupedAggregates(groupBy: SERVICE_ID) {
-        keys
-        sum {
-          relays
-          computedUnits
-          amount
-          claimedUpokt
-        }
-      }
-    }
-  }
-`)
+import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
+import { servicesDocument } from '@/app/(home)/operations'
+import { getServicesVariables } from '@/app/(home)/utils'
 
 type Item = {
   keys: string[]; // Array with one string element (id)
@@ -147,24 +123,20 @@ function calculateChanges(current: Item[], past: Item[]): AugmentedItem[] {
 }
 
 interface ServicesCardProps {
+  initialData: DocumentNodeData<typeof servicesDocument>
   defaultType: string
-  currentDate: Date
 }
 
-export default async function ServicesCard({
+export default function ServicesCard({
   defaultType,
-  currentDate
+  initialData,
 }: ServicesCardProps) {
-  const last24hDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000)
-  const last48hDate = new Date(currentDate.getTime() - 48 * 60 * 60 * 1000)
+  const variables = useCallback((_: number, currentTime: string) => getServicesVariables(new Date(currentTime)), [])
 
-  const {data} = await getClient().query({
+  const data = useFetchOnBlock({
     query: servicesDocument,
-    variables: {
-      currentDate: currentDate.toISOString(),
-      last24hDate: last24hDate.toISOString(),
-      last48hDate: last48hDate.toISOString(),
-    }
+    variables,
+    initialResult: initialData,
   })
 
   const processedData = calculateChanges(

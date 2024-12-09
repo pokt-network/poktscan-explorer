@@ -1,20 +1,8 @@
-import { graphql } from '@/app/config/gql'
 import { getClient } from '@/app/config/apollo/rsc'
 import { Check, X } from 'lucide-react';
 import React from 'react'
 import StatusPopover from '@/app/appbar/Status/Popover'
-
-const indexerMetadataDocument = graphql(`
-  query metadata {
-    _metadata {
-      targetHeight
-      lastFinalizedVerifiedHeight
-      lastProcessedHeight
-      lastProcessedTimestamp
-      indexerHealthy
-    }
-  }
-`)
+import { indexerMetadataDocument } from '@/app/api/metadata'
 
 export default async function Status() {
   const {data} = await getClient().query({

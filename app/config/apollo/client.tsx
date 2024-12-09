@@ -1,12 +1,15 @@
 "use client";
 
-import { HttpLink } from "@apollo/client";
+import { HttpLink, split } from '@apollo/client'
 import {
   ApolloNextAppProvider,
   ApolloClient,
   InMemoryCache,
 } from "@apollo/experimental-nextjs-app-support";
 import React from 'react'
+import { createClient } from 'graphql-ws'
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
+import { getMainDefinition } from '@apollo/client/utilities'
 
 function makeClient(url: string) {
   const httpLink = new HttpLink({
@@ -21,16 +24,32 @@ function makeClient(url: string) {
     // const { data } = useSuspenseQuery(MY_QUERY, { context: { fetchOptions: { cache: "force-cache" }}});
   });
 
+  const wsLink = new GraphQLWsLink(createClient({
+    url,
+  }));
+
+  const splitLink = split(
+    ({ query }) => {
+      const definition = getMainDefinition(query);
+      return (
+        definition.kind === 'OperationDefinition' &&
+        definition.operation === 'subscription'
+      );
+    },
+    wsLink,
+    httpLink,
+  );
+
   // use the `ApolloClient` from "@apollo/experimental-nextjs-app-support"
   return new ApolloClient({
     // use the `InMemoryCache` from "@apollo/experimental-nextjs-app-support"
     cache: new InMemoryCache(),
-    link: httpLink,
+    link: splitLink,
   });
 }
 
 // you need to create a component to wrap your app in
-export function ApolloWrapper({ children, url }: React.PropsWithChildren) {
+export function ApolloWrapper({ children, url }: {children: React.ReactNode, url: string}) {
   return (
     <ApolloNextAppProvider makeClient={() => makeClient(url)}>
       {children}

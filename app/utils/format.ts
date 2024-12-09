@@ -41,7 +41,7 @@ export function formatSimpleAmount(amount: FormatAmountProps['amount']) {
 
 interface FormatAmountProps {
   amount: number | string | bigint,
-  denom?: 'upokt' | null,
+  denom?: 'upokt' | string | null,
   includeSymbol?:boolean
   abbreviateThreshold?: number
   maxDecimals?: number

@@ -8,6 +8,8 @@ import Footer from '@/app/footer/Footer'
 import DatesProvider from '@/app/dates/Context'
 import { cookies } from 'next/headers'
 import { dateTimeColumnField, dateTimeZoneField, formatTextField } from '@/app/dates/constants'
+import HeightContextProvider from '@/app/context/height'
+import { getLatestBlock } from '@/app/api/blocks'
 
 export const metadata: Metadata = {
   title: "ShannonScan",
@@ -28,9 +30,10 @@ const roboto = Roboto({
 export default async function RootLayout({children}: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookiesAwaited = await cookies()
-
-
+  const [cookiesAwaited, latestBlock] = await Promise.all([
+    cookies(),
+    getLatestBlock()
+  ])
 
   return (
     <html lang="en" suppressHydrationWarning  className={`${roboto.variable}`}>
@@ -47,13 +50,19 @@ export default async function RootLayout({children}: Readonly<{
               enableSystem
               disableTransitionOnChange
             >
-              <AppBar />
-              <div className={'w-full h-full flex items-center justify-center overflow-x-hidden'}>
-                <div className={'max-w-[1400px] w-full'}>
-                  {children}
+              <HeightContextProvider
+                firstHeight={latestBlock?.height}
+                // the timestamp is in UTC, so we need to add the Z to the end because the api doesn't include it
+                firstTime={latestBlock?.timestamp + 'Z'}
+              >
+                <AppBar />
+                <div className={'w-full h-full flex items-center justify-center overflow-x-hidden'}>
+                  <div className={'max-w-[1400px] w-full'}>
+                    {children}
+                  </div>
                 </div>
-              </div>
-              <Footer />
+                <Footer />
+              </HeightContextProvider>
             </ThemeProvider>
           </DatesProvider>
         </ApolloWrapper>

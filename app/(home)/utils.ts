@@ -69,3 +69,51 @@ export function formatTimeDifference(ms: number): string {
 
   return parts.join(' ');
 }
+
+export function get24hoursBefore(date: Date) {
+  return new Date(date.getTime() - 24 * 60 * 60 * 1000)
+}
+
+export function getEvolutionVariables(currentDateFromProps: Date) {
+  const currentDate =  new Date(currentDateFromProps.getTime())
+  currentDate.setUTCHours(0, 0, 0, 0)
+  const yesterdayDate = get24hoursBefore(currentDate)
+  const previous2Date = get24hoursBefore(yesterdayDate)
+  const previous3Date = get24hoursBefore(previous2Date)
+  const previous4Date = get24hoursBefore(previous3Date)
+  const previous5Date = get24hoursBefore(previous4Date)
+  const previous6Date = get24hoursBefore(previous5Date)
+
+  return {
+    currentDate: currentDate.toISOString(),
+    yesterdayDate: yesterdayDate.toISOString(),
+    previous2Date: previous2Date.toISOString(),
+    previous3Date: previous3Date.toISOString(),
+    previous4Date: previous4Date.toISOString(),
+    previous5Date: previous5Date.toISOString(),
+    previous6Date: previous6Date.toISOString(),
+  }
+}
+
+export function getSummaryVariables(currentDate: Date) {
+  const date24hBefore = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000)
+  const date7DaysBefore = new Date(currentDate.getTime() - 6 * 24 * 60 * 60 * 1000)
+  date7DaysBefore.setUTCHours(0, 0, 0, 0);
+
+  return {
+    last24HourDate: date24hBefore.toISOString(),
+    last7DaysDate: date7DaysBefore.toISOString(),
+    currentDate: currentDate.toISOString(),
+  }
+}
+
+export function getServicesVariables(currentDate: Date) {
+  const last24hDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000)
+  const last48hDate = new Date(currentDate.getTime() - 48 * 60 * 60 * 1000)
+
+  return {
+    currentDate: currentDate.toISOString(),
+    last24hDate: last24hDate.toISOString(),
+    last48hDate: last48hDate.toISOString(),
+  }
+}

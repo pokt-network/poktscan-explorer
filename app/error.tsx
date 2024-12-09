@@ -16,7 +16,7 @@ export default function Error({
         There was an error.
       </p>
       <p className={'text-[color:--secondary] tracking-wide mt-2 mb-5'}>
-        There was an error while trying to load the page. Please try again later.
+       Something went wrong loading the page. Please try again.
       </p>
       <div className={'flex items-center gap-4'}>
         <Button

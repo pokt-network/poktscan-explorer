@@ -1,4 +1,3 @@
-import { graphql } from '@/app/config/gql'
 import { getPageAndItems } from '@/app/utils/pagination'
 import { getClient } from '@/app/config/apollo/rsc'
 import {
@@ -12,72 +11,13 @@ import { CircleHelp } from 'lucide-react'
 import DetailCell from '@/app/components/DetailCell'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
-import FourCard from '@/app/components/FourCard'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import Chip from '@/app/components/Chip'
 import ListTitle from '@/app/components/ListTitle'
+import { applicationListDocument, applicationSummaryDocument } from '@/app/apps/operations'
+import Summary from '@/app/apps/Summary'
 
 export const dynamic = "force-dynamic";
-
-const applicationListDocument = graphql(`
-  query applications($limit: Int!, $offset: Int!) {
-    applications(first: $limit, offset: $offset) {
-      totalCount
-      nodes {
-        id
-        account {
-          id
-          balances {
-            nodes {
-              amount
-              denom
-            }
-          }
-        }
-        stakeAmount
-        stakeDenom
-        stakeStatus
-        services: applicationServices {
-          nodes {
-            service {
-              id
-              name
-            }
-          }
-        }
-        applicationGateways {
-          nodes {
-            gatewayId
-          }
-        }
-        unstakingBeginBlock {
-          height
-        }
-        unstakingEndHeight
-        unstakingEndBlock {
-          height
-        }
-        unstakingReason
-      }
-    }
-    stakedApps: applications(filter: {stakeStatus: {equalTo: 0}}) {
-      totalCount
-      aggregates {
-        sum {
-          stakeAmount
-        }
-      }
-    }
-    unstakingApps: applications(filter: {stakeStatus: {equalTo: 1}}) {
-      totalCount
-      aggregates {
-        sum {
-          stakeAmount
-        }
-      }
-    }
-  }
-`)
 
 interface RowApp {
   id: string
@@ -99,20 +39,28 @@ export default async function AppsPage({searchParams}: PageProps) {
   let page = pageInfo.page
   const itemsPerPage = pageInfo.itemsPerPage
 
-  let {data} = await getClient().query({
-    query: applicationListDocument,
-    variables: {
-      limit: itemsPerPage,
-      offset: (page - 1) * itemsPerPage
-    }
-  })
+  const client = getClient()
+
+  // eslint-disable-next-line prefer-const
+  let [{data}, {data: summaryData}] = await Promise.all([
+    client.query({
+      query: applicationListDocument,
+      variables: {
+        limit: itemsPerPage,
+        offset: (page - 1) * itemsPerPage
+      }
+    }),
+    client.query({
+      query: applicationSummaryDocument,
+    })
+  ])
 
   const totalPages = Math.ceil((data.applications?.totalCount || 0) / itemsPerPage)
 
   if (page > totalPages) {
     page = 1
 
-    const result = await getClient().query({
+    const result = await client.query({
       query: applicationListDocument,
       variables: {
         limit: itemsPerPage,
@@ -267,34 +215,20 @@ export default async function AppsPage({searchParams}: PageProps) {
   return (
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <ListTitle title={'Applications'} />
-      <FourCard
-        items={[
-          {
-            label: 'Staked Applications',
-            children: data.stakedApps?.totalCount
-          },
-          {
-            label: 'Staked Tokens',
-            children: formatAmount({
-              denom: 'upokt',
-              amount: data.stakedApps?.aggregates?.sum?.stakeAmount
-            })
-          },
-          {
-            label: 'Unstaking Applications',
-            children: data.unstakingApps?.totalCount
-          },
-          {
-            label: 'Unstaking Tokens',
-            children: formatAmount({
-              denom: 'upokt',
-              amount: data.unstakingApps?.aggregates?.sum?.stakeAmount
-            })
-          },
-        ]}
+      <Summary initialData={summaryData} />
+      <Table
+        columns={columns}
+        rows={rows}
+        header={{
+          title: `${data.applications?.totalCount} applications found`
+        }}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          itemsPerPage,
+          basePath: '/apps'
+        }}
       />
-      <Table columns={columns} rows={rows} header={{ title: `${data.applications?.totalCount} applications found` }}
-             pagination={{ currentPage: page, totalPages, itemsPerPage, basePath: '/apps' }} />
     </div>
   )
 }

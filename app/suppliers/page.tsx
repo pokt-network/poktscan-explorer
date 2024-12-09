@@ -1,9 +1,7 @@
-import { graphql } from '@/app/config/gql'
 import { getClient } from '@/app/config/apollo/rsc'
 import Table, { GridColDef } from '@/app/components/Table'
 import { getPageAndItems } from '@/app/utils/pagination'
 import EntityLink from '@/app/components/EntityLink'
-import FourCard from '@/app/components/FourCard'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { CircleHelp } from 'lucide-react'
 import React from 'react'
@@ -13,66 +11,10 @@ import { getStakeLabel } from '@/app/utils/stake'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import Chip from '@/app/components/Chip'
 import ListTitle from '@/app/components/ListTitle'
+import { supplierListDocument, supplierSummaryDocument } from '@/app/suppliers/operations'
+import Summary from '@/app/suppliers/Summary'
 
 export const dynamic = "force-dynamic";
-
-const supplierListDocument = graphql(`
-  query supplierList($limit: Int!, $offset: Int!) {
-    suppliers(first: $limit, offset: $offset) {
-      totalCount
-      nodes {
-        id
-        ownerId
-        owner {
-          id
-          balances {
-            nodes {
-              amount
-              denom
-            }
-          }
-        }
-        operatorId
-        operator {
-          id
-          balances {
-            nodes {
-              amount
-              denom
-            }
-          }
-        }
-        stakeAmount
-        stakeDenom
-        stakeStatus
-        supplierServices: serviceConfigs {
-          nodes {
-            service {
-              id
-              name
-            }
-          }
-        }
-      }
-    }
-    stakedSuppliers: suppliers(filter: {stakeStatus: {equalTo: 0}}) {
-      totalCount
-      aggregates {
-        sum {
-          stakeAmount
-        }
-      }
-    }
-    unstakingSuppliers: suppliers(filter: {stakeStatus: {equalTo: 1}}) {
-      totalCount
-      aggregates {
-        sum {
-          stakeAmount
-        }
-      }
-    }
-  }
-`)
 
 interface RowSupplier {
   id: string
@@ -95,20 +37,28 @@ export default async function SuppliersPage({searchParams}: PageProps) {
   let page = pageInfo.page
   const itemsPerPage = pageInfo.itemsPerPage
 
-  let {data} = await getClient().query({
-    query: supplierListDocument,
-    variables: {
-      limit: itemsPerPage,
-      offset: (page - 1) * itemsPerPage
-    }
-  })
+  const client = getClient()
+
+  // eslint-disable-next-line prefer-const
+  let [{data}, {data: summaryData}] = await Promise.all([
+    client.query({
+      query: supplierListDocument,
+      variables: {
+        limit: itemsPerPage,
+        offset: (page - 1) * itemsPerPage
+      }
+    }),
+    client.query({
+      query: supplierSummaryDocument,
+    })
+  ])
 
   const totalPages = Math.ceil((data.suppliers?.totalCount || 0) / itemsPerPage)
 
   if (page > totalPages) {
     page = 1
 
-    const result = await getClient().query({
+    const result = await client.query({
       query: supplierListDocument,
       variables: {
         limit: itemsPerPage,
@@ -256,32 +206,7 @@ export default async function SuppliersPage({searchParams}: PageProps) {
   return (
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <ListTitle title={'Suppliers'} />
-      <FourCard
-        items={[
-          {
-            label: 'Staked Suppliers',
-            children: data.stakedSuppliers?.totalCount
-          },
-          {
-            label: 'Staked Tokens',
-            children: formatAmount({
-              denom: 'upokt',
-              amount: data.stakedSuppliers?.aggregates?.sum?.stakeAmount
-            })
-          },
-          {
-            label: 'Unstaking Suppliers',
-            children: data.unstakingSuppliers?.totalCount
-          },
-          {
-            label: 'Unstaking Tokens',
-            children: formatAmount({
-              denom: 'upokt',
-              amount: data.unstakingSuppliers?.aggregates?.sum?.stakeAmount
-            })
-          },
-        ]}
-      />
+      <Summary initialData={summaryData} />
       <Table
         columns={columns}
         rows={rows}
