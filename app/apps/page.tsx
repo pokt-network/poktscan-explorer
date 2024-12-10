@@ -16,8 +16,18 @@ import Chip from '@/app/components/Chip'
 import ListTitle from '@/app/components/ListTitle'
 import { applicationListDocument, applicationSummaryDocument } from '@/app/apps/operations'
 import Summary from '@/app/apps/Summary'
+import { graphql } from '@/app/config/gql'
+import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 
 export const dynamic = "force-dynamic";
+
+const appsSubscription = graphql(`
+  subscription apps {
+    applications {
+      id
+    }
+  }
+`)
 
 interface RowApp {
   id: string
@@ -220,7 +230,13 @@ export default async function AppsPage({searchParams}: PageProps) {
         columns={columns}
         rows={rows}
         header={{
-          title: `${data.applications?.totalCount} applications found`
+          title: `${data.applications?.totalCount} applications found`,
+          subtitle: (
+            <NewEntitiesFound<typeof appsSubscription>
+              subscription={appsSubscription}
+              entity={'apps'}
+            />
+          )
         }}
         pagination={{
           currentPage: page,

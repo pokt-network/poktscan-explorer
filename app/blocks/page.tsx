@@ -12,6 +12,8 @@ import DateCellText from '@/app/dates/DateCellText'
 import { blockListDocument, blockSummaryDocument } from '@/app/blocks/operations'
 import { getSummaryVariables } from '@/app/blocks/utils'
 import Summary from '@/app/blocks/Summary'
+import NewEntitiesFound from '@/app/components/NewEntitiesFound'
+import { subscriptionQuery } from '@/app/operations/block'
 
 export const dynamic = "force-dynamic";
 
@@ -180,7 +182,13 @@ export default async function BlocksPage({searchParams}: PageProps) {
         columns={columns}
         rows={rows}
         header={{
-          title: `${data.blocks?.totalCount} blocks found`
+          title: `${data.blocks?.totalCount} blocks found`,
+          subtitle: (
+            <NewEntitiesFound<typeof subscriptionQuery>
+              subscription={subscriptionQuery}
+              entity={'blocks'}
+            />
+          )
         }}
         pagination={{
           currentPage: page,

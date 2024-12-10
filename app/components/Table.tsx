@@ -21,7 +21,7 @@ export interface GridColDef {
 export interface TableProps {
   header: {
     title: string
-    subtitle?: string
+    subtitle?: React.ReactNode
   }
   columns: Array<GridColDef>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -107,7 +107,7 @@ export const getNewPageHref = ({
 
 interface TableHeaderProps {
   title: string
-  subtitle?: string
+  subtitle?: React.ReactNode
   currentPage: number
   totalPages: number
   itemsPerPage: number
@@ -190,11 +190,11 @@ Table.Header = function TableHeader({title, subtitle, hidePagination,currentPage
         <p className={"text-sm"}>
           {title}
         </p>
-        {subtitle && (
+        {subtitle ? typeof subtitle === 'string' ? (
           <p className={'text-xs text-[color:--secondary]'}>
             {subtitle}
           </p>
-        )}
+        ) : subtitle : null}
       </div>
 
       <div className={'flex flex-row items-center justify-between gap-2 flex-wrap'}>

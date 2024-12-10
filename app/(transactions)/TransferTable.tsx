@@ -7,6 +7,7 @@ import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import FailedTransactionFeedback from '@/app/(transactions)/FailedTransactionFeedback'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
+import NewTransferByAddress from '@/app/(transactions)/NewTransferByAddress'
 
 const transfersByAddressDocument = graphql(`
   query transfersList($limit: Int!, $offset: Int!, $address: String!) {
@@ -223,6 +224,9 @@ export default async function TransferTable({address, page, itemsPerPage, basePa
       rows={rows}
       header={{
         title: `${data.transfers?.totalCount} transfers found`,
+        subtitle: (
+          <NewTransferByAddress address={address} />
+        )
       }}
       pagination={{
         currentPage: page,

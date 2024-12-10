@@ -44,3 +44,16 @@ export const latestBlockQuery = graphql(`
     }
   }
 `)
+
+export const subscriptionQuery = graphql(`
+  subscription blocks {
+    blocks {
+      id
+      mutation_type
+      _entity {
+        height
+        timestamp
+      }
+    }
+  }
+`)

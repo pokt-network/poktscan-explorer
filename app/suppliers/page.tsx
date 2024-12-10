@@ -13,8 +13,18 @@ import Chip from '@/app/components/Chip'
 import ListTitle from '@/app/components/ListTitle'
 import { supplierListDocument, supplierSummaryDocument } from '@/app/suppliers/operations'
 import Summary from '@/app/suppliers/Summary'
+import { graphql } from '@/app/config/gql'
+import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 
 export const dynamic = "force-dynamic";
+
+const supplierSubscription = graphql(`
+  subscription suppliers {
+    suppliers {
+      id
+    }
+  }
+`)
 
 interface RowSupplier {
   id: string
@@ -212,6 +222,12 @@ export default async function SuppliersPage({searchParams}: PageProps) {
         rows={rows}
         header={{
           title: `${data.suppliers?.totalCount} suppliers found`,
+          subtitle: (
+            <NewEntitiesFound<typeof supplierSubscription>
+              subscription={supplierSubscription}
+              entity={'suppliers'}
+            />
+          )
         }}
         pagination={{
           currentPage: page,

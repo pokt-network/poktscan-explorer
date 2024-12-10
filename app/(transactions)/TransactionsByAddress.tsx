@@ -3,6 +3,7 @@ import { getClient } from '@/app/config/apollo/rsc'
 import React from 'react'
 import TransactionTable from '@/app/(transactions)/TransactionTable'
 import { Transaction } from '@/app/config/gql/graphql'
+import NewTransactionsByAddress from '@/app/(transactions)/NewTransactionsByAddress'
 
 const transactionsByAddressDocument = graphql(`
   query transactionsByAddress($limit: Int!, $offset: Int!, $address: String!) {
@@ -88,6 +89,9 @@ export default async function TransactionByAddressTable({address, page, itemsPer
       }}
       totalItems={data.transactions?.totalCount || 0}
       includeSigner={true}
+      subtitle={(
+        <NewTransactionsByAddress address={address} />
+      )}
     />
   )
 }

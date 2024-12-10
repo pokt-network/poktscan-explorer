@@ -7,6 +7,25 @@ import Chip from '@/app/components/Chip'
 import FailedTransactionFeedback from '@/app/(transactions)/FailedTransactionFeedback'
 import DateCellText from '@/app/dates/DateCellText'
 import DateColumn from '@/app/dates/DateColumn'
+import { graphql } from '@/app/config/gql'
+import NewEntitiesFound from '@/app/components/NewEntitiesFound'
+
+export const transactionsSubscription = graphql(`
+  subscription transactions {
+    transactions {
+      id
+      _entity {
+        signerAddress
+#        todo: uncomment this when fixed
+#        messages {
+#          nodes {
+#            json
+#          }
+#        }
+      }
+    }
+  }
+`)
 
 export interface RowTransaction {
   id: string
@@ -25,9 +44,10 @@ interface TransactionTableProps {
   includeSigner?: boolean
   pagination: TableProps['pagination']
   totalItems?: number
+  subtitle?: React.ReactNode
 }
 
-export default function TransactionTable({rawRows, includeSigner = true, pagination, totalItems}: TransactionTableProps) {
+export default function TransactionTable({rawRows, includeSigner = true, pagination, totalItems, subtitle}: TransactionTableProps) {
   const rows: Array<RowTransaction> = rawRows.map((transaction) => {
     const sendMessageString = transaction.messages!.nodes.find((msg) => msg!.typeUrl === '/cosmos.bank.v1beta1.MsgSend')
 
@@ -154,6 +174,12 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       rows={rows}
       header={{
         title: `${totalItems} transactions found`,
+        subtitle: subtitle || (
+          <NewEntitiesFound<typeof transactionsSubscription>
+            entity={'transactions'}
+            subscription={transactionsSubscription}
+          />
+        )
       }}
       pagination={pagination}
     />

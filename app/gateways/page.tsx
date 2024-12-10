@@ -11,8 +11,17 @@ import { getStakeLabel } from '@/app/utils/stake'
 import { convertUpoktToPokt, formatAmount, truncateAddress } from '@/app/utils/format'
 import Chip from '@/app/components/Chip'
 import ListTitle from '@/app/components/ListTitle'
+import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 
 export const dynamic = "force-dynamic";
+
+const gatewaysSubscription = graphql(`
+  subscription gateways {
+    gateways {
+      id
+    }
+  }
+`)
 
 const gatewayListDocument = graphql(`
   query gatewayList($limit: Int!, $offset: Int!) {
@@ -278,6 +287,12 @@ export default async function GatewaysPage({searchParams}: PageProps) {
         rows={rows}
         header={{
           title: `${data.gateways?.totalCount} gateways found`,
+          subtitle: (
+            <NewEntitiesFound<typeof gatewaysSubscription>
+              subscription={gatewaysSubscription}
+              entity={'gateways'}
+            />
+          )
         }}
         pagination={{
           currentPage: page,

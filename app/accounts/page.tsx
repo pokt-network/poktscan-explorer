@@ -11,8 +11,18 @@ import DateCellText from '@/app/dates/DateCellText'
 import { accountListDocument, accountSummaryDocument } from '@/app/accounts/operations'
 import { getSummaryVariables } from '@/app/accounts/utils'
 import Summary from '@/app/accounts/Summary'
+import { graphql } from '@/app/config/gql'
+import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 
 export const dynamic = "force-dynamic";
+
+const accountSubscription = graphql(`
+  subscription accounts {
+    accounts {
+      id
+    }
+  }
+`)
 
 interface RowAccount {
   id: string
@@ -129,6 +139,12 @@ export default async function AccountsPage({searchParams}: PageProps) {
         rows={rows}
         header={{
           title: `${data.balances?.totalCount} accounts found`,
+          subtitle: (
+            <NewEntitiesFound<typeof accountSubscription>
+              subscription={accountSubscription}
+              entity={'accounts'}
+            />
+          )
         }}
         pagination={{
           currentPage: page,

@@ -16,7 +16,7 @@ export type DeepRequired<T> = NonNullable<{
 
 export type DocumentNodeData<T extends TypedDocumentNode<any, any>> = T extends TypedDocumentNode<infer Data, any> ? Data : never;
 
-type ExtractVariables<T> = T extends TypedDocumentNode<any, infer Variables> ? Variables : never;
+export type ExtractVariables<T> = T extends TypedDocumentNode<any, infer Variables> ? Variables : never;
 
 export interface FetchOnBlockOptions<
   T extends TypedDocumentNode<any, any>,
@@ -52,8 +52,6 @@ export default function useFetchOnBlock<
       firstRenderRef.current = false
       return
     }
-
-    console.log('render')
 
     if (currentHeight !== firstHeight) {
       const variablesToUse = typeof variables === 'function' ? variables(currentHeight, currentTime) : variables

@@ -3,6 +3,7 @@
 import { useDateContext } from '@/app/dates/Context'
 import { format, formatDuration, intervalToDuration } from 'date-fns'
 import { TZDate } from "@date-fns/tz";
+import React from 'react'
 
 export function useFormatDate() {
   const {formatText, dateTimeColumn, dateTimeZone} = useDateContext()
@@ -32,5 +33,9 @@ export function useFormatDate() {
 
 export default function DateCellText({value}: {value: string}) {
   const {formatDate} = useFormatDate()
- return formatDate(value)
+ return (
+   <span suppressHydrationWarning>
+     {formatDate(value)}
+   </span>
+ )
 }
