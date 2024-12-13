@@ -21,7 +21,6 @@ export default function NewEntitiesFound<T extends TypedDocumentNode<any, any>>(
 
   useSubscription(subscription, {
     variables, onData: ({data}) => {
-      console.log(data)
       if (data.data) {
         if (!addOnTrue || addOnTrue(data.data)) {
           setNewEntities(prevState => prevState + 1)
