@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { format } from 'date-fns'
 import { useDateContext } from '@/app/dates/Context'
@@ -24,21 +24,32 @@ interface DateSettingsProps {
 }
 
 const date = new Date()
+const utcOffset = (new Date().getTimezoneOffset() / 60) * -1
+
+const dateTimeFormats = [
+  "yyyy-MM-dd HH:mm:ss",
+  "dd MMMM yyyy, HH:mm",
+  "MMMM dd, yyyy, h:mm a",
+  "MM/dd/yyyy HH:mm",
+  "dd.MM.yyyy HH:mm",
+  "dd MMM yyyy, HH:mm",
+  "dd MMM yyyy, h:mm a",
+]
 
 export default function DateSettingsDialog({open, onOpenChange}: DateSettingsProps) {
   const {changeValues, dateTimeColumn, dateTimeZone, formatText} = useDateContext()
   const [formatInput, setFormat] = React.useState(formatText)
   const [submitted, setSubmitted] = useState(false)
-  const utcOffset = (new Date().getTimezoneOffset() / 60) * -1
+  const formatInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     setFormat(formatText)
-  }, [formatText])
+  }, [formatText, open])
 
   let formattedDateText: string, invalidFormat = false
 
   try {
-    formattedDateText = `This is how the date times are going to look: ${format(date, formatInput)}`
+    formattedDateText = `formatted date: ${format(date, formatInput)}`
   } catch {
     invalidFormat = true
   }
@@ -66,6 +77,8 @@ export default function DateSettingsDialog({open, onOpenChange}: DateSettingsPro
       onOpenChange(false)
     }, 600)
   }
+
+  const isCustomFormat = !dateTimeFormats.includes(formatInput)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -128,29 +141,78 @@ export default function DateSettingsDialog({open, onOpenChange}: DateSettingsPro
                 </Select>
               </div>
               <div
-                className={'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-5 w-full mt-4'}>
-                <Label className={'text-xs sm:text-sm font-normal'} htmlFor={formatTextField}>
-                  Type the format of the date times
+                className={'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-5 w-full mt-4'}
+              >
+                <Label className={'text-xs sm:text-sm font-normal'}>
+                  Format of the date times
+                </Label>
+                <Select
+                  value={isCustomFormat ? 'Custom' : formatInput}
+                  onValueChange={(value) => {
+                    setFormat(value === 'Custom' ? '' : value)
+
+                    if (value === 'Custom') {
+                      setTimeout(() => {
+                        formatInputRef.current?.focus()
+                      }, 50)
+                    }
+                  }}
+                >
+                  <SelectTrigger className={'min-w-[240px] sm:w-[240px] text-xs h-[40px]'}>
+                    <div className={`flex flex-col items-start justify-start pl-1.5 sm:pl-0 sm:w-full ${isCustomFormat ? '' : 'scale-[0.85] ml-[-16px] sm:ml-[-16px]'}`}>
+                      <SelectValue placeholder={'Format'} className={'w-full'} />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className={'z-[2001]'}>
+                    {[...dateTimeFormats, 'Custom'].map((value) => (
+                      <SelectItem value={value} key={value} className={'w-full'}>
+                        {value === 'Custom' ? 'Custom' : (
+                          <>
+                            <p className={'text-xs text-[color:--secondary] w-full text-left'}>{value}</p>
+                            <p className={'text-sm'}>{format(date, value)}</p>
+                          </>
+                          )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div
+                className={`${isCustomFormat ? 'flex' : 'hidden'} flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-5 w-full mt-4`}
+              >
+                <Label className={'text-[10px] sm:text-xs font-normal'} htmlFor={formatTextField}>
+                  Type your custom format
                 </Label>
                 <Input
+                  ref={formatInputRef}
                   name={formatTextField}
-                  className={'border-[color:--divider] sm:max-w-[200px] text-xs sm:text-sm'}
+                  className={'border-[color:--divider] sm:max-w-[240px] text-xs sm:text-sm'}
                   value={formatInput}
                   onChange={(e) => {
                     setFormat(e.target.value)
                   }}
                 />
               </div>
-              <p
-                className={`text-[10px] mt-1.5 sm:mt-0 ${invalidFormat ? 'text-[color:--error]' : 'text-[color:--secondary]'}`}>
-                {invalidFormat ? 'Invalid format, please type another one' : formattedDateText}
-              </p>
+              <div
+                className={`${isCustomFormat ? 'flex' : 'hidden'} flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-0 sm:gap-2 w-full mt-1`}
+              >
+                <p
+                  className={`text-[10px] mt-1.5 sm:mt-0`}
+                >
+                  If you want to know more about date time formats, <a target={'_blank'} href={'https://date-fns.org/v2.29.3/docs/format'} className={'underline underline-offset-2'}>click here</a>
+                </p>
+                <p
+                  className={`text-[10px] mt-1.5 sm:mt-0 ${invalidFormat ? 'text-[color:--error]' : 'text-[color:--secondary]'}`}>
+                  {invalidFormat ? !formatInput ? 'Please type a format' : 'Invalid format, please type another one' : formattedDateText}
+                </p>
+
+              </div>
             </div>
           </div>
           <DialogFooter
             className={'border-t border-[color:--divider] px-4 py-5 bg-[color:--background] sm:rounded-b-lg h-[78px]'}>
             <Button
-              type="submit"
+              type='submit'
               className={`min-w-[130px] ${submitted ? 'bg-[color:--success] hover:bg-[color:--success] disabled:opacity-[1!important]' : 'bg-[color:--primary-background] hover:bg-[color:--primary]'} text-white`}
               disabled={invalidFormat}
             >
