@@ -1,5 +1,9 @@
 import { graphql } from '@/app/config/gql'
-import { isValidHash, isValidPoktAddress } from '@/app/utils/poktroll'
+import {
+  isValidEd25519Hash,
+  isValidHash,
+  isValidPoktAddress,
+} from '@/app/utils/poktroll'
 import { useSuspenseQuery } from '@apollo/client'
 import { EntityLinkProps } from '@/app/components/EntityLink'
 import React from 'react'
@@ -41,6 +45,17 @@ const searchByAddressDocument = graphql(`
       stakeStatus
       stakeAmount
       stakeDenom
+    }
+  }
+`)
+
+const searchValidatorByAddress = graphql(`
+  query searchValidatorByAddress($address: String!) {
+    validator(id: $address) {
+      id
+      stakeAmount
+      stakeDenom
+      stakeStatus
     }
   }
 `)
@@ -146,7 +161,6 @@ export default function SearchContent({value, close}: SearchContentProps) {
         hash: valueTrimmed.toUpperCase()
       }
     })
-
     if (errorFromRequest) {
       error = true
     } else {
@@ -208,6 +222,34 @@ export default function SearchContent({value, close}: SearchContentProps) {
           )
         })
       }
+    }
+  } else if (isValidEd25519Hash(valueTrimmed)) {
+    // eslint-disable-next-line
+    const {data, error: errorFromRequest} = useSuspenseQuery(searchValidatorByAddress, {
+      variables: {
+        address: valueTrimmed
+      }
+    })
+
+    if (errorFromRequest) {
+      error = true
+    } else {
+      debugger
+      const {stakeStatus, stakeAmount, stakeDenom, id} = (data.validator as typeof data.validator)!
+      rows.push({
+        entity: 'validator',
+        entityId: id,
+        description: <>
+            <span
+              className={stakeStatus === 0 ? 'text-[color:--success]' : stakeStatus === 1 ? 'text-[color:--warning]' : 'text-[color:-error]'}
+            >
+              {getStakeLabel(stakeStatus)}
+            </span> - {formatAmount({
+          amount: stakeAmount,
+          denom: stakeDenom
+        })}
+        </>
+      })
     }
   }
 

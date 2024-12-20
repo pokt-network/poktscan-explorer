@@ -69,6 +69,11 @@ export default async function AppBar() {
                 },
                 {
                   type: 'route',
+                  label: 'Validators',
+                  href: '/validators'
+                },
+                {
+                  type: 'route',
                   label: 'Blocks',
                   href: '/blocks'
                 },

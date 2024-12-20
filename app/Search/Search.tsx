@@ -50,7 +50,6 @@ export default function SearchInput({ showIcon = true, zIndex = 1024, pathToHide
   if (!isVisible) {
     return null
   }
-
   return (
     <Popover
       open={show}

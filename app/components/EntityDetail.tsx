@@ -10,7 +10,7 @@ type LabelValueItem = {
   type: 'row'
   label: React.ReactNode
   value: React.ReactNode
-  description?: string
+  description?: string | React.ReactNode
 }
 
 export type Item = LabelValueItem | DividerItem

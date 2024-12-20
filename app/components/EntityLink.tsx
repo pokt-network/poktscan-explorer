@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { TooltipArrow } from '@radix-ui/react-tooltip'
 
 export interface EntityLinkProps {
-  entity: 'block' | 'supplier' | 'account' | 'tx' | 'app' | 'gateway'
+  entity: 'block' | 'supplier' | 'account' | 'tx' | 'app' | 'gateway' | 'validator'
   entityId: string | number
   label?: string
   copy?: {

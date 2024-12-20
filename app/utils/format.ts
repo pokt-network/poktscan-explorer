@@ -14,7 +14,9 @@ export function truncateBothSides(str: string, length: number) {
 }
 
 export function truncateAddress(address: string) {
-  return truncateBothSides(address.replace('pokt', ''), 8)
+  // `pokt` is the prefix for every account and `poktvaloper` is for validators, so replace `valoper` after pokt in case
+  // the address is the signer of a validator.
+  return truncateBothSides(address.replace('pokt', '').replace('valoper', ''), 8)
 }
 
 function toScientificNotation(num: number): string {
@@ -65,6 +67,7 @@ export function formatAmount({
     symbol = 'POKT'
   } else {
     amountNumber = Number(amount)
+    symbol = denom || ''
   }
 
   if (isNaN(amountNumber)) {
