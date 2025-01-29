@@ -9,6 +9,7 @@ import React from 'react'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
 import NotFound from '@/app/not-found'
+import RawEntity from '@/app/components/RawEntity/RawEntity'
 
 export const dynamic = "force-dynamic";
 
@@ -259,68 +260,80 @@ export default async function BlockDetailPage({
         ]}
       />
       {block?.height !== "1" && (
-          <>
-            <h2 className={"text-xl font-semibold"}>
-              Last Commit
-            </h2>
+        <>
+          <h2 className={"text-xl font-semibold"}>
+            Last Commit
+          </h2>
+          <EntityDetail
+            items={[
+              {
+                type: 'row',
+                label: 'Round',
+                value: block.metadata?.lastCommit?.round
+              },
+              {
+                type: 'row',
+                label: 'Height',
+                value: block.metadata?.lastCommit?.height
+              },
+              {
+                type: 'row',
+                label: 'Block Id Hash',
+                value: block.metadata?.lastCommit?.blockId?.hash
+              },
+              {
+                type: 'row',
+                label: 'Block Id Parts / Total',
+                value: `${block.metadata?.lastCommit?.blockId?.parts?.hash} / ${block.metadata?.lastCommit?.blockId?.parts?.total}`
+              },
+            ]}
+          />
+          <h3 className={"text-lg font-semibold"}>
+            Signatures
+          </h3>
+          {block.metadata?.lastCommit?.signatures.map((signature, index) => (
             <EntityDetail
-              items={[
-                {
-                  type: 'row',
-                  label: 'Round',
-                  value: block.metadata?.lastCommit?.round
-                },
-                {
-                  type: 'row',
-                  label: 'Height',
-                  value: block.metadata?.lastCommit?.height
-                },
-                {
-                  type: 'row',
-                  label: 'Block Id Hash',
-                  value: block.metadata?.lastCommit?.blockId?.hash
-                },
-                {
-                  type: 'row',
-                  label: 'Block Id Parts / Total',
-                  value: `${block.metadata?.lastCommit?.blockId?.parts?.hash} / ${block.metadata?.lastCommit?.blockId?.parts?.total}`
-                },
-              ]}
+              key={signature.signature}
+              items={
+                [
+                  {
+                    type: 'row',
+                    label: `Signature #${index + 1}`,
+                    value: signature.signature
+                  },
+                  {
+                    type: 'row',
+                    label: 'Timestamp',
+                    value: signature.timestamp
+                  },
+                  {
+                    type: 'row',
+                    label: 'Validator Address',
+                    value: signature.validatorAddress
+                  },
+                  {
+                    type: 'row',
+                    label: 'Block Id Flag',
+                    value: signature.blockIdFlag
+                  },
+                ]
+              }
+            />)
+          )}
+          <h2 className={'text-xl font-semibold'}>
+            Raw Result
+          </h2>
+          <div
+            className={'bg-[color:--main-background] p-4 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow'}
+          >
+            <RawEntity
+              entity={'block'}
+              id={id}
+              loadOnClick={true}
             />
-            <h3 className={"text-lg font-semibold"}>
-              Signatures
-            </h3>
-            {block.metadata?.lastCommit?.signatures.map((signature, index) => (
-              <EntityDetail
-                key={signature.signature}
-                items={
-                  [
-                    {
-                      type: 'row',
-                      label: `Signature #${index + 1}`,
-                      value: signature.signature
-                    },
-                    {
-                      type: 'row',
-                      label: 'Timestamp',
-                      value: signature.timestamp
-                    },
-                    {
-                      type: 'row',
-                      label: 'Validator Address',
-                      value: signature.validatorAddress
-                    },
-                    {
-                      type: 'row',
-                      label: 'Block Id Flag',
-                      value: signature.blockIdFlag
-                    },
-                  ]
-                }
-              />)
-            )}
-          </>
-        )
+          </div>
+        </>
+      )
       }
     </div>
   )

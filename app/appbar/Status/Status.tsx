@@ -59,7 +59,7 @@ export default async function Status() {
     <StatusPopover
       trigger={(
         <div
-          className={`flex items-center justify-center rounded-[50%] bg-[color:--success] h-[18px] min-w-[18px] w-[18px] stroke-[3px] ${color}`}>
+          className={`flex items-center justify-center rounded-[50%] h-[18px] min-w-[18px] w-[18px] stroke-[3px] ${color}`}>
           {icon}
         </div>
       )}

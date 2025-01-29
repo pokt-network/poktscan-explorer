@@ -74,6 +74,11 @@ export default async function AppBar() {
                 },
                 {
                   type: 'route',
+                  label: 'Services',
+                  href: '/services'
+                },
+                {
+                  type: 'route',
                   label: 'Blocks',
                   href: '/blocks'
                 },

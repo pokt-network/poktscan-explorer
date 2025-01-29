@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import useDebounce from '@/app/hooks/useDebounce'
 
 interface DividerItem {
@@ -37,6 +37,24 @@ export default function RoutesMenu({label, items}: RoutesMenuProps) {
   const handleMouseLeave = () => {
     setOpen(false);
   };
+
+  const mouseAvailable = useRef(true);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(pointer: none)'); // Checks for devices without a pointer
+
+    const handleMediaQueryChange = (event: MediaQueryListEvent | MediaQueryList) => {
+      mouseAvailable.current = !event.matches;
+    };
+
+    mediaQuery.addEventListener('change', handleMediaQueryChange);
+
+    mouseAvailable.current = !mediaQuery.matches;
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleMediaQueryChange);
+    };
+  }, [])
 
   return (
     <Popover open={debouncedOpen} onOpenChange={setOpen}>
@@ -68,7 +86,17 @@ export default function RoutesMenu({label, items}: RoutesMenuProps) {
             }
 
             return (
-              <Link href={item.href} key={index} className={"text-sm text-[color:--foreground] decoration-none rounded-md py-1 px-2 hover:bg-[color:--highlight-option]"}>
+              <Link
+                href={item.href}
+                key={index}
+                className={"text-sm text-[color:--foreground] decoration-none rounded-md py-1 px-2 hover:bg-[color:--highlight-option]"}
+                onClick={() => {
+                  console.log('clicked', mouseAvailable.current)
+                  if (!mouseAvailable.current) {
+                    setOpen(false);
+                  }
+                }}
+              >
                 {item.label}
               </Link>
             )

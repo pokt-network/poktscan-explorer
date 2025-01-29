@@ -21,9 +21,9 @@ export default async function ValidatorDetailPage({params, searchParams}: PagePr
 
   // Transactions and transfer here are showing the signer address which is not the id of the validator.
   // Validators have a signer which is the owner of it, that owner is the one that can do transactions on behalf of it.
-  const signerParams: Promise<{id: string}> = Promise.resolve({id: data?.validator?.signer?.id} as {id: string})
+  const signerParams: Promise<{id: string}> = Promise.resolve({id: data?.validator?.signer?.id, idForUrl: id} as {id: string})
 
   return (
-    <TransferAndTxTabs searchParams={searchParams} params={signerParams} entity={'account'}/>
+    <TransferAndTxTabs searchParams={searchParams} params={signerParams} entity={'validator'}/>
   )
 }

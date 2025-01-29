@@ -234,7 +234,6 @@ export default function SearchContent({value, close}: SearchContentProps) {
     if (errorFromRequest) {
       error = true
     } else {
-      debugger
       const {stakeStatus, stakeAmount, stakeDenom, id} = (data.validator as typeof data.validator)!
       rows.push({
         entity: 'validator',
@@ -254,7 +253,7 @@ export default function SearchContent({value, close}: SearchContentProps) {
   }
 
   if (error) {
-
+    // todo: Add error handling
   }
 
   if (!rows.length) {

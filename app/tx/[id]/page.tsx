@@ -10,6 +10,7 @@ import TitleEntity from '@/app/components/TitleEntity'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
 import NotFound from '@/app/not-found'
+import RawEntity from '@/app/components/RawEntity/RawEntity'
 
 export const dynamic = "force-dynamic";
 
@@ -172,7 +173,7 @@ export default async function TransactionDetailPage({
       </h2>
       <div
         className={'bg-[color:--main-background] p-4 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow'}>
-        <Accordion type={'multiple'} defaultValue={['0']}>
+        <Accordion type={'multiple'}>
           {tx.messages.nodes.map((node, index) => (
             <AccordionItem value={index.toString()} key={index.toString()}
                            className={index === tx.messages.nodes.length - 1 ? 'border-none' : undefined}>
@@ -190,6 +191,18 @@ export default async function TransactionDetailPage({
             </AccordionItem>
           ))}
         </Accordion>
+      </div>
+      <h2 className={'text-xl font-semibold'}>
+        Raw Result
+      </h2>
+      <div
+        className={'bg-[color:--main-background] p-4 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow'}
+      >
+        <RawEntity
+          entity={'tx'}
+          id={tx.id}
+          loadOnClick={true}
+        />
       </div>
     </div>
   )

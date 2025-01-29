@@ -1,8 +1,8 @@
 import { graphql } from '@/app/config/gql'
 
 export const applicationListDocument = graphql(`
-  query applicationList($limit: Int!, $offset: Int!) {
-    applications(first: $limit, offset: $offset) {
+  query applicationList($limit: Int!, $offset: Int!, $filter: ApplicationFilter) {
+    applications(first: $limit, offset: $offset, filter: $filter) {
       totalCount
       nodes {
         id
