@@ -91,7 +91,6 @@ export default function RoutesMenu({label, items}: RoutesMenuProps) {
                 key={index}
                 className={"text-sm text-[color:--foreground] decoration-none rounded-md py-1 px-2 hover:bg-[color:--highlight-option]"}
                 onClick={() => {
-                  console.log('clicked', mouseAvailable.current)
                   if (!mouseAvailable.current) {
                     setOpen(false);
                   }
