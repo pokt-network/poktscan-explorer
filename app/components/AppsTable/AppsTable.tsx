@@ -154,7 +154,10 @@ export default async function AppsTable({page, itemsPerPage, basePath, service}:
               ]}
             entityProps={{
               entity: 'app',
-              entityId: cell.id
+              entityId: cell.id,
+              copy: {
+                enabled: false
+              }
             }}
           />
         )

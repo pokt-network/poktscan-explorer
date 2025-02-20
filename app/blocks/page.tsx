@@ -89,7 +89,7 @@ export default async function BlocksPage({searchParams}: PageProps) {
       denom: 'upokt',
     }
     return ({
-      id: block.id,
+      id: block.height,
       height: Number(block.height),
       timestamp: block.timestamp,
       txAmount: formatSimpleAmount(block.totalTxs),

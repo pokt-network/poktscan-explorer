@@ -26,10 +26,10 @@ export const supplierByIdDocument = graphql(`
       stakeDenom
       stakeStatus
       unstakingEndBlock {
-        height
+        height: id
       }
       unstakingBeginBlock {
-        height
+        height: id
       }
       unstakingEndHeight
       supplierServices: serviceConfigs {

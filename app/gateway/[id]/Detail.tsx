@@ -9,6 +9,7 @@ import { formatAmount } from '@/app/utils/format'
 import { getStakeLabel } from '@/app/utils/stake'
 import EntityLink from '@/app/components/EntityLink'
 import TitleEntity from '@/app/components/TitleEntity'
+import { StakeStatus } from '@/app/config/gql/graphql'
 
 interface GatewayDetailProps {
   initialData: DocumentNodeData<typeof gatewayByIdDocument>
@@ -84,7 +85,7 @@ export default function GatewayDetail({id, page, initialData}: GatewayDetailProp
     }
   ]
 
-  if (gateway.stakeStatus !== 0) {
+  if (gateway.stakeStatus !== StakeStatus.Staked) {
     rows.push({
       type: 'divider'
     }, {

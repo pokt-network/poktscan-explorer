@@ -14,7 +14,7 @@ export const accountListDocument = graphql(`
         denom
         accountId
         lastUpdatedBlock {
-          height
+          height: id
           timestamp
         }
       }

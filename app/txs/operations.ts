@@ -5,7 +5,7 @@ export const transactionsPageDocument = graphql(`
     transactions(
       first: $limit,
       offset: $offset,
-      orderBy: BLOCK_BY_BLOCK_ID__HEIGHT_DESC
+      orderBy: BLOCK_ID_DESC
     ) {
       totalCount
       nodes {
@@ -13,7 +13,7 @@ export const transactionsPageDocument = graphql(`
         code
         block {
           timestamp
-          height
+          height: id
         }
         gasUsed
         gasWanted
@@ -32,7 +32,7 @@ export const transactionsPageDocument = graphql(`
 
 export const transactionsSummaryDocument = graphql(`
   query transactionsSummary($startDate: Datetime!, $endDate: Datetime!) {
-    blocks(orderBy: HEIGHT_DESC, first: 1) {
+    blocks(orderBy: ID_DESC, first: 1) {
       nodes {
         totalTxs
       }

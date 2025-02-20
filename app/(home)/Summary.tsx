@@ -11,6 +11,7 @@ import { formatAmount, formatUpokt } from '@/app/utils/format'
 import BoxLabel from '@/app/components/BoxLabel'
 import ComputeUnitsLineChart from '@/app/(home)/ComputeUnitsLineChart'
 import type { Price as PriceType } from '@/app/api/price'
+import { useDateContext } from '@/app/dates/Context'
 
 
 function Title({title}: {title: string}) {
@@ -34,13 +35,14 @@ export default function Summary({initialData, price}: SummaryProps) {
     variables,
     initialResult: initialData
   })
+  const {dateTimeZone} = useDateContext()
 
   const latestBlock = data?.lastBlock?.nodes?.at(0)
 
   const currentSupply = latestBlock.supplies.nodes.at(0).supply
   const totalStaked = BigInt(latestBlock.stakedSuppliersTokens) + BigInt(latestBlock.stakedAppsTokens) + BigInt(latestBlock.stakedGatewaysTokens)
   const summary = data.blocks.aggregates.sum
-  const groupByDay = fillMissingDays(data.groupByDay.groupedAggregates)
+  const groupByDay = fillMissingDays(data.groupByDay.groupedAggregates, dateTimeZone)
 
   return (
     <div

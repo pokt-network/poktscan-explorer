@@ -15,14 +15,51 @@ export const dynamic = "force-dynamic";
 
 const blockByHeightDocument = graphql(`
   query blockByHeight($height: BigFloat!) {
-    blocks(filter: {
-      height: {
-        equalTo: $height
+    block(id: $height) {
+      hash
+      height: id
+      timestamp
+      totalTxs
+      timeToBlock
+      successfulTxs
+      stakedApps
+      stakedSuppliers
+      stakedGateways
+      totalRelays
+      totalComputedUnits
+      proposerAddress
+      stakedAppsTokens
+      stakedSuppliersTokens
+      stakedGatewaysTokens
+      size
+      supplies {
+        nodes {
+          supply {
+            denom
+            amount
+          }
+        }
       }
-    }) {
+      metadata {
+        header
+        lastCommit
+        blockId
+      }
+    }
+  }
+`)
+
+const blockByHashDocument = graphql(`
+  query blockByHash($hash: String!) {
+    blocks(
+      filter: {
+        hash: { equalTo: $hash }
+      }
+      first: 1
+    ) {
       nodes {
-        id
-        height
+        height: id
+        hash
         timestamp
         totalTxs
         timeToBlock
@@ -55,18 +92,6 @@ const blockByHeightDocument = graphql(`
   }
 `)
 
-const blockByIdDocument = graphql(`
-  query blockById($id: String!) {
-    block(id: $id) {
-      id
-      height
-      proposerAddress
-      totalTxs
-      timestamp
-    }
-  }
-`)
-
 export default async function BlockDetailPage({
   params
 }: {
@@ -78,21 +103,18 @@ export default async function BlockDetailPage({
 
   if (isNaN(Number(id))) {
     const {data} = await getClient().query({
-      query: blockByIdDocument,
-      variables: {id: id.toUpperCase()}
+      query: blockByHashDocument,
+      variables: {hash: id.toUpperCase()}
     })
 
-
-    if (data.block) {
-      block = data.block as unknown as Block
-    }
+    block = data.blocks?.nodes?.at(0) as unknown as Block
   } else {
     const {data} = await getClient().query({
       query: blockByHeightDocument,
       variables: {height: id}
     })
 
-    block = data.blocks?.nodes?.at(0) as unknown as Block
+    block = data.block as unknown as Block
   }
 
   if (!block) {

@@ -17,10 +17,10 @@ export const gatewayByIdDocument = graphql(`
       stakeDenom
       stakeStatus
       unstakingBeginBlock {
-        height
+        height: id
       }
       unstakingEndBlock {
-        height
+        height: id
       }
       applications: applicationGateways {
         nodes {

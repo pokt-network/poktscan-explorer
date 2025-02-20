@@ -22,7 +22,7 @@ const searchByAddressDocument = graphql(`
           amount
           denom
           lastUpdatedBlock {
-            height
+            height: id
             timestamp
           }
         }
@@ -62,11 +62,13 @@ const searchValidatorByAddress = graphql(`
 
 const searchByHashDocument = graphql(`
   query searchByHash($hash: String!) {
-    block(id: $hash) {
-      id
-      height
-      timestamp
-      totalTxs
+    blocks(filter: {hash: {equalTo: $hash}}, first: 1) {
+      nodes {
+        hash
+        height: id
+        timestamp
+        totalTxs
+      }
     }
     transaction(id: $hash) {
       id
@@ -83,13 +85,11 @@ const searchByHashDocument = graphql(`
 
 const searchByHeightDocument = graphql(`
   query searchByHeight($height: BigFloat!) {
-    blocks(filter: { height: { equalTo: $height } }, first: 1) {
-      nodes {
-        id
-        height
-        timestamp
-        totalTxs
-      }
+    block(id: $height) {
+      height: id
+      hash
+      timestamp
+      totalTxs
     }
   }
 `)
@@ -164,13 +164,14 @@ export default function SearchContent({value, close}: SearchContentProps) {
     if (errorFromRequest) {
       error = true
     } else {
-      if (data.block) {
+      const block = data.blocks?.nodes?.at(0)
+      if (block) {
         rows.push({
           entity: 'block',
-          entityId: data.block.height,
+          entityId: block.height,
           description: (
             <>
-              <DateCellText value={data.block.timestamp}/> - {data.block.totalTxs} Transactions
+              <DateCellText value={block.timestamp}/> - {block.totalTxs} Transactions
             </>
           )
         })
@@ -211,13 +212,13 @@ export default function SearchContent({value, close}: SearchContentProps) {
     if (errorFromRequest) {
       error = true
     } else {
-      if (data.blocks?.nodes.length) {
+      if (data.block) {
         rows.push({
           entity: 'block',
-          entityId: data.blocks.nodes[0]!.height,
+          entityId: data.block.height,
           description: (
             <>
-              <DateCellText value={data.blocks.nodes[0]!.timestamp}/> - {data.blocks.nodes[0]!.totalTxs} Transactions
+              <DateCellText value={data.block.timestamp}/> - {data.block.totalTxs} Transactions
             </>
           )
         })

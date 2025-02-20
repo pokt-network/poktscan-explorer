@@ -44,7 +44,7 @@ export const supplierListDocument = graphql(`
 
 export const supplierSummaryDocument = graphql(`
   query supplierSummary {
-    stakedSuppliers: suppliers(filter: {stakeStatus: {equalTo: 0}}) {
+    stakedSuppliers: suppliers(filter: {stakeStatus: {equalTo: Staked}}) {
       totalCount
       aggregates {
         sum {
@@ -52,7 +52,7 @@ export const supplierSummaryDocument = graphql(`
         }
       }
     }
-    unstakingSuppliers: suppliers(filter: {stakeStatus: {equalTo: 1}}) {
+    unstakingSuppliers: suppliers(filter: {stakeStatus: {equalTo: Unstaking}}) {
       totalCount
       aggregates {
         sum {

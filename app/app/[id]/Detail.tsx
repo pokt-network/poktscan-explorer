@@ -9,6 +9,7 @@ import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import { appByIdDocument } from '@/app/app/[id]/operations'
 import NotFound from '@/app/not-found'
 import TitleEntity from '@/app/components/TitleEntity'
+import { StakeStatus } from '@/app/config/gql/graphql'
 
 interface AppDetailProps {
   initialData: DocumentNodeData<typeof appByIdDocument>
@@ -92,7 +93,7 @@ export default function AppDetail({initialData, id, page}: AppDetailProps) {
   }
 
 
-  if (app.stakeStatus !== 0) {
+  if (app.stakeStatus !== StakeStatus.Staked) {
     rows.push({
         type: 'divider'
       }, {

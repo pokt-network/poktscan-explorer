@@ -8,13 +8,7 @@ const appsSubscription = graphql(`
   subscription apps {
     applications {
       id
-      _entity {
-        applicationServices {
-          nodes {
-            serviceId
-          }
-        }
-      }
+      _entity
     }
   }
 `)

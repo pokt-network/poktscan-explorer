@@ -45,7 +45,7 @@ export default function EntityLink({entityId, entity, label, copy}: EntityLinkPr
         {includeTooltip ? (
           <TooltipProvider delayDuration={150}>
             <Tooltip>
-              <TooltipTrigger>
+              <TooltipTrigger asChild>
                 {link}
               </TooltipTrigger>
               <TooltipContent side={'top'}>

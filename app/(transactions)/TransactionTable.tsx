@@ -14,15 +14,7 @@ export const transactionsSubscription = graphql(`
   subscription transactions {
     transactions {
       id
-      _entity {
-        signerAddress
-#        todo: uncomment this when fixed
-#        messages {
-#          nodes {
-#            json
-#          }
-#        }
-      }
+      _entity
     }
   }
 `)

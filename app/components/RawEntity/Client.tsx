@@ -10,7 +10,17 @@ import { useHeightContext } from '@/app/context/height'
 import { Input } from '@/components/ui/input'
 import dynamic from 'next/dynamic'
 
-const ReactJson = dynamic(() => import('react-json-view'), { ssr: false })
+const ReactJson = dynamic(() => import('react-json-view'), { ssr: false, loading: () => (
+    <div
+      className={'flex grow items-center bg-[color:--background] p-2'}
+      style={{
+        minHeight: 70,
+        justifyContent: 'center'
+      }}
+    >
+      <Loader2 className={"w-12 h-12 animate-spin stroke-[color:--primary]"}/>
+    </div>
+  ) })
 
 function getUrl(baseUrl: string, entity: EntityLinkProps['entity'], id: string) {
   switch(entity) {
@@ -98,8 +108,7 @@ export default function RawEntityClient({ baseUrl, entity, id, loadOnClick = fal
   }, [url, loadOnClick])
 
   React.useEffect(() => {
-    if (heightValue === currentHeight.toString()) return
-    console.log('should change height')
+    if (heightValue === currentHeight.toString() || !data) return
 
     setHeightValue(heightValue)
     // to wait for setHeightValue

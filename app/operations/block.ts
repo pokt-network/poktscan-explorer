@@ -2,12 +2,12 @@ import { graphql } from '@/app/config/gql'
 
 export const latestBlockQuery = graphql(`
   query latestBlock {
-    blocks(orderBy: HEIGHT_DESC, first: 1) {
+    blocks(orderBy: ID_DESC, first: 1) {
       nodes {
-        height
+        hash
+        height: id
         timestamp
         totalTxs
-        id
         proposerAddress
         size
         supplies {
@@ -50,10 +50,7 @@ export const subscriptionQuery = graphql(`
     blocks {
       id
       mutation_type
-      _entity {
-        height
-        timestamp
-      }
+      _entity
     }
   }
 `)

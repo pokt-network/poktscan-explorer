@@ -2,10 +2,10 @@ import { graphql } from '@/app/config/gql'
 
 export const blockListDocument = graphql(`
   query blockList($limit: Int!, $offset: Int!) {
-    blocks(first: $limit, offset: $offset, orderBy: HEIGHT_DESC) {
+    blocks(first: $limit, offset: $offset, orderBy: ID_DESC) {
       nodes {
-        id
-        height
+        height: id
+        hash
         timestamp
         totalTxs
         timeToBlock
@@ -33,9 +33,9 @@ export const blockListDocument = graphql(`
 
 export const blockSummaryDocument = graphql(`
   query blockSummary($startDate: Datetime!, $endDate: Datetime!) {
-    avgs: blocks(filter: {timestamp: {greaterThanOrEqualTo: $startDate, lessThanOrEqualTo: $endDate}}, orderBy: HEIGHT_DESC, first: 1) {
+    avgs: blocks(filter: {timestamp: {greaterThanOrEqualTo: $startDate, lessThanOrEqualTo: $endDate}}, orderBy: ID_DESC, first: 1) {
       nodes {
-        height
+        height: id
         totalTxs
       }
       aggregates {

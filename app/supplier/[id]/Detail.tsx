@@ -10,6 +10,7 @@ import { formatAmount } from '@/app/utils/format'
 import TitleEntity from '@/app/components/TitleEntity'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import EntityLink from '@/app/components/EntityLink'
+import { StakeStatus } from '@/app/config/gql/graphql'
 
 interface SupplierDetailProps {
   initialData: DocumentNodeData<typeof supplierByIdDocument>
@@ -34,7 +35,7 @@ export default function SupplierDetail({id, page, initialData}: SupplierDetailPr
 
   const {supplier} = data
 
-  const stakeType = getStakeType(supplier.stakeStatus, supplier.id, supplier.owner.id)
+  const stakeType = getStakeType(supplier.stakeStatus, supplier.id, supplier.owner?.id)
   const rows: Array<Item> = [
     {
       type: 'row',
@@ -69,7 +70,10 @@ export default function SupplierDetail({id, page, initialData}: SupplierDetailPr
   rows.push({
     type: 'row',
     label: 'Balance',
-    value: formatAmount(supplier.operator.balances.nodes.at(0)!)
+    value: formatAmount(supplier.operator?.balances?.nodes?.at(0) || {
+      amount: '0',
+      denom: 'upokt'
+    })
   })
 
   if (stakeType === 'Non-Custodian') {
@@ -83,11 +87,14 @@ export default function SupplierDetail({id, page, initialData}: SupplierDetailPr
       {
         type: 'row',
         label: 'Owner Balance',
-        value: formatAmount(supplier.owner.balances.nodes.at(0)!)
+        value: formatAmount(supplier.owner?.balances?.nodes?.at(0) || {
+          amount: '0',
+          denom: 'upokt'
+        })
       })
   }
 
-  if (supplier.stakeStatus !== 0) {
+  if (supplier.stakeStatus !== StakeStatus.Staked) {
     rows.push({
         type: 'divider'
       }, {

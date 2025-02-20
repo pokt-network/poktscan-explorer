@@ -4,13 +4,20 @@ import React, { useState } from 'react'
 import useDebounce from '@/app/hooks/useDebounce'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { PopoverArrow } from '@radix-ui/react-popover'
+import { Check, X } from 'lucide-react'
+import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
+import { indexerMetadataDocument } from '@/app/api/metadata'
 
 interface StatusPopoverProps {
-  trigger: React.ReactNode
-  content: React.ReactNode
+  initialData: DocumentNodeData<typeof indexerMetadataDocument>
 }
 
-export default function StatusPopover({trigger, content}: StatusPopoverProps) {
+export default function StatusPopover({initialData}: StatusPopoverProps) {
+  const data = useFetchOnBlock({
+    query: indexerMetadataDocument,
+    initialResult: initialData
+  })
+
   const [open, setOpen] = useState(false);
   const debouncedOpen = useDebounce(open, 200);
 
@@ -21,6 +28,52 @@ export default function StatusPopover({trigger, content}: StatusPopoverProps) {
   const handleMouseLeave = () => {
     setOpen(false);
   };
+
+  let icon: React.ReactNode, color: string, content: React.ReactNode
+
+  if (data && data?._metadata?.targetHeight === data?._metadata?.lastProcessedHeight) {
+    color = 'bg-[color:--success]'
+    icon = <Check className={'h-3 w-3 text-white'} strokeWidth={4}/>
+    content = (
+      <p className={'font-bold text-[color:--secondary]'}>
+        Indexer Healthy!
+      </p>
+    )
+  } else {
+    const diff = (data?._metadata?.targetHeight || 0) - (data?._metadata?.lastProcessedHeight || 0)
+
+    if (diff < 4) {
+      color = 'bg-[color:--warning]'
+      icon = <span className={'font-bold text-white text-sm'}>!</span>
+    } else {
+      color = 'bg-[color:--error]'
+      icon = <X className={'h-3 w-3 text-white'} strokeWidth={4}/>
+    }
+
+    content = (
+      <>
+        <p className={'font-bold mb-2'}>
+          Indexer Out of Sync
+        </p>
+        <div className={'min-w-[160px] flex flex-row items-center justify-between gap-2'}>
+          <p className={'font-bold mb-1'}>
+            Current Height:
+          </p>
+          <p>
+            {data?._metadata?.lastProcessedHeight}
+          </p>
+        </div>
+        <div className={'min-w-[160px] flex flex-row items-center justify-between gap-2'}>
+          <p className={'font-bold'}>
+            Target Height:
+          </p>
+          <p>
+            {data?._metadata?.targetHeight}
+          </p>
+        </div>
+      </>
+    )
+  }
 
   return (
     <Popover open={debouncedOpen} onOpenChange={setOpen}>
@@ -33,7 +86,10 @@ export default function StatusPopover({trigger, content}: StatusPopoverProps) {
         }}
         className={'cursor-pointer'}
       >
-        {trigger}
+        <div
+          className={`flex items-center justify-center rounded-[50%] h-[18px] min-w-[18px] w-[18px] stroke-[3px] ${color}`}>
+          {icon}
+        </div>
       </PopoverTrigger>
       <PopoverContent
         side={"bottom"}
