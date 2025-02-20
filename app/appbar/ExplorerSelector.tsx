@@ -32,7 +32,8 @@ export default function ExplorerSelector() {
         >
           <a
             className={'cursor-pointer w-full'}
-            href={'https://shannon-alpha.poktscan.com'}
+            href={'https://shannon-alpha.trustsoothe.io'}
+            target={'_blank'}
           >
             Alpha
           </a>
@@ -43,7 +44,8 @@ export default function ExplorerSelector() {
         >
           <a
             className={'cursor-pointer w-full'}
-            href={'https://shannon-beta.poktscan.com'}
+            href={'https://shannon-beta.trustsoothe.io'}
+            target={'_blank'}
           >
             Beta
           </a>

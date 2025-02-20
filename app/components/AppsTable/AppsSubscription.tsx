@@ -8,7 +8,9 @@ const appsSubscription = graphql(`
   subscription apps {
     applications {
       id
-      _entity
+      _entity {
+        id
+      }
     }
   }
 `)
@@ -18,6 +20,7 @@ interface AppsSubscriptionProps {
 }
 export default function AppsSubscription({service}: AppsSubscriptionProps) {
   return (
+    // @ts-expect-error tbd
     <NewEntitiesFound<typeof appsSubscription>
       subscription={appsSubscription}
       entity={'apps'}

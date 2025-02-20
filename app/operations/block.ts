@@ -50,7 +50,9 @@ export const subscriptionQuery = graphql(`
     blocks {
       id
       mutation_type
-      _entity
+      _entity {
+        id
+      }
     }
   }
 `)

@@ -7,7 +7,9 @@ import { graphql } from '@/app/config/gql'
 const transferSubscription = graphql(`
   subscription transfers {
     nativeTransfers {
-      _entity
+      _entity {
+        id
+      }
     }
   }
 `)
@@ -18,6 +20,7 @@ interface NewTransferByAddressProps {
 
 export default function NewTransferByAddress({address}: NewTransferByAddressProps) {
   return (
+    // @ts-expect-error tbd
     <NewEntitiesFound<typeof transferSubscription>
       subscription={transferSubscription}
       entity={'transfers'}

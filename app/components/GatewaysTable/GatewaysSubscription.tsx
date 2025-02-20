@@ -7,7 +7,9 @@ const gatewaysSubscription = graphql(`
   subscription gateways {
     gateways {
       id
-      _entity
+      _entity {
+        id
+      }
     }
   }
 `)
@@ -18,6 +20,7 @@ interface GatewaysSubscriptionProps {
 
 export const GatewaysSubscription = ({ service }: GatewaysSubscriptionProps) => {
   return (
+    // @ts-expect-error tbd
     <NewEntitiesFound<typeof gatewaysSubscription>
       subscription={gatewaysSubscription}
       entity={'gateways'}

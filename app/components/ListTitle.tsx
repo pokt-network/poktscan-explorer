@@ -1,4 +1,4 @@
-import SponsoredLabel from '@/app/components/SponsoredLabel'
+// import SponsoredLabel from '@/app/components/SponsoredLabel'
 import React from 'react'
 
 interface ListTitleProps {
@@ -13,7 +13,7 @@ export default function ListTitle({title}: ListTitleProps) {
       </h1>
       <hr className={'border-[color:--divider] mt-1'} />
       <div className={'pb-4'}>
-        <SponsoredLabel lightColor={'[color:--secondary]'} />
+        {/*<SponsoredLabel lightColor={'[color:--secondary]'} />*/}
       </div>
     </>
   )
