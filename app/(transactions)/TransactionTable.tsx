@@ -15,6 +15,7 @@ export const transactionsSubscription = graphql(`
     transactions {
       id
       _entity {
+        id
         signerAddress
         #        todo: uncomment this when fixed
         #        messages {
@@ -181,6 +182,7 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       header={{
         title: `${totalItems} transactions found`,
         subtitle: subtitle || (
+          // @ts-expect-error tbd
           <NewEntitiesFound<typeof transactionsSubscription>
             entity={'transactions'}
             subscription={transactionsSubscription}

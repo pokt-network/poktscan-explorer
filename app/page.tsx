@@ -7,7 +7,7 @@ import { getEvolutionVariables, getServicesVariables, getSummaryVariables } from
 import SupplierAndAppsEvolution from '@/app/(home)/SupplierAndAppsEvolution/SupplierAndAppsEvolution'
 import ServicesCard from '@/app/(home)/ServicesCard'
 import { getLatestBlock } from '@/app/api/blocks'
-import SponsoredLabel from '@/app/components/SponsoredLabel'
+// import SponsoredLabel from '@/app/components/SponsoredLabel'
 import LatestBlock from '@/app/(home)/LatestBlock'
 import { evolutionDocument, servicesDocument, summaryDocument } from '@/app/(home)/operations'
 import Summary from '@/app/(home)/Summary'
@@ -55,7 +55,7 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
         <div className={'w-full md:w-[480px] lg:w-[580px] mb-[12px]'}>
           <SearchInput zIndex={1} height={48} />
         </div>
-        <SponsoredLabel />
+        {/*<SponsoredLabel />*/}
       </section>
       <div className={'px-4 md:px-5 pb-4 mt-[-46px]'}>
         <Summary initialData={data as DocumentNodeData<typeof summaryDocument>} price={price} />

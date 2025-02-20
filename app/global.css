@@ -37,12 +37,13 @@
     }
 
     .light {
+        .poktscan_logo_dark_svg__cls-1 {
+          fill: #181e36!important;
+        }
         .poktscan_logo_dark_svg__pokt {
             fill: #181e36!important;
         }
     }
-
-
 
     .dark {
         --background: #181818;

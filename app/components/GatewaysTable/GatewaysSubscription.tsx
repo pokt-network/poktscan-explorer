@@ -9,6 +9,7 @@ const gatewaysSubscription = graphql(`
       id
       _entity {
         applicationGateways {
+          id
           nodes {
             application {
               id

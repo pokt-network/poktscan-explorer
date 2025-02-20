@@ -10,6 +10,7 @@ const appsSubscription = graphql(`
       id
       _entity {
         applicationServices {
+          id
           nodes {
             serviceId
           }

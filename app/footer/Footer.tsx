@@ -11,14 +11,14 @@ export default function Footer() {
         <div className={'flex flex-row items-center gap-2'}>
           {[
             {
-              tooltip: 'X / Twitter',
-              href: 'https://twitter.com/poktscan',
+              tooltip: 'X',
+              href: '',
               icon: '𝕏',
               target: '_blank',
             },
             {
               tooltip: 'Discord',
-              href: 'https://discord.gg/5PjUPybh',
+              href: '',
               icon: (
                 <Discord />
               ),
@@ -26,14 +26,14 @@ export default function Footer() {
             },
             {
               tooltip: 'Email',
-              href: 'mailto:info@poktscan.com',
+              href: '',
               icon: (
                 <Mail />
               ),
             },
             {
               tooltip: 'GitHub',
-              href: 'https://github.com/pokt-scan',
+              href: 'https://github.com/trustsoothe',
               icon: (
                 <Github />
               ),

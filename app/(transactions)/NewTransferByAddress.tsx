@@ -8,6 +8,7 @@ const transferSubscription = graphql(`
   subscription transfers {
     nativeTransfers {
       _entity {
+        id
         recipientId
         senderId
       }
