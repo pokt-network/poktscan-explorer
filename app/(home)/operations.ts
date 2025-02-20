@@ -2,9 +2,9 @@ import { graphql } from '@/app/config/gql'
 
 export const summaryDocument = graphql(`
   query summary($currentDate: Datetime!, $last24HourDate: Datetime!, $last7DaysDate: Datetime!) {
-    lastBlock: blocks(orderBy: HEIGHT_DESC, first: 1) {
+    lastBlock: blocks(orderBy: ID_DESC, first: 1) {
       nodes {
-        height
+        height: id
         totalTxs
         timestamp
         totalRelays
@@ -57,43 +57,43 @@ export const evolutionDocument = graphql(`
     $previous5Date: Datetime!
     $previous6Date: Datetime!
   ) {
-    today: blocks(filter: {timestamp: {greaterThanOrEqualTo: $currentDate }}, orderBy: HEIGHT_DESC, first: 1) {
+    today: blocks(filter: {timestamp: {greaterThanOrEqualTo: $currentDate }}, orderBy: ID_DESC, first: 1) {
       nodes {
         stakedApps
         stakedSuppliers
       }
     }
-    yesterday: blocks(filter: {timestamp: {greaterThanOrEqualTo: $yesterdayDate, lessThan: $currentDate }}, orderBy: HEIGHT_DESC, first: 1) {
+    yesterday: blocks(filter: {timestamp: {greaterThanOrEqualTo: $yesterdayDate, lessThan: $currentDate }}, orderBy: ID_DESC, first: 1) {
       nodes {
         stakedApps
         stakedSuppliers
       }
     }
-    last2: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous2Date, lessThan: $yesterdayDate}}, orderBy: HEIGHT_DESC, first: 1) {
+    last2: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous2Date, lessThan: $yesterdayDate}}, orderBy: ID_DESC, first: 1) {
       nodes {
         stakedApps
         stakedSuppliers
       }
     }
-    last3: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous3Date, lessThan: $previous2Date}}, orderBy: HEIGHT_DESC, first: 1) {
+    last3: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous3Date, lessThan: $previous2Date}}, orderBy: ID_DESC, first: 1) {
       nodes {
         stakedApps
         stakedSuppliers
       }
     }
-    last4: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous4Date, lessThan: $previous3Date}}, orderBy: HEIGHT_DESC, first: 1) {
+    last4: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous4Date, lessThan: $previous3Date}}, orderBy: ID_DESC, first: 1) {
       nodes {
         stakedApps
         stakedSuppliers
       }
     }
-    last5: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous5Date, lessThan: $previous4Date}}, orderBy: HEIGHT_DESC, first: 1) {
+    last5: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous5Date, lessThan: $previous4Date}}, orderBy: ID_DESC, first: 1) {
       nodes {
         stakedApps
         stakedSuppliers
       }
     }
-    last6: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous6Date, lessThan: $previous5Date}}, orderBy: HEIGHT_DESC, first: 1) {
+    last6: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous6Date, lessThan: $previous5Date}}, orderBy: ID_DESC, first: 1) {
       nodes {
         stakedApps
         stakedSuppliers

@@ -7,10 +7,7 @@ import { graphql } from '@/app/config/gql'
 const transferSubscription = graphql(`
   subscription transfers {
     nativeTransfers {
-      _entity {
-        recipientId
-        senderId
-      }
+      _entity
     }
   }
 `)

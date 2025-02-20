@@ -1,19 +1,21 @@
-export function getStakeLabel(status: number) {
+import { StakeStatus } from '@/app/config/gql/graphql'
+
+export function getStakeLabel(status: StakeStatus) {
   switch (status) {
-    case 0:
+    case StakeStatus.Staked:
       return 'Staked'
-    case 1:
+    case StakeStatus.Unstaking:
       return 'Unstaking'
-    case 2:
+    case StakeStatus.Unstaked:
       return 'Unstaked'
     default:
       return 'Unknown'
   }
 }
 
-export function getStakeType(status: number, operatorAddress: string, ownerAddress: string): 'Custodian' | 'Non-Custodian' | '-' {
-  if (status === 0) {
-    if (operatorAddress === ownerAddress) {
+export function getStakeType(status: StakeStatus, operatorAddress: string, ownerAddress?: string): 'Custodian' | 'Non-Custodian' | '-' {
+  if (status === StakeStatus.Staked) {
+    if (operatorAddress === ownerAddress || !ownerAddress) {
       return 'Custodian'
     } else {
       return 'Non-Custodian'

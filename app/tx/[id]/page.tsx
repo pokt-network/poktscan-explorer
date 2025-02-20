@@ -22,7 +22,7 @@ const txByIdDocument = graphql(`
       codespace
       block {
         timestamp
-        height
+        height: id
       }
       gasUsed
       gasWanted

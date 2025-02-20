@@ -143,7 +143,10 @@ export default async function SuppliersTable({page, itemsPerPage, basePath, serv
             ]}
           entityProps={{
             entity: 'supplier',
-            entityId: cell.id
+            entityId: cell.id,
+            copy: {
+              enabled: false
+            }
           }}
         />
       )

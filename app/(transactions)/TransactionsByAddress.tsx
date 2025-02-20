@@ -20,6 +20,7 @@ const transactionsByAddressDocument = graphql(`
           }
         ]
       }
+      orderBy: BLOCK_ID_DESC
     ) {
       totalCount
       nodes {
@@ -27,7 +28,7 @@ const transactionsByAddressDocument = graphql(`
         code
         block {
           timestamp
-          height
+          height: id
         }
         gasUsed
         gasWanted

@@ -30,7 +30,7 @@ export default function HeightContextProvider({children, firstHeight, firstTime}
   return (
     <HeightContext.Provider
       value={{
-        currentHeight: lastBlock?.height || firstHeight,
+        currentHeight: lastBlock?.id || firstHeight,
         currentTime: lastBlock ? `${lastBlock.timestamp}Z` : firstTime,
         firstHeight,
       }}

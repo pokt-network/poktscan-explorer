@@ -14,7 +14,7 @@ const transfersByAddressDocument = graphql(`
     transfers:nativeTransfers(
       first: $limit
       offset: $offset
-      orderBy: BLOCK_BY_BLOCK_ID__HEIGHT_DESC
+      orderBy: BLOCK_ID_DESC
       filter: {
         or: [{ senderId: { equalTo: $address } }, { recipientId: { equalTo: $address } }]
       }
@@ -27,7 +27,7 @@ const transfersByAddressDocument = graphql(`
         amounts
         denom
         block {
-          height
+          height: id
           timestamp
         }
         transaction {

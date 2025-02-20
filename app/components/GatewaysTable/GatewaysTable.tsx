@@ -30,10 +30,10 @@ const gatewayListDocument = graphql(`
         stakeDenom
         stakeStatus
         unstakingBeginBlock {
-          height
+          height: id
         }
         unstakingEndBlock {
-          height
+          height: id
         }
         applications: applicationGateways {
           nodes {
@@ -52,7 +52,7 @@ const gatewayListDocument = graphql(`
         }
       }
     }
-    stakedGateways: gateways(filter: {stakeStatus: {equalTo: 0}}) {
+    stakedGateways: gateways(filter: {stakeStatus: {equalTo: Staked}}) {
       totalCount
       aggregates {
         sum {
@@ -223,7 +223,10 @@ export default async function GatewaysTable({page, itemsPerPage, basePath, servi
               ]}
             entityProps={{
               entity: 'gateway',
-              entityId: row.id
+              entityId: row.id,
+              copy: {
+                enabled: false
+              }
             }}
           />
         )

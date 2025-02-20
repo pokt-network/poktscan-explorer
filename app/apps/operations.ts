@@ -32,11 +32,11 @@ export const applicationListDocument = graphql(`
           }
         }
         unstakingBeginBlock {
-          height
+          height: id
         }
         unstakingEndHeight
         unstakingEndBlock {
-          height
+          height: id
         }
         unstakingReason
       }
@@ -46,7 +46,7 @@ export const applicationListDocument = graphql(`
 
 export const applicationSummaryDocument = graphql(`
   query applicationsSummary {
-    stakedApps: applications(filter: {stakeStatus: {equalTo: 0}}) {
+    stakedApps: applications(filter: {stakeStatus: {equalTo: Staked}}) {
       totalCount
       aggregates {
         sum {
@@ -54,7 +54,7 @@ export const applicationSummaryDocument = graphql(`
         }
       }
     }
-    unstakingApps: applications(filter: {stakeStatus: {equalTo: 1}}) {
+    unstakingApps: applications(filter: {stakeStatus: {equalTo: Unstaking}}) {
       totalCount
       aggregates {
         sum {

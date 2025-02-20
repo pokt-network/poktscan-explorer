@@ -17,10 +17,10 @@ export const appByIdDocument = graphql(`
       stakeDenom
       stakeStatus
       unstakingEndBlock {
-        height
+        height: id
       }
       unstakingBeginBlock {
-        height
+        height: id
       }
       unstakingEndHeight
       services:applicationServices {
@@ -37,11 +37,11 @@ export const appByIdDocument = graphql(`
         }
       }
       transferEndBlock {
-        height
+        height: id
       }
       sourceApplicationId
       transferredFromAt {
-        height
+        height: id
       }
       destinationApplicationId
       transferringToId

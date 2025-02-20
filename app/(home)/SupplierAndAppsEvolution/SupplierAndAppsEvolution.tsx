@@ -5,6 +5,7 @@ import { useHeightContext } from '@/app/context/height'
 import { useCallback } from 'react'
 import { getEvolutionVariables } from '@/app/(home)/utils'
 import { evolutionDocument } from '@/app/(home)/operations'
+import { useDateContext } from '@/app/dates/Context'
 
 interface SupplierAndAppsEvolutionProps {
   initialData: DocumentNodeData<typeof evolutionDocument>
@@ -23,7 +24,9 @@ export default function SupplierAndAppsEvolution({
     initialResult: initialData
   })
 
-  const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "2-digit" });
+  const {dateTimeZone} = useDateContext()
+
+  const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "2-digit", timeZone: dateTimeZone === 'utc' ? 'UTC' : undefined });
 
   const dates = getEvolutionVariables(new Date(currentTime))
   const currentDate = dateFormatter.format(new Date(dates.currentDate))

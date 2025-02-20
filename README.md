@@ -2,7 +2,9 @@
 
 - Use pnpm
 - Node version recommended: ^18.19.0
-- You must set the GRAPHQL_API_URL environment variable to the .env file.
+- You must set the following environment variables to the .env file:
+  - GRAPHQL_API_URL
+  - RPC_BASE_URL
 
 ## How to run
 

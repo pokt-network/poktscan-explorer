@@ -10,12 +10,15 @@ type BlockAggregate = {
   };
 };
 
-export function fillMissingDays(data: Array<BlockAggregate>): ComputeUnitsLineChartProps['data'] {
+export function fillMissingDays(unsortedData: Array<BlockAggregate>, dateTimeZone: 'utc' | 'local'): ComputeUnitsLineChartProps['data'] {
   const oneDayInMs = 24 * 60 * 60 * 1000;
   const today = new Date();
 
+  // Sort the data by date to ensure the correct order
+  const data = [...unsortedData].sort((a, b) => new Date(a.keys[0]).getTime() - new Date(b.keys[0]).getTime())
+
   // Determine the start date (today or the first date in the array)
-  const startDate = data.length > 0 ? new Date(data[0].keys[0]) : today;
+  const startDate = data.length > 0 ? new Date(data.at(-1).keys[0]) : today;
 
   // Create a map for existing dates
   const existingData = new Map(
@@ -23,10 +26,11 @@ export function fillMissingDays(data: Array<BlockAggregate>): ComputeUnitsLineCh
   );
 
   // Date formatter for the required format
-  const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "2-digit" });
+  const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "2-digit", timeZone: dateTimeZone === 'utc' ? 'UTC' : undefined });
 
   // Generate the last 7 days with data or defaults
   const result: ComputeUnitsLineChartProps['data'] = [];
+
   for (let i = 0; i < 7; i++) {
     const currentDate = new Date(startDate.getTime() - i * oneDayInMs);
     const dateString = currentDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD

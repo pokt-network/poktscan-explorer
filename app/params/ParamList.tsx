@@ -23,15 +23,18 @@ export default function ParamList({initialData}: ParamListProps) {
 
   const paramsToRender: Record<string,Array<{key: string, value: string, block: {height: string}}>> = {}
 
-  for (const [paramName, paramsRaw] of Object.entries(data)) {
-    const include = !debouncedSearch || paramName.toLowerCase().includes(debouncedSearch)
-    for (const param of paramsRaw.nodes) {
-      if (include || param.key.toLowerCase().includes(debouncedSearch)) {
-        if (!paramsToRender[paramName]) {
-          paramsToRender[paramName] = []
-        }
-        paramsToRender[paramName].push(param)
+  for (const {key, namespace, block, value} of Object.values(data.params.nodes)) {
+    const include = !debouncedSearch || namespace.toLowerCase().includes(debouncedSearch)
+
+    if (include || key.toLowerCase().includes(debouncedSearch)) {
+      if (!paramsToRender[namespace]) {
+        paramsToRender[namespace] = []
       }
+      paramsToRender[namespace].push({
+        key,
+        value,
+        block
+      })
     }
   }
 

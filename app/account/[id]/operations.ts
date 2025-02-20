@@ -9,7 +9,7 @@ export const accountByIdDocument = graphql(`
           amount
           denom
           lastUpdatedBlock {
-            height
+            height: id
             timestamp
           }
         }
