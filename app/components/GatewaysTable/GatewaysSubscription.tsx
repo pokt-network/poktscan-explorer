@@ -8,8 +8,8 @@ const gatewaysSubscription = graphql(`
     gateways {
       id
       _entity {
+        id
         applicationGateways {
-          id
           nodes {
             application {
               id
