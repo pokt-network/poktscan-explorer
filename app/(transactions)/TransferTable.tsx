@@ -155,7 +155,9 @@ export default async function TransferTable({address, page, itemsPerPage, basePa
       width: 180,
       align: 'center',
       renderCell: (cell: RowTransfer) => (
-        <DateCellText value={cell.timestamp} />
+        <div className={'text-xs md:text-sm'}>
+          <DateCellText value={cell.timestamp} />
+        </div>
       )
     },
     {

@@ -120,7 +120,9 @@ export default async function AccountsPage({searchParams}: PageProps) {
       align: 'center',
       width: 180,
       renderCell: (row: RowAccount) => (
-        <DateCellText value={row.lastUpdatedTime} />
+        <div className={'text-xs md:text-sm'}>
+          <DateCellText value={row.lastUpdatedTime} />
+        </div>
       )
     },
     {

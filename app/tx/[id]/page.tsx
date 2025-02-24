@@ -2,15 +2,14 @@ import { graphql } from '@/app/config/gql'
 import { getClient } from '@/app/config/apollo/rsc'
 import EntityDetail, { Item } from '@/app/components/EntityDetail'
 import EntityLink from '@/app/components/EntityLink'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { isValidPoktAddress } from '@/app/utils/poktroll'
-import React from 'react'
+import React, { Suspense } from 'react'
 import { formatAmount } from '@/app/utils/format'
 import TitleEntity from '@/app/components/TitleEntity'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
 import NotFound from '@/app/not-found'
 import RawEntity from '@/app/components/RawEntity/RawEntity'
+import Messages, { DisplayMessages } from '@/app/tx/[id]/Messages'
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +28,13 @@ const txByIdDocument = graphql(`
       signerAddress
       fees
       memo
-      messages {
+      messages(orderBy: ID_ASC) {
+        totalCount
+        pageInfo {
+          hasNextPage
+          startCursor
+          endCursor
+        }
         nodes {
           typeUrl
           json
@@ -38,6 +43,7 @@ const txByIdDocument = graphql(`
     }
   }
 `)
+
 
 export default async function TransactionDetailPage({
   params
@@ -169,28 +175,30 @@ export default async function TransactionDetailPage({
         items={rows}
       />
       <h2 className={'text-xl font-semibold'}>
-        Messages
+        Messages [{tx.messages.totalCount}]
       </h2>
       <div
         className={'bg-[color:--main-background] p-4 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow'}>
-        <Accordion type={'multiple'}>
-          {tx.messages.nodes.map((node, index) => (
-            <AccordionItem value={index.toString()} key={index.toString()}
-                           className={index === tx.messages.nodes.length - 1 ? 'border-none' : undefined}>
-              <AccordionTrigger className={'flex flex-row gap-2 min-w-0 justify-start items-center'}>
-                <span className={'font-semibold'}>
-                  {node.typeUrl.split('.').at(-1).replace('Msg', '')}
-                </span>
-                <p className={'whitespace-nowrap overflow-hidden overflow-ellipsis text-[color:--secondary]'}>
-                  {node.typeUrl}
-                </p>
-              </AccordionTrigger>
-              <AccordionContent className={'p-4 bg-[color:--background]'}>
-                {renderJSON(JSON.parse(node.json), 0)}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+        {tx.messages.totalCount <= tx.messages.nodes.length ? (
+          <DisplayMessages
+            messages={tx.messages.nodes}
+          />
+        ) : (
+          <Suspense fallback={
+            <div
+              className={'bg-[color:--background] py-4 px-6 flex flex-col gap-4'}
+            >
+              <p className={'text-sm'}>Loading...</p>
+            </div>
+            }>
+            <Messages
+              transactionId={tx.id}
+              initialMessages={tx.messages.nodes}
+              initialCursor={tx.messages.pageInfo?.endCursor}
+              totalMessages={tx.messages.totalCount}
+            />
+          </Suspense>
+        )}
       </div>
       <h2 className={'text-xl font-semibold'}>
         Raw Result
@@ -208,51 +216,3 @@ export default async function TransactionDetailPage({
   )
 }
 
-function renderJSON(data: any, level = 0) {
-  return (
-    <div className={'flex flex-col gap-4 md:gap-[10px]'}>
-    {Object.entries(data).map(([key, value]) => {
-        const isObject = typeof value === 'object' && value !== null
-        const areAmounts = (Array.isArray(value) && value.every((value) => 'amount' in value && 'denom' in value && Object.keys(value).length === 2)) || (isObject && 'amount' in value && 'denom' in value && Object.keys(value).length === 2)
-        const isAddress = typeof value === 'string' && isValidPoktAddress(value)
-
-        let valueComponent: React.ReactNode
-
-        if (areAmounts) {
-          const arr = !Array.isArray(value)? [value] : value
-          valueComponent = (
-            <p className={'text-xs font-medium whitespace-pre leading-[24px] md:leading-5 md:mt-[-4px] ml-[10px] md:ml-0'}>
-              {arr.map((item) => formatAmount(item)).join('\n')}
-            </p>
-          )
-        } else if (isObject) {
-          valueComponent = renderJSON(value, level + 1)
-        } else if (isAddress) {
-          valueComponent = (
-            <div className={'text-xs font-medium whitespace-nowrap overflow-hidden overflow-ellipsis mt-[-6px]'}>
-              <EntityLink
-                entity={'account'}
-                entityId={value}
-              />
-            </div>
-          )
-        } else {
-          valueComponent = (
-            <p className={'text-xs font-medium whitespace-nowrap overflow-hidden overflow-ellipsis'}>
-              {value}
-            </p>
-          )
-        }
-
-        return (
-          <div key={key} className={'flex flex-col md:flex-row gap-1 md:gap-2'} style={{marginLeft: level * 5, flexDirection: isObject && !areAmounts ? 'column' : undefined}}>
-            <p className={'text-[color:--secondary] text-xs font-semibold'} style={{width: 150 - (5 * level), minWidth: 150 - (5 * level)}}>
-              {key}:
-            </p>
-            {valueComponent}
-          </div>
-        )
-      })}
-    </div>
-  )
-}

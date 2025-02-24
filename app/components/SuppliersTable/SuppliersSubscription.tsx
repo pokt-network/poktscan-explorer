@@ -8,7 +8,13 @@ const supplierSubscription = graphql(`
   subscription suppliers {
     suppliers {
       id
-      _entity
+      _entity {
+        serviceConfigs {
+          nodes {
+            serviceId
+          }
+        }
+      }
     }
   }
 `)

@@ -95,9 +95,6 @@ importers:
       react-json-view:
         specifier: ^1.21.3
         version: 1.21.3(@types/react@18.3.12)(react-dom@19.0.0-rc-02c0e824-20241028(react@19.0.0-rc-02c0e824-20241028))(react@19.0.0-rc-02c0e824-20241028)
-      subscriptions-transport-ws:
-        specifier: ^0.11.0
-        version: 0.11.0(graphql@16.9.0)
       tailwind-merge:
         specifier: ^2.5.4
         version: 2.5.4
@@ -10628,6 +10625,7 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    optional: true
 
   subscriptions-transport-ws@0.9.19(graphql@16.9.0):
     dependencies:

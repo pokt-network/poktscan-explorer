@@ -129,7 +129,7 @@ export default function RawEntityClient({ baseUrl, entity, id, loadOnClick = fal
       <p className={'text-sm text-[color:--error]'}>
         There is a problem loading data...
         <Button variant={'ghost'} onClick={loadData} className={'text-sm px-2'}>
-          Click here to load data...
+          Click here to load data
         </Button>
 
       </p>
@@ -137,7 +137,7 @@ export default function RawEntityClient({ baseUrl, entity, id, loadOnClick = fal
   } else if (loadOnClick && !data) {
     content = (
       <Button variant={'ghost'} onClick={loadData}>
-        Click here to load data...
+        Click here to load data
       </Button>
     )
   } else {

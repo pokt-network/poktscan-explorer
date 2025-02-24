@@ -124,7 +124,9 @@ export default async function BlocksPage({searchParams}: PageProps) {
       align: 'center',
       width: 180,
       renderCell: (row: RowBlock) => (
-        <DateCellText value={row.timestamp} />
+        <div className={'text-xs md:text-sm'}>
+          <DateCellText value={row.timestamp} />
+        </div>
       )
     },
     {
