@@ -10,6 +10,8 @@ import { cookies } from 'next/headers'
 import { dateTimeColumnField, dateTimeZoneField, formatTextField } from '@/app/dates/constants'
 import HeightContextProvider from '@/app/context/height'
 import { getLatestBlock } from '@/app/api/blocks'
+import ReactQueryProvider from '@/app/config/query'
+import getPrice from '@/app/api/price'
 
 export const metadata: Metadata = {
   title: "ShannonScan",
@@ -30,42 +32,45 @@ const roboto = Roboto({
 export default async function RootLayout({children}: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [cookiesAwaited, latestBlock] = await Promise.all([
+  const [cookiesAwaited, latestBlock, price] = await Promise.all([
     cookies(),
-    getLatestBlock()
+    getLatestBlock(),
+    getPrice()
   ])
 
   return (
     <html lang="en" suppressHydrationWarning  className={`${roboto.variable}`}>
       <body>
-        <ApolloWrapper url={process.env.GRAPHQL_API_URL}>
-          <DatesProvider
-            defaultDateTimeColumn={cookiesAwaited.get(dateTimeColumnField)?.value}
-            defaultDateTimeZone={cookiesAwaited.get(dateTimeZoneField)?.value}
-            defaultFormatText={cookiesAwaited.get(formatTextField)?.value}
-          >
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="dark"
-              enableSystem
-              disableTransitionOnChange
+        <ReactQueryProvider initialPriceData={price}>
+          <ApolloWrapper url={process.env.GRAPHQL_API_URL}>
+            <DatesProvider
+              defaultDateTimeColumn={cookiesAwaited.get(dateTimeColumnField)?.value}
+              defaultDateTimeZone={cookiesAwaited.get(dateTimeZoneField)?.value}
+              defaultFormatText={cookiesAwaited.get(formatTextField)?.value}
             >
-              <HeightContextProvider
-                firstHeight={latestBlock?.height}
-                // the timestamp is in UTC, so we need to add the Z to the end because the api doesn't include it
-                firstTime={latestBlock?.timestamp + 'Z'}
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="dark"
+                enableSystem
+                disableTransitionOnChange
               >
-                <AppBar />
-                <div className={'w-full h-full flex items-center justify-center overflow-x-hidden'}>
-                  <div className={'max-w-[1400px] w-full'}>
-                    {children}
+                <HeightContextProvider
+                  firstHeight={latestBlock?.height}
+                  // the timestamp is in UTC, so we need to add the Z to the end because the api doesn't include it
+                  firstTime={latestBlock?.timestamp + 'Z'}
+                >
+                  <AppBar />
+                  <div className={'w-full h-full flex items-center justify-center overflow-x-hidden'}>
+                    <div className={'max-w-[1400px] w-full'}>
+                      {children}
+                    </div>
                   </div>
-                </div>
-                <Footer />
-              </HeightContextProvider>
-            </ThemeProvider>
-          </DatesProvider>
-        </ApolloWrapper>
+                  <Footer />
+                </HeightContextProvider>
+              </ThemeProvider>
+            </DatesProvider>
+          </ApolloWrapper>
+        </ReactQueryProvider>
       </body>
     </html>
   );

@@ -1,13 +1,15 @@
-import {Price as PriceType} from '@/app/api/price'
+'use client'
 import { formatAmount } from '@/app/utils/format'
+import usePrice from '@/app/hooks/usePrice'
 
-interface PriceProps extends PriceType {
+interface PriceProps {
   showLabel?: boolean;
   priceColor?: string
   fontSize?: string
 }
 
-export default function Price({usd, usd_24h_change, showLabel = true, priceColor='--primary', fontSize = 'xs'}: PriceProps) {
+export default function Price({showLabel = true, priceColor='--primary', fontSize = 'xs'}: PriceProps) {
+  const {usd, usd_24h_change} = usePrice()
   let changeColor: string
 
   if (usd_24h_change > 0) {

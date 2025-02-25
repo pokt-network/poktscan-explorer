@@ -19,7 +19,7 @@ export default async function AppBar() {
         <div className={'w-full h-full flex items-center justify-center'}>
           <div className={'max-w-[1360px] w-full flex items-center justify-between'}>
             <div className={'hidden md:block'}>
-              <Price {...price} />
+              <Price />
             </div>
             <div className='w-full md:w-auto flex flex-row items-center gap-2 justify-end'>
               <SearchInput pathToHide={'/'} />

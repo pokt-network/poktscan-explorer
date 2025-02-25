@@ -1,5 +1,5 @@
 import React from 'react'
-import { Eye } from 'lucide-react';
+import { Eye, SquareArrowOutUpRight } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import EntityLink, { EntityLinkProps } from '@/app/components/EntityLink'
@@ -28,27 +28,31 @@ export default function DetailCell({rows, entityProps}: DetailCellProps) {
           <p className={'font-bold text-sm'}>
             Additional details
           </p>
-          {rows.map((item, index) => (
-            <div key={index} className={'flex flex-col py-4 border-b border-[color:--divider]'}>
-              {['string','number'].includes(typeof item.label) ? (
+          <div className={'max-h-[400px] overflow-auto'}>
+            {rows.map((item, index) => (
+              <div key={index} className={'flex flex-col py-4 border-b border-[color:--divider]'}>
+                {['string','number'].includes(typeof item.label) ? (
                   <p className={'text-[13px] font-semibold'}>
                     {item.label}
                   </p>
                 ) : (
                   item.label
                 )
-              }
-              {['string','number'].includes(typeof item.value) ? (
-                <p className={'text-[13px]'}>
-                  {item.value}
-                </p>
-              ) : (
-                item.value
-              )}
-            </div>
-          ))}
+                }
+                {['string','number'].includes(typeof item.value) ? (
+                  <p className={'text-[13px]'}>
+                    {item.value}
+                  </p>
+                ) : (
+                  item.value
+                )}
+              </div>
+            ))}
+          </div>
+
           <div className={"pt-4 text-xs flex flex-row gap-1 items-center"}>
             <EntityLink {...entityProps} label={'See more details'} />
+            <SquareArrowOutUpRight className={'h4 w-4'} />
           </div>
           <PopoverArrow className={"mt-[-1px] h-[7px] fill-[color:--main-background] stroke-[color:--divider] stroke-2"} />
         </PopoverContent>
