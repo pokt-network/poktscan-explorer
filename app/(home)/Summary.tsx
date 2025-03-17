@@ -12,6 +12,7 @@ import BoxLabel from '@/app/components/BoxLabel'
 import ComputeUnitsLineChart from '@/app/(home)/ComputeUnitsLineChart'
 import type { Price as PriceType } from '@/app/api/price'
 import { useDateContext } from '@/app/dates/Context'
+import MarketCap from '@/app/(home)/MarketCap'
 
 
 function Title({title}: {title: string}) {
@@ -59,8 +60,6 @@ export default function Summary({initialData, price}: SummaryProps) {
             />
             <div className={'text-[15px!important]'}>
               <Price
-                usd={price?.usd || 0} usd_24h_change={price?.usd_24h_change || 0}
-                usd_market_cap={price?.usd_market_cap || 0}
                 showLabel={false}
                 priceColor={'--foreground'}
                 fontSize={'[15px]'}
@@ -78,10 +77,7 @@ export default function Summary({initialData, price}: SummaryProps) {
               title={'Market Cap'}
             />
             <p className={'text-[15px]'}>
-              ${formatAmount({
-              amount: price?.usd_market_cap?.toFixed(2) || 0,
-              abbreviateThreshold: 0
-              })}
+              <MarketCap />
             </p>
           </div>
         </div>

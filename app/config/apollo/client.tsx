@@ -8,8 +8,8 @@ import {
 } from "@apollo/experimental-nextjs-app-support";
 import React from 'react'
 import { getMainDefinition } from '@apollo/client/utilities'
-import { WebSocketLink } from '@apollo/client/link/ws'
-import { SubscriptionClient } from 'subscriptions-transport-ws'
+import { createClient } from 'graphql-ws'
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
 
 function makeClient(url: string) {
   const httpLink = new HttpLink({
@@ -24,11 +24,9 @@ function makeClient(url: string) {
     // const { data } = useSuspenseQuery(MY_QUERY, { context: { fetchOptions: { cache: "force-cache" }}});
   });
 
-  const wsLink = new WebSocketLink(
-    new SubscriptionClient(url, {
-      reconnect: true,
-    })
-  )
+  const wsLink = new GraphQLWsLink(createClient({
+    url,
+  }));
 
   const splitLink = split(
     ({ query }) => {

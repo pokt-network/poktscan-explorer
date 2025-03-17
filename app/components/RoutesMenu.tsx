@@ -38,18 +38,18 @@ export default function RoutesMenu({label, items}: RoutesMenuProps) {
     setOpen(false);
   };
 
-  const mouseAvailable = useRef(true);
+  const isSmOrLess = useRef(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(pointer: none)'); // Checks for devices without a pointer
+    const mediaQuery = window.matchMedia('(max-width: 900px)');
 
     const handleMediaQueryChange = (event: MediaQueryListEvent | MediaQueryList) => {
-      mouseAvailable.current = !event.matches;
+      isSmOrLess.current = !event.matches;
     };
 
     mediaQuery.addEventListener('change', handleMediaQueryChange);
 
-    mouseAvailable.current = !mediaQuery.matches;
+    isSmOrLess.current = !mediaQuery.matches;
 
     return () => {
       mediaQuery.removeEventListener('change', handleMediaQueryChange);
@@ -91,7 +91,7 @@ export default function RoutesMenu({label, items}: RoutesMenuProps) {
                 key={index}
                 className={"text-sm text-[color:--foreground] decoration-none rounded-md py-1 px-2 hover:bg-[color:--highlight-option]"}
                 onClick={() => {
-                  if (!mouseAvailable.current) {
+                  if (!isSmOrLess.current) {
                     setOpen(false);
                   }
                 }}

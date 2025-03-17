@@ -3,7 +3,7 @@ import Table, { GridColDef, TableProps } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
-import Chip from '@/app/components/Chip'
+import { ChipText } from '@/app/components/Chip'
 import FailedTransactionFeedback from '@/app/(transactions)/FailedTransactionFeedback'
 import DateCellText from '@/app/dates/DateCellText'
 import DateColumn from '@/app/dates/DateColumn'
@@ -14,7 +14,16 @@ export const transactionsSubscription = graphql(`
   subscription transactions {
     transactions {
       id
-      _entity
+      _entity {
+        id
+        signerAddress
+        #        todo: uncomment this when fixed
+        #        messages {
+        #          nodes {
+        #            json
+        #          }
+        #        }
+      }
     }
   }
 `)
@@ -23,7 +32,8 @@ export interface RowTransaction {
   id: string
   result: number
   codespace?: string
-  messages: Array<string>
+  firstMessage: string
+  totalMessages: number
   height: number
   timestamp: string
   amount: string
@@ -60,7 +70,8 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       id: transaction.id || '',
       result: transaction.code,
       codespace: transaction.codespace,
-      messages: transaction?.messages?.nodes?.map((msg) => msg?.typeUrl?.split('.')?.at(-1)?.replace('Msg', '') || '') || [],
+      firstMessage: transaction?.messages?.nodes?.at(0)?.typeUrl?.split('.')?.at(-1)?.replace('Msg', '') || '',
+      totalMessages: transaction?.messages?.totalCount || 0,
       height: Number(transaction.block!.height),
       timestamp: transaction.block!.timestamp!,
       amount: amount ? formatAmount(amount) : '-',
@@ -100,7 +111,9 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       field: 'messages',
       headerName: 'Messages',
       renderCell: (cell: RowTransaction) => (
-        <Chip values={cell.messages} />
+        <ChipText moreElements={cell.totalMessages ? cell.totalMessages - 1 : 0}>
+          {cell.firstMessage}
+        </ChipText>
       ),
     },
     {
@@ -125,7 +138,9 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       width: 180,
       align: 'center',
       renderCell: (cell: RowTransaction) => (
-        <DateCellText value={cell.timestamp} />
+        <div className={'text-xs md:text-sm'}>
+          <DateCellText value={cell.timestamp} />
+        </div>
       )
     },
     {
@@ -167,6 +182,7 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       header={{
         title: `${totalItems} transactions found`,
         subtitle: subtitle || (
+          // @ts-expect-error tbd
           <NewEntitiesFound<typeof transactionsSubscription>
             entity={'transactions'}
             subscription={transactionsSubscription}

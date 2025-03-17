@@ -34,7 +34,8 @@ const transactionsByAddressDocument = graphql(`
         gasWanted
         signerAddress
         fees
-        messages {
+        messages(first: 1) {
+          totalCount
           nodes {
             typeUrl
             json

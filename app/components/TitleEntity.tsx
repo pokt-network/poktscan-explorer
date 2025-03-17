@@ -1,5 +1,5 @@
 import TextWithCopyButton from '@/app/components/TextWithCopyButton'
-import SponsoredLabel from '@/app/components/SponsoredLabel'
+// import SponsoredLabel from '@/app/components/SponsoredLabel'
 import React from 'react'
 
 interface TitleEntityProps {
@@ -18,7 +18,7 @@ export default function TitleEntity({title, text}: TitleEntityProps) {
       </div>
       <hr className={'border-[color:--divider] mt-1'} />
       <div className={'pb-4'}>
-        <SponsoredLabel lightColor={'[color:--secondary]'} />
+        {/*<SponsoredLabel lightColor={'[color:--secondary]'} />*/}
       </div>
 
     </>

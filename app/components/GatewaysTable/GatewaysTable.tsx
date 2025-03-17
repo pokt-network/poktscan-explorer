@@ -125,22 +125,32 @@ export default async function GatewaysTable({page, itemsPerPage, basePath, servi
   }
 
   const rows: Array<RowGateway> = data.gateways?.nodes?.map((gateway) => {
-    const applications: Array<string> = [], services: Array<{ id: string, name: string }> = []
+    const applications: Array<string> = [], services = new Map<string, string>()
 
     for (const application of gateway.applications.nodes) {
       applications.push(application.application!.id)
 
       for (const service of application.application!.applicationServices.nodes) {
-        services.push({
-          id: service.service!.id,
-          name: service.service!.name
-        })
+        if (services.has(service.service!.id)) continue
+
+        services.set(service.service!.id, service.service!.name)
       }
     }
 
     const balance = gateway.account?.balances?.nodes?.at(0) || {
       amount: '0',
       denom: 'upokt'
+    }
+
+    const servicesArray = [], servicesNames = []
+
+    for (const [key, value] of services.entries()) {
+      servicesArray.push({
+        id: key,
+        name: value
+      })
+
+      servicesNames.push(value)
     }
 
     return {
@@ -154,8 +164,8 @@ export default async function GatewaysTable({page, itemsPerPage, basePath, servi
       balance: formatAmount(balance),
       raw_balance: convertUpoktToPokt(balance?.amount),
       applicationsDelegating: applications,
-      services: services.map(service => service?.name),
-      servicesData: services,
+      services: servicesNames,
+      servicesData: servicesArray,
       allApplications: applications
     }
   })

@@ -38,7 +38,11 @@ export default function LatestBlock({
       label: (
         <DateColumn />
       ),
-      value: <DateCellText value={latestBlock.timestamp} />
+      value: (
+        <div className={'text-sm'}>
+          <DateCellText value={latestBlock.timestamp} />
+        </div>
+        )
     },
     {
       label: 'Took',

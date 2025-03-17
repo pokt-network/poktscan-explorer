@@ -7,7 +7,21 @@ const gatewaysSubscription = graphql(`
   subscription gateways {
     gateways {
       id
-      _entity
+      _entity {
+        id
+        applicationGateways {
+          nodes {
+            application {
+              id
+              applicationServices {
+                nodes {
+                  serviceId
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 `)

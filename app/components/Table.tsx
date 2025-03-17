@@ -227,7 +227,7 @@ Table.Footer = function TableFooter({currentPage, itemsPerPage, totalPages, base
   return (
     <div className={"flex flex-row py-4 px-3 md:px-4 w-full min-h-[74px] items-center justify-between border-t border-[color:--divider] flex-wrap gap-3"}>
       <div className={"flex flex-row items-center gap-2"}>
-        <p className={"text-sm text-[color:--secondary] whitespace-nowrap"}>
+        <p className={"xs:text-xs text-sm text-[color:--secondary] whitespace-nowrap"}>
           Show rows:
         </p>
         <SelectItemsPerRow value={itemsPerPageOption} basePath={basePath} currentPage={currentPage} options={validItemsPerPage as Array<number>} />
