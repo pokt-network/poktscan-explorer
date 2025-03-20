@@ -6,13 +6,15 @@ import { useCallback } from 'react'
 import { fillMissingDays, getSummaryVariables } from '@/app/(home)/utils'
 import PocketLogo from '@/app/assets/pocket_logo.svg'
 import Price from '@/app/components/Price'
-import { Blend, Globe, Landmark } from 'lucide-react'
+import { Blend, Box, Clock, Globe, Landmark } from 'lucide-react'
 import { formatAmount, formatUpokt } from '@/app/utils/format'
 import BoxLabel from '@/app/components/BoxLabel'
 import ComputeUnitsLineChart from '@/app/(home)/ComputeUnitsLineChart'
-import type { Price as PriceType } from '@/app/api/price'
 import { useDateContext } from '@/app/dates/Context'
 import MarketCap from '@/app/(home)/MarketCap'
+import EntityLink from '@/app/components/EntityLink'
+import DateColumn from '@/app/dates/DateColumn'
+import DateCellText from '@/app/dates/DateCellText'
 
 
 function Title({title}: {title: string}) {
@@ -25,10 +27,9 @@ function Title({title}: {title: string}) {
 
 interface SummaryProps {
   initialData: DocumentNodeData<typeof summaryDocument>
-  price: PriceType
 }
 
-export default function Summary({initialData, price}: SummaryProps) {
+export default function Summary({initialData}: SummaryProps) {
   const variables = useCallback((_: number, currentTime: string) => getSummaryVariables(new Date(currentTime)), [])
 
   const data = useFetchOnBlock({
@@ -47,38 +48,69 @@ export default function Summary({initialData, price}: SummaryProps) {
 
   return (
     <div
-      className={'bg-[color:--main-background] gap-y-[20px] p-5 min-h-[180px] lg:h-[180px] rounded-xl border border-[color:--divider] grid md:grid-cols-2 lg:grid-cols-3 base-shadow'}
+      className={'bg-[color:--main-background] gap-y-[20px] p-5 min-h-[180px] lg:h-[180px] rounded-xl border border-[color:--divider] grid md:grid-cols-2 lg:grid-cols-3 base-shadow z-10 relative'}
     >
       <div className={'flex flex-col gap-y-5 pr-5'}>
-        <div className={'flex grow flex-row h-full'}>
-          <div className={'h-[41px] w-[24px] mr-2'}>
-            <PocketLogo className={'pocket_logo scale-[170%]'} />
-          </div>
-          <div className={'flex grow flex-col gap-0.5 h-full'}>
-            <Title
-              title={'POKT Price'}
-            />
-            <div className={'text-[15px!important]'}>
-              <Price
-                showLabel={false}
-                priceColor={'--foreground'}
-                fontSize={'[15px]'}
+        <div className={'flex h-full justify-between'}>
+          <div className={'flex grow flex-row h-full'}>
+            <div className={'h-[41px] w-[24px] mr-2'}>
+              <Box className={'stroke-1 w-7 h-7 ml-[-3px] mt-[-5px]'} />
+            </div>
+            <div className={'flex grow flex-col gap-0.5 h-full'}>
+              <Title
+                title={'Latest Block'}
               />
+              <div className={'text-[15px!important]'}>
+                <EntityLink entity={'block'} entityId={latestBlock?.height || 0} />
+              </div>
             </div>
           </div>
+          <div className={'flex flex-row items-end'}>
+            <div className={'h-[41px] w-[24px] mr-2'}>
+              <Clock className={'stroke-1 w-[26px] h-[26px] ml-[-1px] mt-[-7px] lg:mt-[-15px]'} />
+            </div>
+            <div className={'flex grow flex-col gap-0.5 h-full'}>
+              <div className={'text-xs tracking-tight text-[color:--secondary] uppercase'}>
+                <DateColumn />
+              </div>
+              <p className={'text-[15px]'}>
+                <DateCellText value={latestBlock?.timestamp} />
+              </p>
+            </div>
+          </div>
+
         </div>
         <hr className={'border-[color:--divider]'} />
-        <div className={'flex grow flex-row h-full'}>
-          <div className={'h-[41px] w-[24px] mr-2'}>
-            <Globe className={'stroke-1 w-7 h-7 ml-[-3px] mt-[-5px]'} />
+        <div className={'flex h-full justify-between'}>
+          <div className={'flex grow flex-row h-full'}>
+            <div className={'h-[41px] w-[24px] mr-2'}>
+              <PocketLogo className={'pocket_logo scale-[170%]'} />
+            </div>
+            <div className={'flex grow flex-col gap-0.5 h-full'}>
+              <Title
+                title={'POKT Price'}
+              />
+              <div className={'text-[15px!important]'}>
+                <Price
+                  showLabel={false}
+                  priceColor={'--foreground'}
+                  fontSize={'[15px]'}
+                />
+              </div>
+            </div>
           </div>
-          <div className={'flex grow flex-col gap-0.5 h-full'}>
-            <Title
-              title={'Market Cap'}
-            />
-            <p className={'text-[15px]'}>
-              <MarketCap />
-            </p>
+          <div className={'flex flex-row items-end'}>
+            <div className={'h-[41px] w-[24px] mr-2'}>
+              <Globe className={'stroke-1 w-7 h-7 ml-[-3px] mt-[-7px] lg:mt-[-14px]'} />
+            </div>
+            <div className={'flex grow flex-col gap-0.5 h-full'}>
+              <Title
+                title={'Market Cap'}
+              />
+              <p className={'text-[15px]'}>
+                <MarketCap />
+              </p>
+            </div>
           </div>
         </div>
       </div>

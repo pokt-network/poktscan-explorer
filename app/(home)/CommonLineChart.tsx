@@ -11,7 +11,7 @@ import {
   Legend,
 } from 'chart.js'
 import { useTheme } from 'next-themes'
-import millify from 'millify'
+import { formatAmount, formatSimpleAmount } from '@/app/utils/format'
 
 // Register the components
 ChartJS.register(
@@ -24,15 +24,18 @@ ChartJS.register(
   Legend
 );
 
+interface DataPoint {
+  label: string
+  value: number
+}
+
 export interface CommonLineChartProps {
-  data: Array<{
-    label: string
-    value: number
-  }>
+  data: Array<DataPoint>
+  valuesAreUPokt?: boolean
   dataLabel?: string
 }
 
-export default function CommonLineChart({data, dataLabel}: CommonLineChartProps) {
+export default function CommonLineChart({data, dataLabel, valuesAreUPokt = false}: CommonLineChartProps) {
   const {theme = 'dark'} = useTheme();
   const isDark = theme === 'dark'
 
@@ -89,7 +92,14 @@ export default function CommonLineChart({data, dataLabel}: CommonLineChartProps)
                 ...commonTickOptions,
                 maxRotation: 0,
                 callback: function (value) {
-                  return millify(Number(value))
+                  if (valuesAreUPokt) {
+                    return formatAmount({
+                      amount: value,
+                      denom: 'upokt',
+                    }).split(' ').at(0)
+                  }
+
+                  return formatSimpleAmount(value)
                 },
               },
             },
@@ -137,6 +147,18 @@ export default function CommonLineChart({data, dataLabel}: CommonLineChartProps)
                 weight: 'normal'
               },
               padding: 10,
+              callbacks: {
+                label: (tooltipItem) => {
+                  let amount = (tooltipItem.raw as DataPoint).value.toString()
+
+                  if (valuesAreUPokt) {
+                    amount = formatAmount({amount, denom: 'upokt'})
+                  } else {
+                    amount = formatSimpleAmount(amount)
+                  }
+                  return `${dataLabel}: ${amount}`
+                }
+              }
             },
           },
         }}

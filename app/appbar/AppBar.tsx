@@ -1,7 +1,6 @@
 import Logo from './poktscan_logo_dark.svg'
 import Link from 'next/link'
 import RoutesMenu from '@/app/components/RoutesMenu'
-import getPrice from '@/app/api/price'
 import Price from '@/app/components/Price'
 import SiteSettings from '@/app/appbar/SiteSettings'
 import SearchInput from '@/app/Search/Search'
@@ -9,8 +8,6 @@ import ExplorerSelector from '@/app/appbar/ExplorerSelector'
 import Status from '@/app/appbar/Status/Status'
 
 export default async function AppBar() {
-  const price = await getPrice();
-
   return (
     <>
       <section

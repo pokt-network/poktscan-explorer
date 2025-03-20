@@ -21,7 +21,7 @@ export default function ServicesGainers({data}: ServicesGainersProps) {
           <p className={'text-sm font-bold'}>Biggest Gainers</p>
         </div>
         {biggestGainers.map((item, index) => {
-          const value = item.changes.computedUnits
+          const value = item.changes.computedUnits || 0
           return (
             <div
               key={item.id}
@@ -37,7 +37,7 @@ export default function ServicesGainers({data}: ServicesGainersProps) {
                 {value > 0 ? (
                   <ArrowUp className={'text-[color:--success] h-4 w-4'} />
                 ) : (
-                  <ArrowDown className={'text-[color:--error]'} />
+                  <ArrowDown className={'text-[color:--error] h-4 w-4'} />
                 )}
 
               </div>
@@ -50,7 +50,7 @@ export default function ServicesGainers({data}: ServicesGainersProps) {
           <p className={'text-sm font-bold'}>Best Performance</p>
         </div>
         {bestPerformance.map((item, index) => {
-          const value = item.percentages.computedUnits
+          const value = item.percentages.computedUnits || 0
           return (
             <div
               key={item.id}

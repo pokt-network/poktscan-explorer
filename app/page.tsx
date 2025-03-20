@@ -1,14 +1,11 @@
 import type { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
-import type { Block } from '@/app/config/gql/graphql'
-import getPrice from '@/app/api/price'
 import SearchInput from '@/app/Search/Search'
 import { getClient } from '@/app/config/apollo/rsc'
 import { getEvolutionVariables, getServicesVariables, getSummaryVariables } from '@/app/(home)/utils'
-import SupplierAndAppsEvolution from '@/app/(home)/SupplierAndAppsEvolution/SupplierAndAppsEvolution'
+import EvolutionCharts from '@/app/(home)/EvolutionCharts/EvolutionCharts'
 import ServicesCard from '@/app/(home)/ServicesCard'
 import { getLatestBlock } from '@/app/api/blocks'
 // import SponsoredLabel from '@/app/components/SponsoredLabel'
-import LatestBlock from '@/app/(home)/LatestBlock'
 import { evolutionDocument, servicesDocument, summaryDocument } from '@/app/(home)/operations'
 import Summary from '@/app/(home)/Summary'
 
@@ -25,8 +22,7 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
 
   const client = getClient()
 
-  const [price, { data }, {data: supplierAndAppsEvolutionData }, { data: servicesData }] = await Promise.all([
-    getPrice(),
+  const [{ data }, {data: supplierAndAppsEvolutionData }, { data: servicesData }] = await Promise.all([
     client.query({
       query: summaryDocument,
       variables: getSummaryVariables(currentDate),
@@ -58,13 +54,12 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
         {/*<SponsoredLabel />*/}
       </section>
       <div className={'px-4 md:px-5 pb-4 mt-[-46px]'}>
-        <Summary initialData={data as DocumentNodeData<typeof summaryDocument>} price={price} />
+        <Summary initialData={data as DocumentNodeData<typeof summaryDocument>} />
       </div>
 
       <div className={'px-4 md:px-5 pb-10 flex lg:flex-row flex-col gap-4'}>
         <div className={'w-full lg:w-[50%] flex flex-col gap-4'}>
-          <LatestBlock initialData={latestBlock as Required<Block>} />
-          <SupplierAndAppsEvolution initialData={supplierAndAppsEvolutionData} />
+          <EvolutionCharts initialData={supplierAndAppsEvolutionData} />
         </div>
         <ServicesCard
           initialData={servicesData as DocumentNodeData<typeof servicesDocument>}

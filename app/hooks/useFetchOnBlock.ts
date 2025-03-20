@@ -39,6 +39,7 @@ export default function useFetchOnBlock<
   resultParser,
   initialResult,
 }: FetchOnBlockOptions<T, R>): DeepRequired<R> {
+  const lastValueRef = useRef<R | null>(initialResult || null)
   const {currentHeight, currentTime, firstHeight} = useHeightContext()
   const firstRenderRef = useRef(true)
 
@@ -57,10 +58,20 @@ export default function useFetchOnBlock<
       const variablesToUse = typeof variables === 'function' ? variables(currentHeight, currentTime) : variables
       fetchData({
         variables: variablesToUse,
+      }).then(({data}) => {
+        if (data) {
+          if (resultParser) {
+            lastValueRef.current = resultParser(data)
+          } else {
+            lastValueRef.current = data
+          }
+        }
       })
     }
     // eslint-disable-next-line
   }, [currentHeight, query, variables])
 
-  return result?.data ? resultParser ? resultParser(result.data) : result.data :  initialResult
+  const data = result?.data || lastValueRef.current
+
+  return data ? resultParser ? resultParser(data) : data :  initialResult
 }

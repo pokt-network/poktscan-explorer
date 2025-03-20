@@ -7,11 +7,31 @@ import { getEvolutionVariables } from '@/app/(home)/utils'
 import { evolutionDocument } from '@/app/(home)/operations'
 import { useDateContext } from '@/app/dates/Context'
 
+interface CardEvolutionChartProps {
+  title: string
+  data: CommonLineChartProps['data']
+  dataLabel: string
+  valuesAreUPokt?: boolean
+}
+
+function CardEvolutionChart({title, ...chartProps }: CardEvolutionChartProps) {
+  return (
+    <div className={'bg-[color:--main-background] pb-2 border-[color:--divider] border rounded-lg base-shadow'}>
+      <div className={'h-[41px] p-4 flex items-center border-b border-[color:--divider]'}>
+        <p className={'font-semibold text-[15px]'}>
+          {title}
+        </p>
+      </div>
+      <CommonLineChart {...chartProps} />
+    </div>
+  )
+}
+
 interface SupplierAndAppsEvolutionProps {
   initialData: DocumentNodeData<typeof evolutionDocument>
 }
 
-export default function SupplierAndAppsEvolution({
+export default function EvolutionCharts({
   initialData
 }: SupplierAndAppsEvolutionProps) {
   const {currentTime} = useHeightContext()
@@ -36,6 +56,68 @@ export default function SupplierAndAppsEvolution({
   const previous4Date = dateFormatter.format(new Date(dates.previous4Date))
   const previous5Date = dateFormatter.format(new Date(dates.previous5Date))
   const previous6Date = dateFormatter.format(new Date(dates.previous6Date))
+
+  const supplyData: CommonLineChartProps['data'] = [
+    {
+      label: currentDate,
+      value: data.today?.nodes?.at(0)?.supplies?.nodes?.at(0)?.supply?.amount || 0
+    },
+    {
+      label: yesterdayDate,
+      value: data.yesterday.nodes?.at(0)?.supplies?.nodes?.at(0)?.supply?.amount || 0
+    },
+    {
+      label: previous2Date,
+      value: data.last2.nodes?.at(0)?.supplies?.nodes?.at(0)?.supply?.amount || 0
+    },
+    {
+      label: previous3Date,
+      value: data.last3.nodes?.at(0)?.supplies?.nodes?.at(0)?.supply?.amount || 0
+    },
+    {
+      label: previous4Date,
+      value: data.last4.nodes?.at(0)?.supplies?.nodes?.at(0)?.supply?.amount || 0
+    },
+    {
+      label: previous5Date,
+      value: data.last5.nodes?.at(0)?.supplies?.nodes?.at(0)?.supply?.amount || 0
+    },
+    {
+      label: previous6Date,
+      value: data.last6.nodes?.at(0)?.supplies?.nodes?.at(0)?.supply?.amount || 0
+    },
+  ].reverse()
+
+  const validatorsData: CommonLineChartProps['data'] = [
+    {
+      label: currentDate,
+      value: data.today?.nodes?.at(0)?.stakedValidators || 0
+    },
+    {
+      label: yesterdayDate,
+      value: data.yesterday?.nodes?.at(0)?.stakedValidators || 0
+    },
+    {
+      label: previous2Date,
+      value: data.last2?.nodes?.at(0)?.stakedValidators || 0
+    },
+    {
+      label: previous3Date,
+      value: data.last3?.nodes?.at(0)?.stakedValidators || 0
+    },
+    {
+      label: previous4Date,
+      value: data.last4?.nodes?.at(0)?.stakedValidators || 0
+    },
+    {
+      label: previous5Date,
+      value: data.last5?.nodes?.at(0)?.stakedValidators || 0
+    },
+    {
+      label: previous6Date,
+      value: data.last6?.nodes?.at(0)?.stakedValidators || 0
+    },
+  ].reverse()
 
   const supplierData: CommonLineChartProps['data'] = [
     {
@@ -101,22 +183,10 @@ export default function SupplierAndAppsEvolution({
 
   return (
     <div className="flex flex-col gap-y-4 w-full">
-      <div className={'bg-[color:--main-background] pb-2 border-[color:--divider] border rounded-lg base-shadow'}>
-        <div className={'h-[50px] p-4 flex items-center border-b border-[color:--divider]'}>
-          <p className={'font-semibold text-[15px]'}>
-            Staked Suppliers Evolution
-          </p>
-        </div>
-        <CommonLineChart data={supplierData} dataLabel={'Staked Suppliers'} />
-      </div>
-      <div className={'bg-[color:--main-background] pb-2 border-[color:--divider] border rounded-lg base-shadow'}>
-        <div className={'h-[50px] p-4 flex items-center border-b border-[color:--divider]'}>
-          <p className={'font-semibold text-[15px]'}>
-            Staked Apps Evolution
-          </p>
-        </div>
-        <CommonLineChart data={appsData} dataLabel={'Staked Apps'} />
-      </div>
+      <CardEvolutionChart title={'Supply Evolution (POKT)'} data={supplyData} dataLabel={'Supply'} valuesAreUPokt={true} />
+      <CardEvolutionChart title={'Staked Validators Evolution'} data={validatorsData} dataLabel={'Staked Validators'} />
+      <CardEvolutionChart title={'Staked Suppliers Evolution'} data={supplierData} dataLabel={'Staked Suppliers'} />
+      <CardEvolutionChart title={'Staked Apps Evolution'} data={appsData} dataLabel={'Staked Apps'} />
     </div>
   )
 }
