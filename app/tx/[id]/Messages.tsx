@@ -72,9 +72,9 @@ export function DisplayMessages({messages}: {messages: Array<Message>}) {
         <AccordionItem value={index.toString()} key={index.toString()}
                        className={index === messages.length - 1 ? 'border-none' : undefined}>
           <AccordionTrigger className={'flex flex-row gap-2 min-w-0 justify-start items-center'}>
-                  <span className={'font-semibold'}>
-                    {node.typeUrl.split('.').at(-1)?.replace('Msg', '')}
-                  </span>
+            <span className={'font-semibold'}>
+              {node.typeUrl.split('.').at(-1)?.replace('Msg', '')}
+            </span>
             <p className={'whitespace-nowrap overflow-hidden overflow-ellipsis text-[color:--secondary]'}>
               {node.typeUrl}
             </p>

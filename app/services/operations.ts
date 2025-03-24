@@ -9,6 +9,7 @@ export const serviceListDocument = graphql(`
         name
         computeUnitsPerRelay
         ownerId
+        newNumRelaysEma
         apps: applicationServices {
           totalCount
         }
