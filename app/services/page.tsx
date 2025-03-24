@@ -103,7 +103,7 @@ export default async function ServicesPage({searchParams}: PageProps) {
 
   return (
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
-      <ListTitle title={'Gateways'} />
+      <ListTitle title={'Services'} />
       <Table
         columns={columns}
         rows={rows}
