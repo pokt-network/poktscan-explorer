@@ -83,11 +83,11 @@ export default function RoutesMenu({label, items}: RoutesMenuProps) {
         onMouseLeave={handleMouseLeave}
       >
         <div className={"absolute top-0 left-0 w-full h-[3px] bg-sky-500"} />
-        <div className="grid gap-4">
+        <div className="grid gap-2">
           {items.map((item, index) => {
             if (item.type === 'divider') {
               return (
-                <hr key={index} className="border-[--divider] my-0" />
+                <hr key={index} className="border-[--divider]" />
               )
             }
 
