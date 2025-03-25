@@ -7,6 +7,7 @@ import ServiceCardContent from '@/app/(home)/ServiceCardContent'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import { servicesDocument } from '@/app/(home)/operations'
 import { getServicesVariables } from '@/app/(home)/utils'
+import Big from 'big.js';
 
 type Item = {
   keys: string[]; // Array with one string element (id)
@@ -40,6 +41,14 @@ export type AugmentedItem = {
   };
 };
 
+const calculatePercentageChange = (current: Big, past: Big): number => {
+  return  past.gt(0) ? current.minus(past).div(past).mul(100).toNumber() : 0
+}
+
+const calculatePercentage = (value: Big, total: Big): number => {
+  return  total.gt(0) ?  value.div(total).mul(100).toNumber() : 0
+}
+
 function calculateChanges(current: Item[], past: Item[]): AugmentedItem[] {
   // Create a map of past items by id for quick lookup
   const pastMap = new Map(
@@ -49,13 +58,13 @@ function calculateChanges(current: Item[], past: Item[]): AugmentedItem[] {
   // Calculate totals for percentage calculations
   const totalSums = current.reduce(
     (totals, item) => {
-      totals.relays += item.sum.relays;
-      totals.computedUnits += item.sum.computedUnits;
-      totals.amount += item.sum.amount;
-      totals.claimedUpokt += item.sum.claimedUpokt;
+      totals.relays = totals.relays.add(new Big(item.sum.relays));
+      totals.computedUnits = totals.computedUnits.add(item.sum.computedUnits);
+      totals.amount = totals.amount.add(item.sum.amount);
+      totals.claimedUpokt = totals.claimedUpokt.add(item.sum.claimedUpokt);
       return totals;
     },
-    { relays: 0, computedUnits: 0, amount: 0, claimedUpokt: 0 }
+    { relays: new Big(0), computedUnits: new Big(0), amount: new Big(0), claimedUpokt: new Big(0) }
   );
 
   // Process current array and calculate changes
@@ -66,24 +75,10 @@ function calculateChanges(current: Item[], past: Item[]): AugmentedItem[] {
     // Calculate percentage changes
     const changes = pastItem
       ? {
-        relays: pastItem.relays
-          ? ((currentItem.sum.relays - pastItem.relays) / pastItem.relays) *
-          100
-          : 0,
-        computedUnits: pastItem.computedUnits
-          ? ((currentItem.sum.computedUnits - pastItem.computedUnits) /
-            pastItem.computedUnits) *
-          100
-          : 0,
-        amount: pastItem.amount
-          ? ((currentItem.sum.amount - pastItem.amount) / pastItem.amount) *
-          100
-          : 0,
-        claimedUpokt: pastItem.claimedUpokt
-          ? ((currentItem.sum.claimedUpokt - pastItem.claimedUpokt) /
-            pastItem.claimedUpokt) *
-          100
-          : 0,
+        relays: calculatePercentageChange(new Big(currentItem.sum.relays), new Big(pastItem.relays)),
+        computedUnits: calculatePercentageChange(new Big(currentItem.sum.computedUnits), new Big(pastItem.computedUnits)),
+        amount: calculatePercentageChange(new Big(currentItem.sum.amount), new Big(pastItem.amount)),
+        claimedUpokt: calculatePercentageChange(new Big(currentItem.sum.claimedUpokt), new Big(pastItem.claimedUpokt)),
       }
       : {
         relays: 100, // Assume 100% increase if no past value
@@ -94,22 +89,10 @@ function calculateChanges(current: Item[], past: Item[]): AugmentedItem[] {
 
     // Calculate percentages of the total
     const percentages = {
-      relays:
-        totalSums.relays > 0
-          ? (currentItem.sum.relays / totalSums.relays) * 100
-          : 0,
-      computedUnits:
-        totalSums.computedUnits > 0
-          ? (currentItem.sum.computedUnits / totalSums.computedUnits) * 100
-          : 0,
-      amount:
-        totalSums.amount > 0
-          ? (currentItem.sum.amount / totalSums.amount) * 100
-          : 0,
-      claimedUpokt:
-        totalSums.claimedUpokt > 0
-          ? (currentItem.sum.claimedUpokt / totalSums.claimedUpokt) * 100
-          : 0,
+      relays: calculatePercentage(new Big(currentItem.sum.relays), totalSums.relays),
+      computedUnits: calculatePercentage(new Big(currentItem.sum.computedUnits), totalSums.computedUnits),
+      amount: calculatePercentage(new Big(currentItem.sum.amount), totalSums.amount),
+      claimedUpokt: calculatePercentage(new Big(currentItem.sum.claimedUpokt), totalSums.claimedUpokt),
     };
 
     // Return the augmented item with changes and percentages
