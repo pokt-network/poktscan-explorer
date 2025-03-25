@@ -1,7 +1,13 @@
-import type { RoutesAccordionProps } from '@/app/components/RoutesMenu'
+import type { RoutesAccordionProps } from '@/app/appbar/Routes/RoutesMenu'
 
 const routes: RoutesAccordionProps['routeGroups'] = [
   {
+    type: 'single',
+    label: 'Home',
+    href: '/',
+  },
+  {
+    type: 'group',
     label: 'Dashboards',
     items: [
       {
@@ -32,6 +38,7 @@ const routes: RoutesAccordionProps['routeGroups'] = [
     ]
   },
   {
+    type: 'group',
     label: "Tools",
     items: [
       {
@@ -52,6 +59,7 @@ const routes: RoutesAccordionProps['routeGroups'] = [
     ]
   },
   {
+    type: 'group',
     label: 'Blockchain',
     items: [
       {
@@ -102,6 +110,7 @@ const routes: RoutesAccordionProps['routeGroups'] = [
     ]
   },
   {
+    type: 'group',
     label: 'Resources',
     items: [
       {

@@ -21,7 +21,7 @@ export default async function NotFound({searchParams}: {searchParams?: Promise<R
   let isUnderConstructionPage = false
 
   for (const routeGroup of routes) {
-    if (routeGroup.label === 'Blockchain') continue
+    if (routeGroup.label === 'Blockchain' || routeGroup.type === 'single') continue
 
     for (const route of routeGroup.items) {
       if (route.type === 'route' && route.href === paramsAwaited?.pt) {

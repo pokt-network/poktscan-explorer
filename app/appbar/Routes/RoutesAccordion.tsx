@@ -1,7 +1,7 @@
 'use client'
 
 import { useExpandContext } from '@/app/appbar/Routes/ExpandContext'
-import { RoutesAccordion as RoutesAccordionComponent } from '@/app/components/RoutesMenu'
+import { RoutesAccordion as RoutesAccordionComponent } from '@/app/appbar/Routes/RoutesMenu'
 import routes from '@/app/appbar/Routes/routes'
 import { Accordion, AccordionContent, AccordionItem } from '@/components/ui/accordion'
 import { useState } from 'react'
