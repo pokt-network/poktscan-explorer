@@ -6,6 +6,7 @@ import NotFound from '@/app/not-found'
 import EntityDetail, { Item } from '@/app/components/EntityDetail'
 import TitleEntity from '@/app/components/TitleEntity'
 import { serviceByIdDocument } from '@/app/service/[id]/operations'
+import { formatSimpleAmount } from '@/app/utils/format'
 
 interface ServiceDetailProps {
   initialData: DocumentNodeData<typeof serviceByIdDocument>
@@ -44,6 +45,11 @@ export default function ServiceDetail({id, initialData, page}: ServiceDetailProp
       type: 'row',
       label: 'Compute Units Per Relay',
       value: service.computeUnitsPerRelay
+    },
+    {
+      type: 'row',
+      label: 'Relay Mining Difficulty',
+      value: service?.newNumRelaysEma ? formatSimpleAmount(service?.newNumRelaysEma) : '-'
     },
     {
       type: 'row',

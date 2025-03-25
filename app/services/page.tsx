@@ -6,11 +6,13 @@ import ListTitle from '@/app/components/ListTitle'
 import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 import React from 'react'
 import { serviceListDocument, servicesSubscription } from '@/app/services/operations'
+import { formatSimpleAmount } from '@/app/utils/format'
 
 interface RowService {
   id: string
   name: string
   computeUnitsPerRelay: string
+  relayMiningDifficulty: string
   apps: number
   suppliers: number
 }
@@ -52,9 +54,10 @@ export default async function ServicesPage({searchParams}: PageProps) {
     return {
       id: service?.id,
       name: service?.name,
-      computeUnitsPerRelay: service?.computeUnitsPerRelay,
+      computeUnitsPerRelay: formatSimpleAmount(service?.computeUnitsPerRelay),
       apps: service?.apps?.totalCount || 0,
-      suppliers: service?.suppliers?.totalCount || 0
+      suppliers: service?.suppliers?.totalCount || 0,
+      relayMiningDifficulty: service?.newNumRelaysEma ? formatSimpleAmount(service?.newNumRelaysEma) : '-'
     }
   })
 
@@ -82,6 +85,11 @@ export default async function ServicesPage({searchParams}: PageProps) {
       align: 'right'
     },
     {
+      field: 'relayMiningDifficulty',
+      headerName: 'Relay Mining Difficulty',
+      align: 'right'
+    },
+    {
       field: 'apps',
       headerName: 'Applications',
       align: 'right'
@@ -95,7 +103,7 @@ export default async function ServicesPage({searchParams}: PageProps) {
 
   return (
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
-      <ListTitle title={'Gateways'} />
+      <ListTitle title={'Services'} />
       <Table
         columns={columns}
         rows={rows}

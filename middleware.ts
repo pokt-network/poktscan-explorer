@@ -12,6 +12,7 @@ export function middleware(request: NextRequest) {
   }
 
   url.searchParams.set('sp', request.nextUrl.searchParams.toString());
+  url.searchParams.set('pt', request.nextUrl.pathname);
 
   return NextResponse.rewrite(url);
 }
