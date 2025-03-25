@@ -3,7 +3,7 @@ import RoutesMenu, { RouteSingle } from '@/app/appbar/Routes/RoutesMenu'
 
 export default function RoutesList() {
   return (
-    <div className={'hidden lg:flex gap-0 flex-row'}>
+    <div className={'hidden lg:flex gap-0 flex-row mr-[-16px]'}>
       {routes.map((item) => {
         if (item.type === 'single') {
           return (

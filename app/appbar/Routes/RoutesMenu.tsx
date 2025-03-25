@@ -72,15 +72,17 @@ export default function RoutesMenu({label, items}: RoutesMenuProps) {
           e.preventDefault();
         }}
       >
-        <Button variant={'ghost'} className={`hover:text-sky-500${(open || isActive) && ' text-sky-500'} light:font-bold pl-8 pr-0`}>
+        <Button variant={'ghost'} className={`hover:text-sky-500${(open || isActive) && ' text-sky-500'} light:font-bold px-4`}>
           {label}
           <ChevronDown />
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[200px] border-[color:--divider] rounded-b-lg rounded-t-none border-t bg-[color:--main-background] relative px-2"
+        className="w-[160px] border-[color:--divider] rounded-b-lg rounded-t-none border-t bg-[color:--main-background] relative px-2"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        align={'end'}
+        alignOffset={12}
       >
         <div className={"absolute top-0 left-0 w-full h-[3px] bg-sky-500"} />
         <div className="grid gap-2">
@@ -193,7 +195,7 @@ export function RouteSingle({label, href, onClick}: RouteSingleProps) {
       className={`hover:text-sky-500 h-[32px] font-normal ${isActive && 'text-sky-500'}`}
       onClick={onClick}
     >
-      <Button variant={'ghost'} className={'px-0 lg:pl-8'}>
+      <Button variant={'ghost'} className={'px-0 lg:px-4'}>
         {label}
       </Button>
     </Link>

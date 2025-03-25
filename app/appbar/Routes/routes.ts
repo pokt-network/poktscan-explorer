@@ -115,7 +115,7 @@ const routes: RoutesAccordionProps['routeGroups'] = [
     items: [
       {
         type: 'route',
-        label: 'Top Statisctis',
+        label: 'Top Statistics',
         href: '/resources/top-statistics'
       },
       {
