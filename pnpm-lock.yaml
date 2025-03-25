@@ -53,6 +53,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.66.9
         version: 5.66.9(react@19.0.0-rc-02c0e824-20241028)
+      big.js:
+        specifier: ^6.2.2
+        version: 6.2.2
       chart.js:
         specifier: ^4.4.6
         version: 4.4.6
@@ -114,6 +117,9 @@ importers:
       '@graphql-codegen/schema-ast':
         specifier: ^4.1.0
         version: 4.1.0(graphql@16.9.0)
+      '@types/big.js':
+        specifier: ^6.2.2
+        version: 6.2.2
       '@types/node':
         specifier: ^20
         version: 20.17.6
@@ -1891,6 +1897,9 @@ packages:
     resolution: {integrity: sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==}
     engines: {node: '>=10.13.0'}
 
+  '@types/big.js@6.2.2':
+    resolution: {integrity: sha512-e2cOW9YlVzFY2iScnGBBkplKsrn2CsObHQ2Hiw4V1sSyiGbgWL8IyqE3zFi1Pt5o1pdAtYkDAIsF3KKUPjdzaA==}
+
   '@types/js-yaml@4.0.9':
     resolution: {integrity: sha512-k4MGaQl5TGo/iipqb2UDG2UwjXziSWkh0uysQelTlJpX1qGlpUZYm8PnO4DxG1qBomtJUdYJ6qR6xdIah10JLg==}
 
@@ -2211,6 +2220,9 @@ packages:
 
   bech32@1.1.4:
     resolution: {integrity: sha512-s0IrSOzLlbvX7yp4WBfPITzpAU8sqQcpsmwXDiKwrG4r491vwCO/XpejasRNl0piBMe/DvP4Tz0mIS/X1DPJBQ==}
+
+  big.js@6.2.2:
+    resolution: {integrity: sha512-y/ie+Faknx7sZA5MfGA2xKlu0GDv8RWrXGsmlteyJQ2lvoKv9GBK/fpRMc2qlSoBAgNxrixICFCBefIq8WCQpQ==}
 
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
@@ -7424,6 +7436,8 @@ snapshots:
 
   '@trysound/sax@0.2.0': {}
 
+  '@types/big.js@6.2.2': {}
+
   '@types/js-yaml@4.0.9': {}
 
   '@types/json5@0.0.29': {}
@@ -7814,6 +7828,8 @@ snapshots:
       tweetnacl: 0.14.5
 
   bech32@1.1.4: {}
+
+  big.js@6.2.2: {}
 
   binary-extensions@2.3.0: {}
 
