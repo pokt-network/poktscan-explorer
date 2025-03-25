@@ -72,7 +72,7 @@ export default function RoutesMenu({label, items}: RoutesMenuProps) {
           e.preventDefault();
         }}
       >
-        <Button variant={'ghost'} className={`hover:text-sky-500${(open || isActive) && ' text-sky-500'} light:font-bold px-4`}>
+        <Button variant={'ghost'} className={`hover:text-sky-500${(open || isActive) && ' text-sky-500'} light:font-bold pl-8 pr-0`}>
           {label}
           <ChevronDown />
         </Button>
@@ -193,7 +193,7 @@ export function RouteSingle({label, href, onClick}: RouteSingleProps) {
       className={`hover:text-sky-500 h-[32px] font-normal ${isActive && 'text-sky-500'}`}
       onClick={onClick}
     >
-      <Button variant={'ghost'} className={'px-0 lg:px-4'}>
+      <Button variant={'ghost'} className={'px-0 lg:pl-8'}>
         {label}
       </Button>
     </Link>
