@@ -9,13 +9,14 @@ export interface EntityLinkProps {
   entity: 'block' | 'supplier' | 'account' | 'tx' | 'app' | 'gateway' | 'validator' | 'service'
   entityId: string | number
   label?: string
+  prefetch?: boolean
   copy?: {
     enabled: boolean
     tooltip?: string
   }
 }
 
-export default function EntityLink({entityId, entity, label, copy}: EntityLinkProps) {
+export default function EntityLink({entityId, entity, label, copy, prefetch = false}: EntityLinkProps) {
   if (!entityId) {
     return null
   }
@@ -35,7 +36,11 @@ export default function EntityLink({entityId, entity, label, copy}: EntityLinkPr
   }
 
   const link = (
-    <Link href={`/${entity}/${entityId}`} className={"text-[color:--primary] dark:hover:text-blue-300 hover:text-blue-600 decoration-none whitespace-nowrap overflow-hidden overflow-ellipsis"} prefetch>
+    <Link
+      prefetch={prefetch}
+      href={`/${entity}/${entityId}`}
+      className={"text-[color:--primary] dark:hover:text-blue-300 hover:text-blue-600 decoration-none whitespace-nowrap overflow-hidden overflow-ellipsis"}
+    >
       {text}
     </Link>
   )

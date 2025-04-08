@@ -31,7 +31,15 @@ export default function StatusPopover({initialData}: StatusPopoverProps) {
 
   let icon: React.ReactNode, color: string, content: React.ReactNode
 
-  if (data && data?._metadata?.targetHeight === data?._metadata?.lastProcessedHeight) {
+  if (!data) {
+    color = 'bg-[color:--error]'
+    icon = <X className={'h-3 w-3 text-white'} strokeWidth={4}/>
+    content = (
+      <p className={'font-bold text-[color:--secondary]'}>
+        Indexer Unreachable
+      </p>
+    )
+  } else if (data && data?._metadata?.targetHeight === data?._metadata?.lastProcessedHeight) {
     color = 'bg-[color:--success]'
     icon = <Check className={'h-3 w-3 text-white'} strokeWidth={4}/>
     content = (

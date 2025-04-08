@@ -12,6 +12,7 @@ import HeightContextProvider from '@/app/context/height'
 import { getLatestBlock } from '@/app/api/blocks'
 import ReactQueryProvider from '@/app/config/query'
 import getPrice from '@/app/api/price'
+import RegisterPlugins from '@/app/Charts/Plugins/RegisterPlugins'
 
 export const metadata: Metadata = {
   title: "ShannonScan",
@@ -34,7 +35,7 @@ export default async function RootLayout({children}: Readonly<{
 }>) {
   const [cookiesAwaited, latestBlock, price] = await Promise.all([
     cookies(),
-    getLatestBlock(),
+    getLatestBlock().catch(() => null),
     getPrice()
   ])
 
@@ -57,11 +58,12 @@ export default async function RootLayout({children}: Readonly<{
                 <HeightContextProvider
                   firstHeight={latestBlock?.height}
                   // the timestamp is in UTC, so we need to add the Z to the end because the api doesn't include it
-                  firstTime={latestBlock?.timestamp + 'Z'}
+                  firstTime={latestBlock?.timestamp ? latestBlock.timestamp + 'Z' : ''}
                 >
+                  <RegisterPlugins />
                   <AppBar />
                   <div className={'w-full h-full flex items-center justify-center overflow-x-hidden'}>
-                    <div className={'max-w-[1400px] w-full'}>
+                    <div className={'max-w-[1400px] w-full'} id={'content-container'}>
                       {children}
                     </div>
                   </div>

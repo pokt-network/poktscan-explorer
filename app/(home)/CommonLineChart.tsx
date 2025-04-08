@@ -1,28 +1,7 @@
 'use client'
 import {Line} from 'react-chartjs-2'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js'
 import { useTheme } from 'next-themes'
 import { formatAmount, formatSimpleAmount } from '@/app/utils/format'
-
-// Register the components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 interface DataPoint {
   label: string
@@ -136,8 +115,8 @@ export default function CommonLineChart({data, dataLabel, valuesAreUPokt = false
             },
             tooltip: {
               enabled: true,
-              mode: 'nearest',
               backgroundColor: isDark ? 'rgb(61,61,61)' : 'rgb(89,89,89)',
+              mode: 'nearest',
               intersect: false,
               displayColors: false,
               bodyFont: {

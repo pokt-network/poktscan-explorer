@@ -18,6 +18,7 @@ export default function ExplorerSelector() {
     }
   }, [])
 
+  const isMainNetSelected = origin.includes('mainnet')
   const isAlphaSelected = origin.includes('alpha')
   const isBetaSelected = origin.includes('beta')
 
@@ -27,6 +28,17 @@ export default function ExplorerSelector() {
         <PocketLogo className={'scale-[1.05] pocket_logo'} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align={"end"} className={'z-[1026] border-[color:--divider] bg-[color:--main-background] '}>
+        <DropdownMenuLabel
+          className={`flex flex-row font-medium items-center gap-2 ${isMainNetSelected ? 'text-[color:--primary]' : 'hover:bg-[color:--highlight-option]'}`}
+        >
+          <a
+            className={'cursor-pointer w-full'}
+            href={'https://shannon-mainnet.trustsoothe.io'}
+            target={'_blank'}
+          >
+            MainNet
+          </a>
+        </DropdownMenuLabel>
         <DropdownMenuLabel
           className={`flex flex-row font-medium items-center gap-2 ${isAlphaSelected ? 'text-[color:--primary]' : 'hover:bg-[color:--highlight-option]'}`}
         >
