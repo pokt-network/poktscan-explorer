@@ -164,7 +164,11 @@ export default async function TransactionDetailPage({
     },{
       type: 'row',
       label: 'Memo',
-      value: tx.memo
+      value: (
+        <p className={"text-sm text-[color:--foreground] break-all"}>
+          {tx.memo}
+        </p>
+      )
     })
   }
 
