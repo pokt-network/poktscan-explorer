@@ -9,6 +9,7 @@ import RoutesExpand from '@/app/appbar/Routes/RoutesExpand'
 import ExpandContextProvider from '@/app/appbar/Routes/ExpandContext'
 import RoutesAccordion from '@/app/appbar/Routes/RoutesAccordion'
 import RoutesList from '@/app/appbar/Routes/RoutesList'
+import ChainChip from '@/app/appbar/ChainChip'
 
 export default async function AppBar() {
   return (
@@ -35,11 +36,14 @@ export default async function AppBar() {
         <div className={'h-[55px] flex flex-row items-center justify-between'}>
           <div className={'w-full h-full flex items-center justify-center'}>
             <div className={'max-w-[1360px] w-full flex items-center justify-between'}>
-              <div className={'flex items-center gap-2'}>
-                <Link href={'/'} className={'decoration-none'}>
+              <div className={'flex items-center gap-2 relative'}>
+                <Link href={'/'} className={'decoration-none mt-[-12px]'}>
                   <Logo className={'h-7 w-auto'} />
                 </Link>
-                <Status />
+                <ChainChip/>
+                <div className={'-mt-3'}>
+                  <Status />
+                </div>
               </div>
               <RoutesList/>
               <RoutesExpand />

@@ -3,12 +3,15 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { CircleHelp } from 'lucide-react'
 import React from 'react'
 import { GridColDef } from '@/app/components/Table'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface BaseTableProps {
   columns: Array<GridColDef>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rows: Array<any>
   defaultMinWidth?: number
+  isLoading?: boolean
+  skeletonRows?: number
 }
 
 function getAlignClass(column: GridColDef) {
@@ -24,7 +27,25 @@ function getAlignClass(column: GridColDef) {
   }
 }
 
-export default function BaseTable({rows, columns, defaultMinWidth}: BaseTableProps) {
+function getSkeletonAlignClass(column: GridColDef) {
+  switch (column.align) {
+    case 'left':
+      return 'left-3'
+    case 'center':
+      return 'items-center'
+    case 'right':
+      return 'right-3'
+    default:
+      return 'left-3'
+  }
+}
+
+export default function BaseTable({rows, columns, defaultMinWidth, isLoading, skeletonRows = 5}: BaseTableProps) {
+  if (isLoading) {
+    rows = Array.from({length: skeletonRows}).map((_, index) => ({
+      id: index
+    }))
+  }
   return (
     <ShadTable>
       <TableHeader>
@@ -73,6 +94,21 @@ export default function BaseTable({rows, columns, defaultMinWidth}: BaseTablePro
           <TableRow key={row.id}>
             {columns.map((column, index) => {
               const align = getAlignClass(column)
+
+              let children: React.ReactNode
+
+              if (isLoading) {
+                children = <Skeleton className={`w-4/6 h-[20px] absolute ${getSkeletonAlignClass(column)} top-[14px]`} />
+              } else if (column.renderCell) {
+                children = column.renderCell(row)
+              } else {
+                children = (
+                  <p className={"text-xs md:text-sm whitespace-nowrap overflow-hidden overflow-ellipsis"}>
+                    {row[column.field]}
+                  </p>
+                )
+              }
+
               return (
                 <TableCell
                   key={column.field}
@@ -80,14 +116,14 @@ export default function BaseTable({rows, columns, defaultMinWidth}: BaseTablePro
                     minWidth: column.minWidth || defaultMinWidth,
                     maxWidth: column.maxWidth,
                     width: column.width,
+                    ...(isLoading && {
+                      position: 'relative'
+
+                    })
                   }}
                   className={`h-[48px] py-[10px] ${align} ${index ? 'pl-2 md:pl-4' : 'pl-4'} ${index === columns.length - 1 ? 'pr-4' : 'pr-2 md:pr-4'}`}
                 >
-                  {column.renderCell ? column.renderCell(row) : (
-                    <p className={"text-xs md:text-sm whitespace-nowrap overflow-hidden overflow-ellipsis"}>
-                      {row[column.field]}
-                    </p>
-                  )}
+                  {children}
                 </TableCell>
               )
             })}

@@ -19,6 +19,7 @@
         --warning-background: rgba(255, 244, 209, 0.78);
         --tooltip-background: #081D35;
         --primary-background: #0784c3;
+        --skeleton: #dedede;
         .base-shadow {
             box-shadow: 0 0.5rem 1.2rem rgb(189 197 209 / 40%);
         }
@@ -59,6 +60,7 @@
         --warning: #fdcb3f;
         --warning-background: rgba(183, 142, 13, 0.3);
         --tooltip-background: #333;
+        --skeleton: #222;
         .base-shadow {
             box-shadow: 0 0.1rem 1.2rem rgba(82, 85, 92, .15)
         }

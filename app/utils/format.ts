@@ -95,3 +95,18 @@ export function formatSize(size: number) {
     space: true,
   })
 }
+
+export function getCurrentDatetime(useUTC: boolean = false): string {
+  const now = new Date();
+
+  const year = useUTC ? now.getUTCFullYear() : now.getFullYear();
+  const month = (useUTC ? now.getUTCMonth() : now.getMonth()) + 1;
+  const day = useUTC ? now.getUTCDate() : now.getDate();
+  const hours = useUTC ? now.getUTCHours() : now.getHours();
+  const minutes = useUTC ? now.getUTCMinutes() : now.getMinutes();
+  const seconds = useUTC ? now.getUTCSeconds() : now.getSeconds();
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+
+  return `${year}-${pad(month)}-${pad(day)}_${pad(hours)}-${pad(minutes)}-${pad(seconds)}`;
+}

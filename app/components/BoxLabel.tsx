@@ -1,9 +1,13 @@
 export default function BoxLabel({label}: { label: string }) {
   return (
-    <span
-      className={'text-[color:--secondary] ml-2 h-[22px] mt-[-4px] text-[10px] inline-block border border-[color:--divider] px-[6px] leading-[21px] pt-[0px]'}
+    <div
+      className={'flex items-center pt-1 justify-center ml-2 h-[22px] mt-[-4px] border border-[color:--divider] px-[6px]'}
     >
-      {label}
-    </span>
+      <p
+        className={'text-[color:--secondary] text-[10px] leading-[22px]'}
+      >
+        {label}
+      </p>
+    </div>
   )
 }

@@ -189,8 +189,24 @@ export function RouteSingle({label, href, onClick}: RouteSingleProps) {
   const pathname = usePathname()
   const isActive = getLabelOfRouteIsActive({label, pathname, href})
 
+  if (href.startsWith('http')) {
+    return (
+      <a
+        href={href}
+        target={'_blank'}
+        className={`block hover:text-sky-500 h-[32px] font-normal ${isActive && 'text-sky-500'}`}
+        onClick={onClick}
+      >
+        <Button variant={'ghost'} className={'px-0 lg:px-4'}>
+          {label}
+        </Button>
+      </a>
+    )
+  }
+
   return (
     <Link
+      prefetch
       href={href}
       className={`hover:text-sky-500 h-[32px] font-normal ${isActive && 'text-sky-500'}`}
       onClick={onClick}
@@ -212,6 +228,7 @@ export function SingleRouteItem({href, label, onClick}: SingleRouteItemProps) {
 
   return (
     <Link
+      prefetch
       href={href}
       className={`text-xs block text-[color:--foreground] decoration-none rounded-md p-2 hover:bg-[color:--highlight-option] ${isActive && 'text-sky-500'}`}
       onClick={onClick}

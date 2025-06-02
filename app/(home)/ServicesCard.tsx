@@ -8,6 +8,7 @@ import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import { servicesDocument } from '@/app/(home)/operations'
 import { getServicesVariables } from '@/app/(home)/utils'
 import Big from 'big.js';
+import { calculatePercentage, calculatePercentageChange } from '@/app/utils/calculate'
 
 type Item = {
   keys: string[]; // Array with one string element (id)
@@ -41,15 +42,7 @@ export type AugmentedItem = {
   };
 };
 
-const calculatePercentageChange = (current: Big, past: Big): number => {
-  return  past.gt(0) ? current.minus(past).div(past).mul(100).toNumber() : 0
-}
-
-const calculatePercentage = (value: Big, total: Big): number => {
-  return  total.gt(0) ?  value.div(total).mul(100).toNumber() : 0
-}
-
-function calculateChanges(current: Item[], past: Item[]): AugmentedItem[] {
+export function calculateChanges(current: Item[], past: Item[]): AugmentedItem[] {
   // Create a map of past items by id for quick lookup
   const pastMap = new Map(
     past.map((item) => [item.keys[0], item.sum])
