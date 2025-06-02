@@ -43,6 +43,10 @@ export const servicesPerformanceDocument = graphql(`
       distinct: SERVICE_ID
       filter: {block: {timestamp: {greaterThanOrEqualTo:$endCurrentAndStartPrevious, lessThan: $startCurrent}}}
     ) {
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       nodes {
         service {
           id
@@ -87,6 +91,59 @@ export const servicesPerformanceDocument = graphql(`
           claimedUpokt
           computedUnits
           relays
+        }
+      }
+    }
+  }
+`)
+
+export const servicesDocument = graphql(`
+  query servicesPerBlockPage($cursor: Cursor!, $startCurrent: Datetime!, $endCurrentAndStartPrevious: Datetime!) {
+    currentData: relayByBlockAndServices(
+      distinct: SERVICE_ID
+      filter: {block: {timestamp: {greaterThanOrEqualTo:$endCurrentAndStartPrevious, lessThan: $startCurrent}}}
+      after: $cursor
+    ) {
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      nodes {
+        service {
+          id
+          name
+          stakedSuppliers: supplierServiceConfigs(
+            filter: {
+              supplier: {
+                stakeStatus: {
+                  equalTo: Staked
+                }
+              }
+            }
+          ) {
+            totalCount
+          }
+          stakedApps: applicationServices(
+            filter: {
+              application: {
+                stakeStatus: {
+                  equalTo: Staked
+                }
+              }
+            }
+          ) {
+            totalCount
+          }
+          stakedSuppliersByBlockAndServices(
+            filter: {block: {timestamp: {greaterThanOrEqualTo:$endCurrentAndStartPrevious, lessThan: $startCurrent}}}
+          ) {
+            totalCount
+            aggregates {
+              sum {
+                amount
+              }
+            }
+          }
         }
       }
     }

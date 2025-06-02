@@ -21,7 +21,7 @@ export default function DataProvider<T extends object>({
   children,
   initialData,
 }: DataProviderProps<T>) {
-  const [data, setData] = useState<Array<T>>(initialData)
+  const [data, setData] = useState<Array<T>>(initialData || [])
 
   return (
     <DataContext.Provider

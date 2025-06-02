@@ -7,6 +7,7 @@ import { PopoverArrow } from '@radix-ui/react-popover'
 import { Check, X } from 'lucide-react'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import { indexerMetadataDocument } from '@/app/api/metadata'
+import SyncingIcon from './syncing_icon.svg'
 
 interface StatusPopoverProps {
   initialData: DocumentNodeData<typeof indexerMetadataDocument>
@@ -50,7 +51,19 @@ export default function StatusPopover({initialData}: StatusPopoverProps) {
   } else {
     const diff = (data?._metadata?.targetHeight || 0) - (data?._metadata?.lastProcessedHeight || 0)
 
-    if (diff < 4) {
+    if (diff < 2) {
+      color = 'bg-[color:white]'
+      icon = (
+        <div className={'w-[18px] h-[18px]'}>
+          <SyncingIcon className={'text-[color:--success] scale-[69%] ml-[-11px] mt-[-11px]'}/>
+        </div>
+      )
+      content = (
+        <p className={'font-bold text-[color:--secondary]'} style={{marginTop: '1px'}}>
+          Syncing...
+        </p>
+      )
+    } else if (diff < 4) {
       color = 'bg-[color:--warning]'
       icon = <span className={'font-bold text-white text-sm'}>!</span>
     } else {
@@ -58,29 +71,31 @@ export default function StatusPopover({initialData}: StatusPopoverProps) {
       icon = <X className={'h-3 w-3 text-white'} strokeWidth={4}/>
     }
 
-    content = (
-      <>
-        <p className={'font-bold mb-2'}>
-          Indexer Out of Sync
-        </p>
-        <div className={'min-w-[160px] flex flex-row items-center justify-between gap-2'}>
-          <p className={'font-bold mb-1'}>
-            Current Height:
+    if (diff > 1) {
+      content = (
+        <>
+          <p className={'font-bold mb-2'}>
+            Indexer Out of Sync
           </p>
-          <p>
-            {data?._metadata?.lastProcessedHeight}
-          </p>
-        </div>
-        <div className={'min-w-[160px] flex flex-row items-center justify-between gap-2'}>
-          <p className={'font-bold'}>
-            Target Height:
-          </p>
-          <p>
-            {data?._metadata?.targetHeight}
-          </p>
-        </div>
-      </>
-    )
+          <div className={'min-w-[160px] flex flex-row items-center justify-between gap-2'}>
+            <p className={'font-bold mb-1'}>
+              Current Height:
+            </p>
+            <p>
+              {data?._metadata?.lastProcessedHeight}
+            </p>
+          </div>
+          <div className={'min-w-[160px] flex flex-row items-center justify-between gap-2'}>
+            <p className={'font-bold'}>
+              Target Height:
+            </p>
+            <p>
+              {data?._metadata?.targetHeight}
+            </p>
+          </div>
+        </>
+      )
+    }
   }
 
   return (

@@ -14,7 +14,7 @@ const csvColumns: Array<CsvColumn> = columns.map((column) => ({
 const formatterFunction = (field: keyof ServicePerformanceRow, row: ServicePerformanceRow) => {
   switch (field) {
     case 'serviceId':
-      return row.serviceName ? `${row.serviceName} (${row.serviceId})` : row.serviceId
+      return row.serviceId
     case 'network':
       return row.network.toFixed(1) + '%'
     case 'change':

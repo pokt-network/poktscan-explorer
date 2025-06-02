@@ -16,19 +16,28 @@ export interface ServicePerformanceRow {
 const columns: Array<GridColDef> = [
   {
     field: 'serviceId',
-    headerName: 'Service',
+    headerName: 'Service Id',
     renderCell: (row: ServicePerformanceRow) => (
       <div className={'text-xs md:text-sm'}>
         <EntityLink
           entity={'service'}
           entityId={row.serviceId}
-          label={row.serviceName ? `${row.serviceName} (${row.serviceId})` : row.serviceId}
           copy={{
             enabled: false,
           }}
         />
       </div>
     )
+  },
+  {
+    field: 'serviceName',
+    headerName: 'Label',
+    renderCell: (row: ServicePerformanceRow) => (
+      <p className={'whitespace-nowrap text-ellipsis overflow-hidden'}>
+        {row.serviceName}
+      </p>
+    ),
+    maxWidth: 200,
   },
   {
     field: 'network',

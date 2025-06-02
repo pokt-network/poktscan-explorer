@@ -139,7 +139,7 @@ export default function SearchContent({value, close}: SearchContentProps) {
         const {stakeStatus, stakeAmount, stakeDenom, id} = (value as typeof data.supplier)!
 
         rows.push({
-          entity: entity as EntityLinkProps['entity'],
+          entity: (entity === 'application' ? 'app' : entity) as EntityLinkProps['entity'],
           entityId: id,
           description: <>
             <span
