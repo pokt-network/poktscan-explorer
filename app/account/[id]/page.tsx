@@ -9,6 +9,11 @@ interface PageProps {
 
 export default async function AccountDetailPage({params, searchParams}: PageProps) {
   return (
-    <TransferAndTxTabs searchParams={searchParams} params={params} entity={'account'}/>
+    <TransferAndTxTabs
+      searchParams={searchParams}
+      params={params}
+      entity={'account'}
+      supportMigrationTab={true}
+    />
   )
 }

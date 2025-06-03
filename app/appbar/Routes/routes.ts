@@ -112,6 +112,11 @@ const routes: RoutesAccordionProps['routeGroups'] = [
         label: 'Parameters',
         href: '/params'
       },
+      {
+        type: 'route',
+        label: 'Migration',
+        href: '/migration'
+      },
     ]
   },
   {

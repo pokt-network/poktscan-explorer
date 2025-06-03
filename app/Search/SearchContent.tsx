@@ -94,6 +94,32 @@ const searchByHeightDocument = graphql(`
   }
 `)
 
+const searchServicesDocument = graphql(`
+  query searchServices($text: String!) {
+    services(
+      filter: {
+        or: [
+          {
+            id: {
+              includesInsensitive: $text
+            }
+          },
+          {
+            name: {
+              includesInsensitive: $text
+            }
+          }
+        ]
+      }
+    ){
+      nodes {
+        id
+        name
+      }
+    }
+  }
+`)
+
 interface SearchContentProps {
   value: string;
   close: () => void;
@@ -250,6 +276,28 @@ export default function SearchContent({value, close}: SearchContentProps) {
         })}
         </>
       })
+    }
+    // search for services
+  } else {
+    // eslint-disable-next-line
+    const {data, error: errorFromRequest} = useSuspenseQuery(searchServicesDocument, {
+      variables: {
+        text: valueTrimmed
+      }
+    })
+
+    if (errorFromRequest) {
+      error = true
+    } else {
+      if (data?.services?.nodes?.length) {
+        const newRows: typeof rows = data.services.nodes.map((service) => ({
+          entity: 'service',
+          entityId: service.id!,
+          description: service.name!
+        }))
+
+        rows.push(...newRows)
+      }
     }
   }
 

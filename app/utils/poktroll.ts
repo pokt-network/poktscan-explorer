@@ -10,6 +10,10 @@ export function isValidPoktAddress(address: string): boolean {
   }
 }
 
+export function isValidMorseAddress(address: string): boolean {
+  return /^[0-9a-fA-F]+$/g.test(address) && address.length === 40;
+}
+
 export function isValidHash(hash: string): boolean {
   return /^[0-9a-fA-F]{64}$/.test(hash)
 }

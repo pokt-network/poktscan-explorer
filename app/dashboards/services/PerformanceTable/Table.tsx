@@ -6,7 +6,7 @@ import {
   servicesPerformanceDocument,
 } from '@/app/dashboards/services/operations'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import Big from 'big.js'
 import { calculatePercentage, calculatePercentageChange } from '@/app/utils/calculate'
 import { formatAmount, formatSimpleAmount } from '@/app/utils/format'
@@ -15,77 +15,66 @@ import NoData from '@/app/components/NoData'
 import columns, { ServicePerformanceRow } from './columns'
 import { useDataContext } from '@/app/context/DataContext'
 import { useLazyQuery } from '@apollo/client'
-import useDidMountEffect from '@/app/hooks/useDidMountEffect'
 
 interface PerformanceTableProps {
   initialData: DocumentNodeData<typeof servicesPerformanceDocument>
   timeSelected: string
-  moreServices: Required<DocumentNodeData<typeof servicesPerformanceDocument>>['currentData']['nodes']
 }
 
-export default function PerformanceTable({initialData, timeSelected, moreServices: moreServicesFromProps}: PerformanceTableProps) {
+export default function PerformanceTable({initialData, timeSelected}: PerformanceTableProps) {
   const {setData} = useDataContext<ServicePerformanceRow>()
 
-  const waitingForDataFetchRef = useRef(false)
-  const cursorRef = useRef('')
   const latestVariablesRef = useRef<ReturnType<typeof getServicesPerformanceVariables> | null>(null)
-  const [moreServices, setMoreServices] = useState(moreServicesFromProps)
-  const [moreServicesLoading, setMoreServicesLoading] = useState(false)
   const variables = useCallback((_: number, currentTime: string) => {
-    waitingForDataFetchRef.current = true
-    setMoreServices([])
-    setMoreServicesLoading(true)
     return latestVariablesRef.current = getServicesPerformanceVariables(currentTime, timeSelected)
   }, [timeSelected])
-
-  const data = useFetchOnBlock({
-    query: servicesPerformanceDocument,
-    variables,
-    initialResult: initialData
-  })
 
   const [fetchServices] = useLazyQuery(servicesDocument, {
     fetchPolicy: 'network-only',
     nextFetchPolicy: 'network-only',
   })
 
-  const loadMoreServices = async () => {
-    if (waitingForDataFetchRef.current) {
-      waitingForDataFetchRef.current = false
-      setMoreServicesLoading(true)
-      let cursor = cursorRef.current || data.currentData.pageInfo.endCursor
-      let newServicesToAdd: typeof data.currentData.nodes = []
+  const data = useFetchOnBlock({
+    query: servicesPerformanceDocument,
+    variables,
+    initialResult: initialData,
+    resultParser: async (data) => {
+      if (data?.currentData?.nodes.length === 100) {
+        let cursor = data.currentData.pageInfo.endCursor
+        let newServicesToAdd: typeof data.currentData.nodes = []
 
-      while (cursor) {
-        const response = await fetchServices({
-          variables: {
-            cursor,
-            startCurrent: latestVariablesRef.current!.startCurrent,
-            endCurrentAndStartPrevious: latestVariablesRef.current!.endCurrentAndStartPrevious,
+        while (cursor) {
+          const response = await fetchServices({
+            variables: {
+              cursor,
+              startCurrent: latestVariablesRef.current!.startCurrent,
+              endCurrentAndStartPrevious: latestVariablesRef.current!.endCurrentAndStartPrevious,
+            }
+          })
+
+          newServicesToAdd = [
+            ...newServicesToAdd,
+            ...response!.data!.currentData!.nodes
+          ]
+
+          cursor = response!.data!.currentData!.pageInfo.endCursor
+          if (response.data.currentData.nodes.length < 100) break
+        }
+
+        const nodes = [...data.currentData.nodes, ...newServicesToAdd]
+
+        return {
+          ...data,
+          currentData: {
+            ...data.currentData,
+            nodes,
           }
-        })
-
-        newServicesToAdd = [
-          ...newServicesToAdd,
-          ...response!.data!.currentData!.nodes
-        ]
-
-        cursor = response!.data!.currentData!.pageInfo.endCursor
-        if (response.data.currentData.nodes.length < 100) break
+        }
+      } else {
+        return data
       }
-
-      cursorRef.current = ''
-      setMoreServices(newServicesToAdd)
-      setMoreServicesLoading(false)
     }
-  }
-
-  useDidMountEffect(() => {
-    if (waitingForDataFetchRef.current) {
-      loadMoreServices()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data])
+  })
 
   const rows: Array<ServicePerformanceRow> = useMemo(() => {
     const previousComputedUnitsPerService = data?.previousData?.groupedAggregates?.reduce((acc, item) => {
@@ -138,7 +127,7 @@ export default function PerformanceTable({initialData, timeSelected, moreService
       relays: Big
     }>) || {}
 
-    return [...(data?.currentData?.nodes || []), ...moreServices].map((item) => {
+    return data?.currentData?.nodes?.map((item) => {
       const service = item!.service!
 
       let computedUnits = '0', relays = '0', claimedUpokt = '0', earnAvg = '0', network = 0
@@ -158,7 +147,7 @@ export default function PerformanceTable({initialData, timeSelected, moreService
             ? new Big(claimedUpokt).div(suppliersStakedDuringPeriod).mul(blocks).toNumber()
             : 0,
           denom: 'upokt'
-        })
+        }).split(' ')[0]
 
         network = calculatePercentage(
           sum.computedUnits,
@@ -182,22 +171,18 @@ export default function PerformanceTable({initialData, timeSelected, moreService
         ),
         network,
         earnAvg,
+        totalEarn: formatAmount({
+          amount: claimedUpokt,
+          denom: 'upokt'
+        })
       }
     }).sort((a, b) => b.network - a.network) || []
-  }, [data, moreServices])
+  }, [data])
 
   useEffect(() => {
-    if (moreServicesLoading) return
-
-    setData(rows || [])
+    setData(rows)
     // eslint-disable-next-line
   }, [rows])
-
-  if (moreServicesLoading) {
-    return  (
-      <BaseTable columns={columns} rows={[]} isLoading={true} />
-    )
-  }
 
   if (rows.length === 0) {
     return (
@@ -206,6 +191,6 @@ export default function PerformanceTable({initialData, timeSelected, moreService
   }
 
   return (
-    <BaseTable columns={columns} rows={rows} />
+    <BaseTable columns={columns} rows={rows}  />
   )
 }

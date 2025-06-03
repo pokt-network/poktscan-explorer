@@ -9,6 +9,11 @@ interface PageProps {
 
 export default async function AppPage({params, searchParams}: PageProps) {
   return (
-    <TransferAndTxTabs searchParams={searchParams} params={params} entity={'app'}/>
+    <TransferAndTxTabs
+      searchParams={searchParams}
+      params={params}
+      entity={'app'}
+      supportMigrationTab={true}
+    />
   )
 }

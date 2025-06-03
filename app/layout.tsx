@@ -15,7 +15,7 @@ import getPrice from '@/app/api/price'
 import RegisterPlugins from '@/app/Charts/Plugins/RegisterPlugins'
 
 export const metadata: Metadata = {
-  title: "ShannonScan",
+  title: "POKTscan",
 };
 
 export const dynamic = "force-dynamic";

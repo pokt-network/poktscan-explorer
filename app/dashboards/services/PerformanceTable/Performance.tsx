@@ -26,7 +26,8 @@ async function ServerServicesPerformanceTable({timeSelected}: ServicesPerformanc
 
   const moreServices = []
 
-  let cursor = data.currentData.pageInfo.endCursor
+  // for some reason, even when there are less than 100 items, the response returns an endCursor
+  let cursor = data.currentData.nodes.length === 100 ? data.currentData.pageInfo.endCursor : ''
 
   while (cursor) {
     const variables = getServicesPerformanceVariables(latestBlock.timestamp, timeSelected)
@@ -57,8 +58,16 @@ async function ServerServicesPerformanceTable({timeSelected}: ServicesPerformanc
         )}
       >
         <PerformanceTable
-          initialData={data}
-          moreServices={moreServices}
+          initialData={{
+            ...data,
+            currentData: {
+              ...data.currentData,
+              nodes: [
+                ...data.currentData.nodes,
+                ...moreServices
+              ]
+            }
+          }}
           timeSelected={timeSelected}
         />
       </PerformanceTableCard>
