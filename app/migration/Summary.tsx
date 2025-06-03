@@ -67,13 +67,13 @@ export default function Summary({initialData}: SummaryProps) {
   const notClaimed = data.morseClaimableAccounts.groupedAggregates.find(i => i.keys.at(0) === 'false')
   const claimed = data.morseClaimableAccounts.groupedAggregates.find(i => i.keys.at(0) === 'true')
 
-  const appStakedClaimed = new Big(claimed.sum.applicationStakeAmount)
-  const supplierStakedClaimed = new Big(claimed.sum.supplierStakeAmount)
-  const unstakedBalanceClaimed = new Big(claimed.sum.unstakedBalanceAmount)
+  const appStakedClaimed = new Big(claimed?.sum?.applicationStakeAmount || 0)
+  const supplierStakedClaimed = new Big(claimed?.sum?.supplierStakeAmount || 0)
+  const unstakedBalanceClaimed = new Big(claimed?.sum?.unstakedBalanceAmount || 0)
 
-  const appStakedNotClaimed = new Big(notClaimed.sum.applicationStakeAmount)
-  const supplierStakedNotClaimed = new Big(notClaimed.sum.supplierStakeAmount)
-  const unstakedBalanceNotClaimed = new Big(notClaimed.sum.unstakedBalanceAmount)
+  const appStakedNotClaimed = new Big(notClaimed?.sum?.applicationStakeAmount || 0)
+  const supplierStakedNotClaimed = new Big(notClaimed?.sum?.supplierStakeAmount || 0)
+  const unstakedBalanceNotClaimed = new Big(notClaimed?.sum?.unstakedBalanceAmount || 0)
 
   const totalClaimed = appStakedClaimed.plus(supplierStakedClaimed).plus(unstakedBalanceClaimed)
   const totalNotClaimed = appStakedNotClaimed.plus(supplierStakedNotClaimed).plus(unstakedBalanceNotClaimed)
