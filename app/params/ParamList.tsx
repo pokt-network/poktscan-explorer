@@ -85,7 +85,7 @@ export default function ParamList({initialData}: ParamListProps) {
                       className={'text-xs font-semibold text-[color:--secondary] whitespace-nowrap overflow-hidden overflow-ellipsis'}>
                       {item.key}
                     </p>
-                    <p className={'text-xs text-[color:--foreground] whitespace-pre break-all'}>
+                    <p className={'text-xs text-[color:--foreground] whitespace-pre-wrap break-all'}>
                       {value}
                     </p>
                   </div>

@@ -9,6 +9,11 @@ interface PageProps {
 
 export default async function SupplierPage({params, searchParams}: PageProps) {
   return (
-    <TransferAndTxTabs searchParams={searchParams} params={params} entity={'supplier'}/>
+    <TransferAndTxTabs
+      searchParams={searchParams}
+      params={params}
+      entity={'supplier'}
+      supportMigrationTab={true}
+    />
   )
 }

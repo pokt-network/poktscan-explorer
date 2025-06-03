@@ -4,6 +4,7 @@ import { CircleHelp } from 'lucide-react'
 import React from 'react'
 import { GridColDef } from '@/app/components/Table'
 import { Skeleton } from '@/components/ui/skeleton'
+import { clsx } from 'clsx'
 
 interface BaseTableProps {
   columns: Array<GridColDef>
@@ -47,7 +48,13 @@ export default function BaseTable({rows, columns, defaultMinWidth, isLoading, sk
     }))
   }
   return (
-    <ShadTable>
+    <ShadTable
+      containerClassName={
+        clsx(
+          isLoading && 'overflow-hidden'
+        )
+      }
+    >
       <TableHeader>
         <TableRow>
           {columns.map((column, index) => {

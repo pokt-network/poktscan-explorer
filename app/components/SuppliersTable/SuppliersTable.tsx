@@ -188,7 +188,7 @@ export default async function SuppliersTable({page, itemsPerPage, basePath, serv
       renderCell: (cell: RowSupplier) => cell.outputAddress === '-' ? '-' : (
         <div className={'text-xs md:text-sm'}>
           <EntityLink
-            entity={'supplier'}
+            entity={'account'}
             entityId={cell.outputAddress}
           />
         </div>

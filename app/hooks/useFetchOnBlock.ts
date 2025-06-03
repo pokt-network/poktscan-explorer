@@ -2,7 +2,7 @@
 
 import { useHeightContext } from '@/app/context/height'
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLazyQuery } from '@apollo/client'
 
 export type DeepRequired<T> = NonNullable<{
@@ -26,7 +26,7 @@ export interface FetchOnBlockOptions<
   variables?:
     | ExtractVariables<T>
     | ((currentHeight: number, currentTime: string) => ExtractVariables<T>)
-  resultParser?: (result: DeepRequired<DocumentNodeData<T>>) => R
+  resultParser?: (result: DeepRequired<DocumentNodeData<T>>) => R | Promise<R>,
   initialResult?: R
 }
 
@@ -40,10 +40,11 @@ export default function useFetchOnBlock<
   initialResult,
 }: FetchOnBlockOptions<T, R>): DeepRequired<R> {
   const lastValueRef = useRef<R | null>(initialResult || null)
+  const [parsedData, setParsedData] = useState<R | null>(initialResult || null)
   const {currentHeight, currentTime, firstHeight} = useHeightContext()
   const firstRenderRef = useRef(true)
 
-  const [fetchData, result] = useLazyQuery(query, {
+  const [fetchData] = useLazyQuery(query, {
     fetchPolicy: 'network-only',
     nextFetchPolicy: 'network-only',
   })
@@ -58,12 +59,15 @@ export default function useFetchOnBlock<
       const variablesToUse = typeof variables === 'function' ? variables(currentHeight, currentTime) : variables
       fetchData({
         variables: variablesToUse,
-      }).then(({data}) => {
+      }).then(async ({data}) => {
         if (data) {
           if (resultParser) {
-            lastValueRef.current = resultParser(data)
+            const parsed = await resultParser(data)
+            lastValueRef.current = parsed
+            setParsedData(parsed)
           } else {
             lastValueRef.current = data
+            setParsedData(data)
           }
         }
       })
@@ -71,7 +75,7 @@ export default function useFetchOnBlock<
     // eslint-disable-next-line
   }, [currentHeight, query, variables])
 
-  const data = result?.data || lastValueRef.current
+  const data = parsedData || lastValueRef.current
 
-  return data ? resultParser ? resultParser(data) : data :  initialResult
+  return data ? data : initialResult
 }

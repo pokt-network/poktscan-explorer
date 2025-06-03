@@ -41,7 +41,7 @@ export default function Summary({initialData}: SummaryProps) {
 
   const latestBlock = data?.lastBlock?.nodes?.at(0)
 
-  const currentSupply = latestBlock.supplies.nodes.at(0).supply
+  const currentSupply = latestBlock.supplies.nodes.find((s) => s.supply.denom === 'upokt').supply
   const totalStaked = BigInt(latestBlock.stakedSuppliersTokens) + BigInt(latestBlock.stakedAppsTokens) + BigInt(latestBlock.stakedGatewaysTokens)
   const summary = data.blocks.aggregates.sum
   const groupByDay = fillMissingDays(data.groupByDay.groupedAggregates, dateTimeZone)

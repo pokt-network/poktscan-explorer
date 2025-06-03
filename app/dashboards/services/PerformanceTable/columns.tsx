@@ -11,6 +11,7 @@ export interface ServicePerformanceRow {
   computedUnits: string
   relays: string
   earnAvg: string
+  totalEarn: string
 }
 
 const columns: Array<GridColDef> = [
@@ -81,7 +82,12 @@ const columns: Array<GridColDef> = [
   },
   {
     field: 'earnAvg',
-    headerName: 'Earn Avg',
+    headerName: 'Earn Avg POKT',
+    align: 'right'
+  },
+  {
+    field: 'totalEarn',
+    headerName: 'Total POKT',
     align: 'right'
   },
   {

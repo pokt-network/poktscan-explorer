@@ -5,14 +5,16 @@ import Tabs from '@/app/components/Tabs'
 import React from 'react'
 import RawEntity from '@/app/components/RawEntity/RawEntity'
 import { EntityLinkProps } from '@/app/components/EntityLink'
+import MorseClaimableAccountTable from '@/app/migration/Table'
 
 interface PageProps {
   params: Promise<{id: string, idForUrl?: string}>
   searchParams: Promise<Record<string, string | string[] | undefined>>
   entity: EntityLinkProps['entity']
+  supportMigrationTab?: boolean
 }
 
-export default async function TransferAndTxTabs({params, searchParams, entity}: PageProps) {
+export default async function TransferAndTxTabs({params, searchParams, entity, supportMigrationTab = false}: PageProps) {
   const [{ id, idForUrl }, { page, itemsPerPage }, sParams] = await Promise.all([
     params,
     getPageAndItems(searchParams),
@@ -52,6 +54,37 @@ export default async function TransferAndTxTabs({params, searchParams, entity}: 
         />
       )
       break
+      case 'migration':
+        element = supportMigrationTab ? (
+          <MorseClaimableAccountTable
+            searchParams={searchParams}
+            address={id as string}
+            basePath={`/${entity}/${idForUrl || id}?tab=migration`}
+          />
+        ) : null
+      break
+  }
+
+  const tabs = [
+    {
+      label: 'Transactions',
+      tab: "txs"
+    },
+    {
+      label: 'Transfers',
+      tab: "transfers"
+    },
+    {
+      label: 'Raw Result',
+      tab: "raw"
+    }
+  ]
+
+  if (supportMigrationTab) {
+    tabs.splice(2, 0,{
+      label: 'Migration',
+      tab: "migration"
+    })
   }
 
   return (
@@ -59,20 +92,7 @@ export default async function TransferAndTxTabs({params, searchParams, entity}: 
       <Tabs
         basePath={`/${entity}/${idForUrl ||id}`}
         activeTab={activeTab as string}
-        tabs={[
-          {
-            label: 'Transactions',
-            tab: "txs"
-          },
-          {
-            label: 'Transfers',
-            tab: "transfers"
-          },
-          {
-            label: 'Raw Result',
-            tab: "raw"
-          }
-        ]}
+        tabs={tabs}
       />
       {element}
     </>
