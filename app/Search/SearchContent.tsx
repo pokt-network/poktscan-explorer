@@ -260,7 +260,7 @@ export default function SearchContent({value, close}: SearchContentProps) {
 
     if (errorFromRequest) {
       error = true
-    } else {
+    } else if (data?.validator) {
       const {stakeStatus, stakeAmount, stakeDenom, id} = (data.validator as typeof data.validator)!
       rows.push({
         entity: 'validator',
