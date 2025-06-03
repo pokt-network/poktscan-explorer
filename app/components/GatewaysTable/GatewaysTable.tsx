@@ -128,6 +128,8 @@ export default async function GatewaysTable({page, itemsPerPage, basePath, servi
     const applications: Array<string> = [], services = new Map<string, string>()
 
     for (const application of gateway.applications.nodes) {
+      if (!application.application) continue
+
       applications.push(application.application!.id)
 
       for (const service of application.application!.applicationServices.nodes) {

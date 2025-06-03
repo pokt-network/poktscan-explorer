@@ -46,15 +46,20 @@ export default function ServicesProductivityChart({
     return lastVariables.current = getProductivityVariables(timestamp, timeSelected)
   }, [timeSelected])
 
-  const data = useFetchOnBlock({
+  const rawData = useFetchOnBlock({
     query: productivityQuery,
     variables,
     initialResult: initialData
   })
 
+  const data = useMemo(() => ({
+    suppliersData: JSON.parse(rawData.suppliersData),
+    servicesProductivity: JSON.parse(rawData.servicesProductivity),
+  }), [rawData])
+
   const dataByService: Record<string, Array<DataItem>> = useMemo(() => {
-    const supplierDataByServiceAndPoint = data?.suppliersData?.nodes?.reduce((acc, item) => {
-      acc[`${item!.serviceId}-${item!.point}`] = {
+    const supplierDataByServiceAndPoint = data?.suppliersData?.reduce((acc, item) => {
+      acc[`${item!.service_id}-${item!.date_truncated}`] = {
         amount: Number(item!.amount),
         blocks: Number(item!.blocks),
       }
@@ -65,13 +70,13 @@ export default function ServicesProductivityChart({
       blocks: number,
     }>)
 
-    const dataNotFilled = data?.servicesProductivity?.nodes?.reduce((acc, item) => {
-      if (!acc[item!.serviceId]) {
-        acc[item!.serviceId] = []
+    const dataNotFilled = data?.servicesProductivity?.reduce((acc, item) => {
+      if (!acc[item!.service_id]) {
+        acc[item!.service_id] = []
       }
 
-      const blocksAmount = supplierDataByServiceAndPoint[`${item!.serviceId}-${item!.point}`]?.blocks || 0
-      const totalStakedSuppliers = supplierDataByServiceAndPoint[`${item!.serviceId}-${item!.point}`]?.amount || 0
+      const blocksAmount = supplierDataByServiceAndPoint[`${item!.service_id}-${item!.date_truncated}`]?.blocks || 0
+      const totalStakedSuppliers = supplierDataByServiceAndPoint[`${item!.service_id}-${item!.date_truncated}`]?.amount || 0
 
       let avgRelays = 0
       let avgComputedUnits = 0
@@ -80,18 +85,18 @@ export default function ServicesProductivityChart({
 
       if (blocksAmount > 0 && totalStakedSuppliers > 0) {
         avgRelays = (Number(item!.relays) / totalStakedSuppliers) * blocksAmount
-        avgComputedUnits = (Number(item!.computedUnits) / totalStakedSuppliers) * blocksAmount
-        avgClaimedUpokt = (Number(item!.claimedUpokt) / totalStakedSuppliers) * blocksAmount
+        avgComputedUnits = (Number(item!.computed_units) / totalStakedSuppliers) * blocksAmount
+        avgClaimedUpokt = (Number(item!.claimed_upokt) / totalStakedSuppliers) * blocksAmount
         avgStakedSuppliers = totalStakedSuppliers / blocksAmount
       }
 
-      acc[item.serviceId].push({
-        id: item!.serviceId,
-        point: item!.point,
-        start_date: item!.point,
+      acc[item.service_id].push({
+        id: item!.service_id,
+        point: item!.date_truncated,
+        start_date: item!.date_truncated,
         relays: Number(item!.relays),
-        computedUnits: Number(item!.computedUnits),
-        claimedUpokt: Number(item!.claimedUpokt),
+        computedUnits: Number(item!.computed_units),
+        claimedUpokt: Number(item!.claimed_upokt),
         avgRelays,
         avgComputedUnits,
         avgClaimedUpokt,
@@ -188,9 +193,9 @@ export default function ServicesProductivityChart({
                 `Relays:  ${formatSimpleAmount(item.relays)}`,
                 `Computed Units:  ${formatSimpleAmount(item.computedUnits)}`,
                 `Claimed:  ${formatAmount({ amount: item.claimedUpokt, denom: 'upokt' })}`,
-                `Relays:  ${formatSimpleAmount(item.avgRelays)}`,
-                `Computed Units:  ${formatSimpleAmount(item.avgComputedUnits)}`,
-                `Claimed:  ${formatAmount({ amount: item.avgClaimedUpokt, denom: 'upokt' })}`,
+                `Avg Relays:  ${formatSimpleAmount(item.avgRelays)}`,
+                `Avg Computed Units:  ${formatSimpleAmount(item.avgComputedUnits)}`,
+                `Avg Claimed:  ${formatAmount({ amount: item.avgClaimedUpokt, denom: 'upokt' })}`,
                 `Avg Suppliers:  ${formatSimpleAmount(item.avgStakedSuppliers)}`,
               ]}
             />

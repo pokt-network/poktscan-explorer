@@ -72,8 +72,8 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       codespace: transaction.codespace,
       firstMessage: transaction?.messages?.nodes?.at(0)?.typeUrl?.split('.')?.at(-1)?.replace('Msg', '') || '',
       totalMessages: transaction?.messages?.totalCount || 0,
-      height: Number(transaction.block!.height),
-      timestamp: transaction.block!.timestamp!,
+      height: Number(transaction?.block?.height || 0),
+      timestamp: transaction?.block?.timestamp || '',
       amount: amount ? formatAmount(amount) : '-',
       raw_amount: amount ? convertUpoktToPokt(amount.amount) : '',
       fee: formatAmount(fee),
@@ -120,7 +120,7 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       field: 'height',
       headerName: 'Height',
       minWidth: 50,
-      renderCell: (cell: RowTransaction) => (
+      renderCell: (cell: RowTransaction) => cell.height ? (
         <div className={'text-xs md:text-sm'}>
           <EntityLink
             entity={'block'}
@@ -130,18 +130,18 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
             }}
           />
         </div>
-      )
+      ) : '-'
     },
     {
       field: 'timestamp',
       headerName: <DateColumn />,
       width: 180,
       align: 'center',
-      renderCell: (cell: RowTransaction) => (
+      renderCell: (cell: RowTransaction) => cell.timestamp ? (
         <div className={'text-xs md:text-sm'}>
           <DateCellText value={cell.timestamp} />
         </div>
-      )
+      ) : null
     },
     {
       field: 'amount',

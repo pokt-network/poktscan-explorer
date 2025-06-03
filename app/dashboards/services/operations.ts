@@ -250,32 +250,16 @@ export function getDistributionVariables(currentDate: Date | string, timeSelecte
 
 export const productivityQuery = graphql(`
   query servicesProductivity($startDate: Datetime!, $endDate: Datetime!, $truncInterval: String!) {
-    servicesProductivity: getRelaysByServicePerPoint(
+    servicesProductivity: getRelaysByServicePerPointJson(
       startTimestamp: $startDate
       endTimestamp: $endDate
       truncInterval: $truncInterval
-    ) {
-      nodes {
-        point: dateTruncated
-        serviceId
-        relays
-        computedUnits
-        claimedUpokt
-      }
-    }
-    suppliersData: getSuppliersStakedAndBlocksByPoint(
+    )
+    suppliersData: getSuppliersStakedAndBlocksByPointJson(
       startTimestamp: $startDate
       endTimestamp: $endDate
       truncInterval: $truncInterval
-    ) {
-      nodes {
-        point: dateTruncated
-        serviceId
-        amount
-        tokens
-        blocks
-      }
-    }
+    )
   }
 `)
 
