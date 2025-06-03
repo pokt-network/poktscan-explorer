@@ -96,7 +96,7 @@ export default function SearchInput({ showIcon = true, zIndex = 1024, pathToHide
             maxHeight: height,
           }}
           className={"grow md:w-[480px] border-none p-0 placeholder:text-[color:--secondary] text-xs md:text-sm"}
-          placeholder={"Search by Address / Txn Hash / Block"}
+          placeholder={"Search by Address / Txn Hash / Block / Service"}
         />
       </PopoverAnchor>
       <PopoverContent
