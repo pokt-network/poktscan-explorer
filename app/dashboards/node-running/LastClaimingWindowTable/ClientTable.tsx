@@ -61,7 +61,11 @@ export default function ClientLastClaimingWindowTable({
   })
 
   const rows: Array<DataByDelegatorRow> = useMemo(() => {
-    return data?.data?.map(item => ({
+    return data?.data?.filter(item => {
+      const fields = Object.keys(item).filter(key => key !== 'address')
+
+      return !fields.every(field => item[field] === 0)
+    })?.map(item => ({
       id: item.address,
       delegatorAddress: item.address,
       slashed: formatUpokt({
@@ -82,7 +86,8 @@ export default function ClientLastClaimingWindowTable({
       claimRelays: formatSimpleAmount(item.claim_relays),
       claimComputedUnits: formatSimpleAmount(item.claim_computed_units),
       claimAmount: formatSimpleAmount(item.claim_amount),
-    })).sort((a, b) => b.proof_computed_units - a.proof_computed_units) || []
+    }))
+      .sort((a, b) => b.proof_computed_units - a.proof_computed_units) || []
   }, [data])
 
   useEffect(() => {
