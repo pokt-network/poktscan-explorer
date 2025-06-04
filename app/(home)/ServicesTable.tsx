@@ -112,7 +112,7 @@ export default function ServicesTable({data}: {data: AugmentedItem[]}) {
       relays: item.sum.relays.toLocaleString(),
       claimedUpokt: item.sum.claimedUpokt,
     }
-  })
+  }).sort((a, b) => b.network - a.network)
 
   return (
     <div className={'overflow-auto flex sm:h-[600px]'}>

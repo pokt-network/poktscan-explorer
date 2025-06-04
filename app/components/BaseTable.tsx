@@ -49,8 +49,10 @@ export default function BaseTable({rows, columns, defaultMinWidth, isLoading, sk
   }
   return (
     <ShadTable
+      className={'h-full'}
       containerClassName={
         clsx(
+          'h-full grow',
           isLoading && 'overflow-hidden'
         )
       }
