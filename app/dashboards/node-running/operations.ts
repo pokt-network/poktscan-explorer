@@ -28,24 +28,24 @@ export const getDataByDelegatorAddressesAndTimesVariables = (
     timeSelectedToUse = timeSelected as Time
   }
 
-  const startCurrent = new Date(currentDate)
+  const endDate = new Date(currentDate)
 
-  let endDate: Date
+  let startDate: Date
 
   switch (timeSelectedToUse) {
     case Time.Last24h: {
-      endDate = addHoursToUtc(startCurrent, -23)
+      startDate = addHoursToUtc(endDate, -23)
       break
     }
     case Time.Last48h: {
-      endDate = addHoursToUtc(startCurrent, -47)
+      startDate = addHoursToUtc(endDate, -47)
       break
     }
   }
 
   return {
     delegatorAddresses: addresses,
-    startTime: startCurrent.toISOString(),
+    startTime: startDate.toISOString(),
     endTime: endDate.toISOString()
   }
 }
