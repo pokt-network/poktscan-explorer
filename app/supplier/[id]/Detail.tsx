@@ -4,21 +4,18 @@ import { supplierByIdDocument } from '@/app/supplier/[id]/operations'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import React, { useMemo } from 'react'
 import NotFound from '@/app/not-found'
-import { getEndpointLabel, getStakeLabel, getStakeType } from '@/app/utils/stake'
-import EntityDetail, { Item } from '@/app/components/EntityDetail'
-import { formatAmount } from '@/app/utils/format'
-import TitleEntity from '@/app/components/TitleEntity'
+import { getEndpointLabel } from '@/app/utils/stake'
+import EntityDetail from '@/app/components/EntityDetail'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import EntityLink from '@/app/components/EntityLink'
-import { StakeStatus } from '@/app/config/gql/graphql'
+import getRows from '@/app/supplier/[id]/rows'
 
 interface SupplierDetailProps {
   initialData: DocumentNodeData<typeof supplierByIdDocument>
   id: string
-  page: React.ReactNode
 }
 
-export default function SupplierDetail({id, page, initialData}: SupplierDetailProps) {
+export default function SupplierDetail({id, initialData}: SupplierDetailProps) {
   const variables = useMemo(() => ({id}), [id])
 
   const data = useFetchOnBlock({
@@ -35,93 +32,10 @@ export default function SupplierDetail({id, page, initialData}: SupplierDetailPr
 
   const {supplier} = data
 
-  const stakeType = getStakeType(supplier.stakeStatus, supplier.id, supplier.owner?.id)
-  const rows: Array<Item> = [
-    {
-      type: 'row',
-      label: 'Status',
-      value: getStakeLabel(supplier.stakeStatus)
-    },
-    {
-      type: 'row',
-      label: 'Stake Type',
-      value: stakeType
-    },
-    {
-      type: 'row',
-      label: 'Stake Amount',
-      value: formatAmount({
-        amount: supplier.stakeAmount,
-        denom: supplier.stakeDenom
-      })
-    },
-  ]
-
-  if (stakeType === 'Non-Custodian') {
-    rows.push({
-      type: 'divider'
-    }, {
-      type: 'row',
-      label: 'Operator Address',
-      value: supplier.id,
-    })
-  }
-
-  rows.push({
-    type: 'row',
-    label: 'Balance',
-    value: formatAmount(supplier.operator?.balances?.nodes?.at(0) || {
-      amount: '0',
-      denom: 'upokt'
-    })
-  })
-
-  if (stakeType === 'Non-Custodian') {
-    rows.push({
-        type: 'divider'
-      }, {
-        type: 'row',
-        label: 'Owner Address',
-        value: supplier.owner!.id,
-      },
-      {
-        type: 'row',
-        label: 'Owner Balance',
-        value: formatAmount(supplier.owner?.balances?.nodes?.at(0) || {
-          amount: '0',
-          denom: 'upokt'
-        })
-      })
-  }
-
-  if (supplier.stakeStatus !== StakeStatus.Staked) {
-    rows.push({
-        type: 'divider'
-      }, {
-        type: 'row',
-        label: 'Unstaking Begin At',
-        value: supplier.unstakingBeginBlock!.height
-      },
-      {
-        type: 'row',
-        label: 'Unstaking End At',
-        value: supplier.unstakingEndHeight
-      })
-
-    if (supplier.unstakingEndBlock) {
-      rows.push({
-        type: 'row',
-        label: 'Unstaked At Height',
-        value: supplier.unstakingEndBlock!.height
-      })
-    }
-  }
-
   return (
-    <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
-      <TitleEntity title={'Supplier'} text={supplier.id} />
+    <>
       <EntityDetail
-        items={rows}
+        items={getRows(supplier)}
       />
 
       <div
@@ -222,9 +136,7 @@ export default function SupplierDetail({id, page, initialData}: SupplierDetailPr
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-
       </div>
-      {page}
-    </div>
+    </>
   );
 }

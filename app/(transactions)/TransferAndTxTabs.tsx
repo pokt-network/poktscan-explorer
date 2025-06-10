@@ -2,10 +2,11 @@ import { getPageAndItems } from '@/app/utils/pagination'
 import TransactionByAddressTable from '@/app/(transactions)/TransactionsByAddress'
 import TransferTable from '@/app/(transactions)/TransferTable'
 import Tabs from '@/app/components/Tabs'
-import React from 'react'
+import React, { Suspense } from 'react'
 import RawEntity from '@/app/components/RawEntity/RawEntity'
 import { EntityLinkProps } from '@/app/components/EntityLink'
-import MorseClaimableAccountTable from '@/app/migration/Table'
+import MorseClaimableAccountTable, { columns } from '@/app/migration/Table'
+import LoadingListView from '@/app/components/LoadingListView'
 
 interface PageProps {
   params: Promise<{id: string, idForUrl?: string}>
@@ -56,11 +57,21 @@ export default async function TransferAndTxTabs({params, searchParams, entity, s
       break
       case 'migration':
         element = supportMigrationTab ? (
-          <MorseClaimableAccountTable
-            searchParams={searchParams}
-            address={id as string}
-            basePath={`/${entity}/${idForUrl || id}?tab=migration`}
-          />
+          <Suspense
+            key={`migration-table-${page}-${itemsPerPage}`}
+            fallback={
+              <LoadingListView
+                rowsAmount={itemsPerPage}
+                columns={columns}
+              />
+            }
+          >
+            <MorseClaimableAccountTable
+              searchParams={searchParams}
+              address={id as string}
+              basePath={`/${entity}/${idForUrl || id}?tab=migration`}
+            />
+          </Suspense>
         ) : null
       break
   }

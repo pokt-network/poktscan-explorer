@@ -7,6 +7,7 @@ import FourCard from '@/app/components/FourCard'
 import React from 'react'
 import { calculatePercentage } from '@/app/utils/calculate'
 import { formatUpokt } from '@/app/utils/format'
+import { combineByIndex, LabelByIndex } from '@/app/components/FourCards/utils'
 
 interface PercentProps {
   percentage: number
@@ -56,9 +57,10 @@ function Value({percentage, value, total}: ValueProps) {
 
 interface SummaryProps {
   initialData: DocumentNodeData<typeof morseClaimableAccountsSummaryDocument>
+  labels: LabelByIndex
 }
 
-export default function Summary({initialData}: SummaryProps) {
+export default function Summary({initialData, labels}: SummaryProps) {
   const data = useFetchOnBlock({
     query: morseClaimableAccountsSummaryDocument,
     initialResult: initialData
@@ -100,34 +102,19 @@ export default function Summary({initialData}: SummaryProps) {
   ).toFixed(2))
 
   return (
-    <div className={'-mt-6'}>
+    <div className={'-mt-0'}>
       <FourCard
-        items={[
-          {
-            label: 'Total Claimed',
-            children: (
-              <Value percentage={claimedPercentage} value={totalClaimed} total={total} />
-            )
-          },
-          {
-            label: 'Claimed Liquid Balance',
-            children: (
-              <Value percentage={liquidBalancePercentage} value={unstakedBalanceClaimed} total={totalLiquidBalance} />
-            )
-          },
-          {
-            label: 'Claimed Supplier Stake',
-            children: (
-              <Value percentage={supplierStakePercentage} value={supplierStakedClaimed} total={totalSupplierStake} />
-            )
-          },
-          {
-            label: 'Claimed App Stake',
-            children: (
-              <Value percentage={appStakePercentage} value={appStakedClaimed} total={totalAppStake} />
-            )
-          },
-        ]}
+        items={
+          combineByIndex(
+            labels,
+            {
+              1: <Value percentage={claimedPercentage} value={totalClaimed} total={total} />,
+              2: <Value percentage={liquidBalancePercentage} value={unstakedBalanceClaimed} total={totalLiquidBalance} />,
+              3: <Value percentage={supplierStakePercentage} value={supplierStakedClaimed} total={totalSupplierStake} />,
+              4: <Value percentage={appStakePercentage} value={appStakedClaimed} total={totalAppStake} />,
+            }
+          )
+        }
       />
       <hr className={'border-[color:--divider] mt-6 mb-4'} />
     </div>

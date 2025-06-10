@@ -3,24 +3,18 @@ import { getClient } from '@/app/config/apollo/rsc'
 import React, { Suspense } from 'react'
 import TransactionTable from '@/app/(transactions)/TransactionTable'
 import { Transaction } from '@/app/config/gql/graphql'
-import NewTransactionsByAddress from '@/app/(transactions)/NewTransactionsByAddress'
 import LoadingListView from '@/app/components/LoadingListView'
 import { getTransactionsColumns } from '@/app/(transactions)/columns'
 
-const transactionsByAddressDocument = graphql(`
-  query transactionsByAddress($limit: Int!, $offset: Int!, $address: String!) {
+const transactionsByHeightDocument = graphql(`
+  query transactionsByHeight($limit: Int!, $offset: Int!, $height: BigFloat!) {
     transactions(
       first: $limit
       offset: $offset
       filter: {
-        or: [
-          {
-            signerAddress: { equalTo: $address },
-          },
-          {
-            messages: { some: {json: {includesInsensitive: $address}}}
-          }
-        ]
+        blockId: {
+          equalTo: $height
+        }
       }
       orderBy: BLOCK_ID_DESC
     ) {
@@ -49,19 +43,19 @@ const transactionsByAddressDocument = graphql(`
 `)
 
 interface TransactionTableProps {
-  address: string
+  height: string | bigint | number
   page: number
   itemsPerPage: number
   basePath: string
 }
 
-async function ServerTransactionByAddressTable({address, page, itemsPerPage, basePath}: TransactionTableProps) {
+async function ServerTransactionByHeightTable({height, page, itemsPerPage, basePath}: TransactionTableProps) {
   let { data } = await getClient().query({
-    query: transactionsByAddressDocument,
+    query: transactionsByHeightDocument,
     variables: {
       limit: itemsPerPage,
       offset: (page - 1) * itemsPerPage,
-      address,
+      height: height.toString(),
     }
   })
 
@@ -71,11 +65,11 @@ async function ServerTransactionByAddressTable({address, page, itemsPerPage, bas
     page = 1
 
     const result = await getClient().query({
-      query: transactionsByAddressDocument,
+      query: transactionsByHeightDocument,
       variables: {
         limit: itemsPerPage,
         offset: (page - 1) * itemsPerPage,
-        address,
+        height: height.toString(),
       }
     })
 
@@ -93,9 +87,6 @@ async function ServerTransactionByAddressTable({address, page, itemsPerPage, bas
       }}
       totalItems={data.transactions?.totalCount || 0}
       includeSigner={true}
-      subtitle={(
-        <NewTransactionsByAddress address={address} />
-      )}
     />
   )
 }
@@ -103,7 +94,7 @@ async function ServerTransactionByAddressTable({address, page, itemsPerPage, bas
 export default async function TransactionByAddressTable(props: TransactionTableProps) {
   return (
     <Suspense
-      key={`transactions-by-address-${props.address}-${props.page}-${props.itemsPerPage}`}
+      key={`transactions-by-height-${props.height}-${props.page}-${props.itemsPerPage}`}
       fallback={
         <LoadingListView
           columns={getTransactionsColumns(true)}
@@ -111,7 +102,7 @@ export default async function TransactionByAddressTable(props: TransactionTableP
         />
       }
     >
-      <ServerTransactionByAddressTable {...props} />
+      <ServerTransactionByHeightTable {...props} />
     </Suspense>
   )
 }

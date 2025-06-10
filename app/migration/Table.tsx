@@ -23,7 +23,7 @@ export interface RowMorseClaimableAccount {
   transactionHash?: string
 }
 
-const columns: Array<GridColDef> = [
+export const columns: Array<GridColDef> = [
   {
     field: 'id',
     headerName: 'Morse Address',

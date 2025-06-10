@@ -79,7 +79,7 @@ export default function ParamList({initialData}: ParamListProps) {
 
               return (
                 <div key={item.key}
-                     className={'flex flex-col justify-between gap-2 bg-[color:--background] p-4 rounded-lg border border-[color:--divider] flex flex-col gap-2'}>
+                     className={'flex flex-col justify-between gap-2 bg-[color:--background] p-4 rounded-lg border border-[color:--divider]'}>
                   <div className={'flex flex-col gap-2'}>
                     <p
                       className={'text-xs font-semibold text-[color:--secondary] whitespace-nowrap overflow-hidden overflow-ellipsis'}>

@@ -33,7 +33,7 @@ function getSkeletonAlignClass(column: GridColDef) {
     case 'left':
       return 'left-3'
     case 'center':
-      return 'items-center'
+      return 'ml-[calc(((100%-66%)/2)-16px)]'
     case 'right':
       return 'right-3'
     default:
