@@ -16,9 +16,7 @@ export const morseClaimableAccountsPageDocument = graphql(`
         shannonDestAddress
         claimed
         claimedAtHeight: claimedAtId
-        transaction {
-          id
-        }
+        transactionId
 
         unstakedBalanceAmount
         unstakedBalanceDenom

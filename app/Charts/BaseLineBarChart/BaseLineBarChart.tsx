@@ -1,7 +1,8 @@
 'use client'
-import { Chart } from 'react-chartjs-2'
+import { Chart, ChartProps } from 'react-chartjs-2'
 import { formatSimpleAmount } from '@/app/utils/format'
 import {
+  ChartLoaderConfigProps,
   formatDate,
   getChartLoaderConfig,
   getCommonChartLoaderOptions,
@@ -11,6 +12,7 @@ import {
 } from '@/app/Charts/utils'
 import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
+import merge from 'lodash/merge'
 
 const dayFormatter = new Intl.DateTimeFormat('en-US', {
   month: 'short',
@@ -27,6 +29,8 @@ interface BaseLineBarChartProps<T extends LineBarItem> {
   getTooltipLabel?: (data: T) => string | Array<string> | undefined
   unitToFormatDate?: UnitTimeGroup
   isLoading?: boolean
+  customOptions?: Partial<ChartProps>
+  customDataLoaderProps?: Partial<ChartLoaderConfigProps>
 }
 
 export default function BaseLineBarChart<T extends LineBarItem>({
@@ -38,6 +42,8 @@ export default function BaseLineBarChart<T extends LineBarItem>({
   unitToFormatDate = 'day',
   getTooltipLabel,
   isLoading = false,
+  customOptions,
+  customDataLoaderProps,
 }: BaseLineBarChartProps<T>) {
   const {theme} = useTheme()
   const [colors, setColors] = useState({
@@ -69,6 +75,7 @@ export default function BaseLineBarChart<T extends LineBarItem>({
         yAxisKey: yAxisKey.toString(),
         chartType: chartType,
         randomValues: true,
+        ...customDataLoaderProps,
       })
     : {
     labels: [],
@@ -107,7 +114,7 @@ export default function BaseLineBarChart<T extends LineBarItem>({
     })
   }
 
-  const options = {
+  let options: object = {
     parsing: {
       xAxisKey: 'point',
       yAxisKey: yAxisKey,
@@ -221,13 +228,23 @@ export default function BaseLineBarChart<T extends LineBarItem>({
             return getTooltipLabel ? getTooltipLabel(data) : context.label
           },
         }
-      }
+      },
     },
-    ...(isLoading ? getCommonChartLoaderOptions({
-      isLight: theme === 'light',
-      chartType,
-      from: colors.skeleton
-    }) : {}),
+  }
+
+  if (isLoading) {
+    options = merge(
+      options,
+      getCommonChartLoaderOptions({
+        isLight: theme === 'light',
+        chartType,
+        from: colors.skeleton
+      })
+    )
+  }
+
+  if (customOptions) {
+    options = merge(options, customOptions)
   }
 
   return (

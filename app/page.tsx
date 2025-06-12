@@ -3,39 +3,61 @@ import SearchInput from '@/app/Search/Search'
 import { getClient } from '@/app/config/apollo/rsc'
 import { getEvolutionVariables, getServicesVariables, getSummaryVariables } from '@/app/(home)/utils'
 import EvolutionCharts from '@/app/(home)/EvolutionCharts/EvolutionCharts'
-import ServicesCard from '@/app/(home)/ServicesCard'
+import ServicesCard from '@/app/(home)/Services/ServicesCard'
 import { getLatestBlock } from '@/app/api/blocks'
 // import SponsoredLabel from '@/app/components/SponsoredLabel'
 import { evolutionDocument, servicesDocument, summaryDocument } from '@/app/(home)/operations'
 import Summary from '@/app/(home)/Summary'
+import SummaryLoader from '@/app/(home)/SummaryLoader'
+import { Suspense } from 'react'
+import EvolutionChartsLoader from '@/app/(home)/EvolutionCharts/Loader'
+import ServicesLoader from '@/app/(home)/Services/Loader'
 
 export const dynamic = "force-dynamic";
 
+async function ServerSummary() {
+  const latestBlock = await getLatestBlock()
+  const {data} = await getClient().query({
+    query: summaryDocument,
+    variables: getSummaryVariables(new Date(latestBlock.timestamp)),
+  })
+
+  return (
+    <Summary initialData={data as DocumentNodeData<typeof summaryDocument>} />
+  )
+}
+
+async function ServerEvolutionCharts() {
+  const latestBlock = await getLatestBlock()
+  const {data: supplierAndAppsEvolutionData} = await getClient().query({
+    query: evolutionDocument,
+    variables: getEvolutionVariables(new Date(latestBlock.timestamp))
+  })
+
+  return (
+    <EvolutionCharts initialData={supplierAndAppsEvolutionData} />
+  )
+}
+
+async function ServerServicesCard({defaultType}: {defaultType: string}) {
+  const latestBlock = await getLatestBlock()
+
+  const { data: servicesData } = await getClient().query({
+    query: servicesDocument,
+    variables: getServicesVariables(new Date(latestBlock.timestamp))
+  })
+
+  return (
+    <ServicesCard
+      initialData={servicesData as DocumentNodeData<typeof servicesDocument>}
+      defaultType={defaultType}
+    />
+  )
+}
+
 export default async function Home({searchParams}: {searchParams: Promise<Record<string, string | string[] | undefined>>}) {
-  const [search, latestBlock] = await Promise.all([
-    searchParams,
-    getLatestBlock()
-  ])
-
-  const currentDate = new Date(latestBlock.timestamp)
+  const search = await searchParams
   const serviceContentType = search['dashboard_services_card']?.toString() || 'chart'
-
-  const client = getClient()
-
-  const [{ data }, {data: supplierAndAppsEvolutionData }, { data: servicesData }] = await Promise.all([
-    client.query({
-      query: summaryDocument,
-      variables: getSummaryVariables(currentDate),
-    }),
-    client.query({
-      query: evolutionDocument,
-      variables: getEvolutionVariables(currentDate)
-    }),
-    client.query({
-      query: servicesDocument,
-      variables: getServicesVariables(currentDate)
-    }),
-  ])
 
   return (
     <>
@@ -54,17 +76,32 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
         {/*<SponsoredLabel />*/}
       </section>
       <div className={'px-4 md:px-5 pb-4 mt-[-46px]'}>
-        <Summary initialData={data as DocumentNodeData<typeof summaryDocument>} />
+        <Suspense
+          fallback={
+            <SummaryLoader />
+          }
+        >
+          <ServerSummary />
+        </Suspense>
       </div>
 
       <div className={'px-4 md:px-5 pb-10 flex lg:flex-row flex-col gap-4'}>
         <div className={'w-full lg:w-[50%] flex flex-col gap-4'}>
-          <EvolutionCharts initialData={supplierAndAppsEvolutionData} />
+          <Suspense
+            fallback={
+              <EvolutionChartsLoader />
+            }
+          >
+            <ServerEvolutionCharts />
+          </Suspense>
         </div>
-        <ServicesCard
-          initialData={servicesData as DocumentNodeData<typeof servicesDocument>}
-          defaultType={serviceContentType}
-        />
+        <Suspense
+          fallback={
+            <ServicesLoader defaultType={serviceContentType} />
+          }
+        >
+          <ServerServicesCard defaultType={serviceContentType} />
+        </Suspense>
       </div>
     </>
   );

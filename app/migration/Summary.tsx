@@ -44,11 +44,21 @@ function Value({percentage, value, total}: ValueProps) {
     <div className={'[&_p]:text-[13px] font-medium flex flex-col gap-1'}>
       <div className={'flex items-center gap-2 mt-2'}>
         <p>Claimed:</p>
-        <p>{formatUpokt({amount: value.toString()})}</p>
+        <p>
+          {formatUpokt({
+            amount: value.toString(),
+            abbreviateThreshold: Number.MAX_SAFE_INTEGER
+          })}
+        </p>
       </div>
       <div className={'flex items-center gap-2'}>
         <p>Total:</p>
-        <p>{formatUpokt({amount: total.toString()})}</p>
+        <p>
+          {formatUpokt({
+            amount: total.toString(),
+            abbreviateThreshold: Number.MAX_SAFE_INTEGER
+          })}
+        </p>
       </div>
       <Percent percentage={percentage} />
     </div>

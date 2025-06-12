@@ -307,11 +307,18 @@ export function getDurationKey(unitTime: UnitTimeGroup): keyof Duration {
   }
 }
 
-export function formatDate(dateString: string, type: UnitTimeGroup): string {
+export function formatDate(dateString: string, type: UnitTimeGroup, includeMonth = false): string {
   const date = new Date(dateString);
 
   if (type === "day") {
-    return date.getUTCDate().toString(); // Extracts the day as a string
+    if (includeMonth) {
+      return date.toLocaleString("en-US", {
+        month: "short",
+        day: "2-digit",
+      }).replace(',', '');
+    }
+
+    return date.getUTCDate().toString();
   }
 
   if (type === "hour") {
@@ -339,7 +346,7 @@ export function hashStringToColor(id: string): string {
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
-interface ChartLoaderConfigProps {
+export interface ChartLoaderConfigProps {
   length: number
   xAxisKey: string
   yAxisKey: string
@@ -353,6 +360,7 @@ interface ChartLoaderConfigProps {
   constantValue?: number
   datasetProps?: object
   invertLoop?: boolean
+  includeMonthToDate?: boolean
 }
 
 
@@ -368,13 +376,13 @@ export const getChartLoaderConfig = (props: ChartLoaderConfigProps) => {
     constantValue = 100,
     datasetProps,
     invertLoop = true,
+    includeMonthToDate = false,
   } = props
   const data = []
   const iterate = invertLoop ? length : 0
   const condition = (i) => (invertLoop ? i > 0 : i < length)
   for (let i = iterate; condition(i); invertLoop ? i-- : i++) {
-    const dateLabel = formatDate((unit === 'day' ? addDaysToUtc : addHoursToUtc)(new Date(), -i + 1).toISOString(), unit)
-
+    const dateLabel = formatDate((unit === 'day' ? addDaysToUtc : addHoursToUtc)(new Date(), -i + 1).toISOString(), unit, includeMonthToDate)
     if (chartType === 'matrix') {
       for (let j = 0; j < length; j++) {
         data.push({

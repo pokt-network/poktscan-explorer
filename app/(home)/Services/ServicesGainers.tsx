@@ -1,4 +1,4 @@
-import { AugmentedItem } from '@/app/(home)/ServicesCard'
+import { AugmentedItem } from '@/app/(home)/Services/ServicesCard'
 import { ArrowDown, ArrowUp } from 'lucide-react'
 
 interface ServicesGainersProps {

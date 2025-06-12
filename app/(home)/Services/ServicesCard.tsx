@@ -1,9 +1,9 @@
 'use client'
 
-import ServicesTable from '@/app/(home)/ServicesTable'
-import ServicesDoughnutChart from '@/app/(home)/ServicesChart'
+import ServicesTable from '@/app/(home)/Services/ServicesTable'
+import ServicesDoughnutChart from '@/app/(home)/Services/ServicesChart'
 import React, { useCallback } from 'react'
-import ServiceCardContent from '@/app/(home)/ServiceCardContent'
+import ServiceCardContent from '@/app/(home)/Services/ServiceCardContent'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import { servicesDocument } from '@/app/(home)/operations'
 import { getServicesVariables } from '@/app/(home)/utils'

@@ -207,6 +207,7 @@ export default async function MorseClaimableAccountTable({searchParams, address,
       amount: morseClaimableAccount?.applicationStakeAmount || '0',
       denom: morseClaimableAccount?.applicationStakeDenom || 'upokt',
     }),
+    transactionHash: morseClaimableAccount?.transactionId,
   })) || []
 
 
