@@ -11,6 +11,8 @@ import RoutesAccordion from '@/app/appbar/Routes/RoutesAccordion'
 import RoutesList from '@/app/appbar/Routes/RoutesList'
 import ChainChip from '@/app/appbar/ChainChip'
 
+const rpcUrl = process.env.RPC_BASE_URL!
+
 export default async function AppBar() {
   return (
     <>
@@ -23,7 +25,7 @@ export default async function AppBar() {
               <Price />
             </div>
             <div className='w-full md:w-auto flex flex-row items-center gap-2 justify-end'>
-              <SearchInput pathToHide={'/'} />
+              <SearchInput pathToHide={'/'} rpcUrl={rpcUrl} />
               <SiteSettings />
               <ExplorerSelector/>
             </div>

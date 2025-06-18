@@ -27,7 +27,8 @@ export interface FetchOnBlockOptions<
     | ExtractVariables<T>
     | ((currentHeight: number, currentTime: string) => ExtractVariables<T>)
   resultParser?: (result: DeepRequired<DocumentNodeData<T>>) => R | Promise<R>,
-  initialResult?: R
+  initialResult?: R,
+  skip?: boolean,
 }
 
 export default function useFetchOnBlock<
@@ -38,6 +39,7 @@ export default function useFetchOnBlock<
   variables,
   resultParser,
   initialResult,
+  skip
 }: FetchOnBlockOptions<T, R>): DeepRequired<R> {
   const lastValueRef = useRef<R | null>(initialResult || null)
   const [parsedData, setParsedData] = useState<R | null>(initialResult || null)
@@ -54,6 +56,8 @@ export default function useFetchOnBlock<
       firstRenderRef.current = false
       return
     }
+
+    if (skip) return
 
     if (currentHeight !== firstHeight) {
       const variablesToUse = typeof variables === 'function' ? variables(currentHeight, currentTime) : variables

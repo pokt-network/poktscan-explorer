@@ -21,7 +21,7 @@ interface EntityDetailProps {
 
 export default function EntityDetail({items}: EntityDetailProps) {
   return (
-    <div className={"bg-[color:--main-background] p-4 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow"}>
+    <div className={"relative bg-[color:--main-background] px-5 py-4 rounded-lg border border-[color:--divider] flex flex-col gap-4 base-shadow"}>
       {items.map((item, index) => {
         if (item.type === 'divider') {
           return (

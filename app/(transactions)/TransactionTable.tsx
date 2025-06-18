@@ -43,9 +43,10 @@ interface TransactionTableProps {
   pagination: TableProps['pagination']
   totalItems?: number
   subtitle?: React.ReactNode
+  disableSubscription?: boolean
 }
 
-export default function TransactionTable({rawRows, includeSigner = true, pagination, totalItems, subtitle}: TransactionTableProps) {
+export default function TransactionTable({rawRows, includeSigner = true, pagination, totalItems, subtitle, disableSubscription = false}: TransactionTableProps) {
   const rows: Array<RowTransaction> = rawRows.map((transaction) => {
     const sendMessageString = transaction.messages!.nodes.find((msg) => msg!.typeUrl === '/cosmos.bank.v1beta1.MsgSend')
 
@@ -86,7 +87,7 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       rows={rows}
       header={{
         title: `${totalItems} transactions found`,
-        subtitle: subtitle || (
+        subtitle: subtitle ? subtitle : disableSubscription ? null : (
           // @ts-expect-error tbd
           <NewEntitiesFound<typeof transactionsSubscription>
             entity={'transactions'}

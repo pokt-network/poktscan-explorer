@@ -87,6 +87,7 @@ async function ServerTransactionByHeightTable({height, page, itemsPerPage, baseP
       }}
       totalItems={data.transactions?.totalCount || 0}
       includeSigner={true}
+      disableSubscription={true}
     />
   )
 }

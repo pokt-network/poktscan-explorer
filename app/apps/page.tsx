@@ -12,8 +12,8 @@ export const dynamic = "force-dynamic";
 
 const summaryLabels: LabelByIndex = {
   1: 'Staked Applications',
-  2: 'Unstaking Applications',
-  3: 'Staked Tokens',
+  2: 'Staked Tokens',
+  3: 'Unstaking Applications',
   4: 'Unstaking Tokens',
 }
 

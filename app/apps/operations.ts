@@ -18,15 +18,14 @@ export const applicationListDocument = graphql(`
         stakeAmount
         stakeDenom
         stakeStatus
-        services: applicationServices {
+        services: applicationServices(first: 1) {
+          totalCount
           nodes {
-            service {
-              id
-              name
-            }
+            serviceId
           }
         }
-        applicationGateways {
+        applicationGateways(first: 1) {
+          totalCount
           nodes {
             gatewayId
           }

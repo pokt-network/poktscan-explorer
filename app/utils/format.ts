@@ -1,8 +1,9 @@
 import millify from 'millify'
+import Big from 'big.js'
 
 export function convertUpoktToPokt(upokt: number | string ): number {
   // todo: convert upokt to pokt using a library to divide precisely (not using floats)
-  return Number(upokt) / 1e6
+  return new Big(upokt).div(1e6).toNumber()
 }
 
 export function truncateBothSides(str: string, length: number) {
