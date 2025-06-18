@@ -55,6 +55,8 @@ async function ServerServicesCard({defaultType}: {defaultType: string}) {
   )
 }
 
+const rpcUrl = process.env.RPC_BASE_URL!
+
 export default async function Home({searchParams}: {searchParams: Promise<Record<string, string | string[] | undefined>>}) {
   const search = await searchParams
   const serviceContentType = search['dashboard_services_card']?.toString() || 'chart'
@@ -71,7 +73,7 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
              style={{ backgroundImage: 'url(/waves-light.svg)' }}
         />
         <div className={'w-full md:w-[480px] lg:w-[580px] mb-[12px]'}>
-          <SearchInput zIndex={1} height={48} />
+          <SearchInput zIndex={1} height={48} rpcUrl={rpcUrl} />
         </div>
         {/*<SponsoredLabel />*/}
       </section>

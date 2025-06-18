@@ -1,7 +1,7 @@
 import { getClient } from '@/app/config/apollo/rsc'
 import React from 'react'
 import StatusPopover from '@/app/appbar/Status/Popover'
-import { indexerMetadataDocument } from '@/app/api/metadata'
+import { indexerMetadataDocument } from '@/app/operations/metadata'
 
 export default async function Status() {
   let data = null

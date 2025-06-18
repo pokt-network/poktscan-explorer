@@ -13,16 +13,21 @@ interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>
   entity: EntityLinkProps['entity']
   supportMigrationTab?: boolean
+  moreTabs?: {
+    tabs: Array<{label: string, tab: string}>
+    getContent: (tab: string) => React.ReactNode
+  },
+  defaultTab?: string
 }
 
-export default async function TransferAndTxTabs({params, searchParams, entity, supportMigrationTab = false}: PageProps) {
+export default async function TransferAndTxTabs({params, searchParams, entity, supportMigrationTab = false, moreTabs, defaultTab}: PageProps) {
   const [{ id, idForUrl }, { page, itemsPerPage }, sParams] = await Promise.all([
     params,
     getPageAndItems(searchParams),
     searchParams,
   ])
 
-  const activeTab = sParams.tab || 'txs'
+  const activeTab = sParams.tab || defaultTab || 'txs'
 
   let element: React.ReactNode
 
@@ -74,6 +79,15 @@ export default async function TransferAndTxTabs({params, searchParams, entity, s
           </Suspense>
         ) : null
       break
+    default: {
+      if (moreTabs) {
+        const tab = moreTabs.tabs.find(t => t.tab === activeTab)
+
+        if (tab) {
+          element = moreTabs.getContent(tab.tab)
+        }
+      }
+    }
   }
 
   const tabs = [
@@ -88,7 +102,7 @@ export default async function TransferAndTxTabs({params, searchParams, entity, s
     {
       label: 'Raw Result',
       tab: "raw"
-    }
+    },
   ]
 
   if (supportMigrationTab) {
@@ -96,6 +110,12 @@ export default async function TransferAndTxTabs({params, searchParams, entity, s
       label: 'Migration',
       tab: "migration"
     })
+  }
+
+  if (moreTabs) {
+    tabs.unshift(
+      ...moreTabs.tabs
+    )
   }
 
   return (

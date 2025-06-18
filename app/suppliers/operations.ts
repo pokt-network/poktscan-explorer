@@ -9,7 +9,11 @@ export const supplierListDocument = graphql(`
         ownerId
         owner {
           id
-          balances {
+          balances(
+            filter: {
+              denom: {equalTo: "upokt"}
+            }
+          ) {
             nodes {
               amount
               denom
@@ -29,12 +33,12 @@ export const supplierListDocument = graphql(`
         stakeAmount
         stakeDenom
         stakeStatus
-        supplierServices: serviceConfigs {
+        supplierServices: serviceConfigs(
+          first: 1
+        ) {
+          totalCount
           nodes {
-            service {
-              id
-              name
-            }
+            serviceId
           }
         }
       }

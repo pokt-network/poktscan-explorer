@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { PopoverArrow } from '@radix-ui/react-popover'
 import { Check, X } from 'lucide-react'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
-import { indexerMetadataDocument } from '@/app/api/metadata'
+import { indexerMetadataDocument } from '@/app/operations/metadata'
 import SyncingIcon from './syncing_icon.svg'
 
 interface StatusPopoverProps {

@@ -53,7 +53,7 @@ export default async function RootLayout({children}: Readonly<{
                 attribute="class"
                 defaultTheme="dark"
                 enableSystem
-                disableTransitionOnChange
+                enableColorScheme
               >
                 <HeightContextProvider
                   firstHeight={latestBlock?.height}

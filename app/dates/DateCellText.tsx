@@ -10,7 +10,7 @@ export function useFormatDate() {
 
   const formatDate = useCallback((value: string) => {
     // timestamps are in UTC, so we need to add the Z to the end because the api doesn't include it
-    value = value + 'Z'
+    value = value.endsWith('Z') ? value : value + 'Z'
     if (dateTimeColumn === 'age') {
       return formatDuration(
         intervalToDuration({

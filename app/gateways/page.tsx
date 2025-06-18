@@ -13,12 +13,17 @@ interface PageProps {
 async function ServerGatewaysPage({searchParams}: PageProps) {
   const {page, itemsPerPage,} = await getPageAndItems(searchParams)
   return (
-    <GatewaysTable page={page} itemsPerPage={itemsPerPage} basePath={'/apps'}/>
+    <GatewaysTable
+      page={page}
+      itemsPerPage={itemsPerPage}
+      basePath={'/apps'}
+    />
   )
 }
 
 export default async function GatewaysPage({searchParams}: PageProps) {
   const pageInfo = await getPageAndItems(searchParams)
+
   return (
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <ListTitle title={'Gateways'} />

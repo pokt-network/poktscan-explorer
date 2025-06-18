@@ -1,86 +1,14 @@
 import { getClient } from '@/app/config/apollo/rsc'
-import {
-  ApplicationGateway,
-  ApplicationService,
-} from '@/app/config/gql/graphql'
 import { getStakeLabel } from '@/app/utils/stake'
 import Table, { GridColDef } from '@/app/components/Table'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { CircleHelp } from 'lucide-react'
-import DetailCell from '@/app/components/DetailCell'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
-import Chip from '@/app/components/Chip'
+import { ChipText } from '@/app/components/Chip'
 import { applicationListDocument } from '@/app/apps/operations'
 import AppsSubscription from '@/app/components/AppsTable/AppsSubscription'
 
 export const columns: Array<GridColDef> = [
-  {
-    field: 'detail',
-    minWidth: 60,
-    maxWidth: 60,
-    headerName: (
-      <div className={'w-full h-full flex items-center justify-center'}>
-        <TooltipProvider delayDuration={150}>
-          <Tooltip>
-            <TooltipTrigger>
-              <CircleHelp className={"w-4 h-4 text-[color:--secondary]"} />
-            </TooltipTrigger>
-            <TooltipContent side={"left"}>
-              <p className={"p-2 bg-[color:--main-background] rounded-lg border border-[color:--divider]"}>
-                See preview of the application details
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    ),
-    renderCell: (cell: RowApp) => {
-      return (
-        <DetailCell
-          rows={
-            [
-              {
-                label: 'Services',
-                value: (
-                  <ul className={'pt-2 pl-5 list-disc'}>
-                    {cell.servicesData.map((service) => (
-                      <li key={service.service!.id}>
-                        <p className={"text-xs"}>
-                          {service.service!.name}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                )
-              },
-              ...cell.gatewaysData.length > 0 ? [
-                {
-                  label: 'Gateways',
-                  value: (
-                    <ul className={'pt-2 pl-5 list-disc'}>
-                      {cell.gatewaysData.map((gateway) => (
-                        <li key={gateway.gatewayId}>
-                          <EntityLink entity={'gateway'} entityId={gateway.gatewayId}/>
-                        </li>
-                      ))}
-                    </ul>
-                  )
-                },
-              ] : []
-            ]}
-          entityProps={{
-            entity: 'app',
-            entityId: cell.id,
-            copy: {
-              enabled: false
-            }
-          }}
-        />
-      )
-    }
-  },
   {
     field: 'id',
     headerName: 'Address',
@@ -112,7 +40,9 @@ export const columns: Array<GridColDef> = [
     field: 'services',
     headerName: 'Services',
     renderCell: (cell: RowApp) => (
-      <Chip values={cell.services} />
+      <ChipText moreElements={cell.amountOfServices - 1}>
+        {cell.firstService}
+      </ChipText>
     )
   },
   {
@@ -120,17 +50,20 @@ export const columns: Array<GridColDef> = [
     headerName: 'Delegated To',
     description: "Gateways that have permissions to send relays on behalf of this application",
     renderCell: (cell: RowApp) => (
-      cell.gateways.length ? <Chip values={cell.gateways.map((gateway, index) =>  !index ? (
-        <div className={'text-[10px] md:text-xs h-[20px] mt-[-4px]'} key={gateway}>
+      cell.amountOfGateways ? <ChipText moreElements={cell.amountOfGateways - 1}>
+        <div
+          key={cell.firstGateway}
+          className={'text-[10px] md:text-xs h-[20px] mt-[-4px]'}
+        >
           <EntityLink
             entity={'gateway'}
-            entityId={gateway}
+            entityId={cell.firstGateway}
             copy={{
               enabled: false
             }}
           />
         </div>
-      ) : gateway)} /> : 'None'
+      </ChipText> : 'None'
     )
   }
 ]
@@ -141,10 +74,10 @@ interface RowApp {
   status: string
   stakeAmount: string
   balance: string
-  services: Array<string>
-  servicesData: Array<ApplicationService>
-  gateways: Array<string>
-  gatewaysData: Array<ApplicationGateway>
+  firstService: string
+  amountOfServices: number
+  firstGateway: string
+  amountOfGateways: number
 }
 
 interface PageProps {
@@ -152,20 +85,37 @@ interface PageProps {
   itemsPerPage: number
   basePath: string
   service?: string
+  gateway?: string
 }
 
-export default async function AppsTable({page, itemsPerPage, basePath, service}: PageProps) {
+export default async function AppsTable({page, itemsPerPage, basePath, service, gateway}: PageProps) {
   const client = getClient()
 
-  const filter = service ? {
-    applicationServices: {
-      some: {
-        serviceId: {
-          equalTo: service
+  let filter
+
+  if (service) {
+    filter = {
+      applicationServices: {
+        some: {
+          serviceId: {
+            equalTo: service
+          }
         }
       }
     }
-  } : undefined
+  }
+
+  if (gateway) {
+    filter = {
+      applicationGateways: {
+        some: {
+          gatewayId: {
+            equalTo: gateway
+          }
+        }
+      }
+    }
+  }
 
   // eslint-disable-next-line prefer-const
   let {data} = await client.query({
@@ -210,10 +160,10 @@ export default async function AppsTable({page, itemsPerPage, basePath, service}:
       raw_stakeAmount: convertUpoktToPokt(application!.stakeAmount),
       balance: formatAmount(balance),
       raw_balance: convertUpoktToPokt(balance?.amount),
-      services: application!.services.nodes.map(service => service.service!.name),
-      servicesData: application!.services!.nodes!,
-      gateways: application!.applicationGateways.nodes.map((gateway) => gateway.gatewayId),
-      gatewaysData: application!.applicationGateways!.nodes!,
+      firstService: application!.services.nodes.at(0)?.serviceId,
+      amountOfServices: application!.services.totalCount,
+      firstGateway: application!.applicationGateways.nodes.at(0)?.gatewayId,
+      amountOfGateways: application!.applicationGateways.totalCount,
     }
   })
 
