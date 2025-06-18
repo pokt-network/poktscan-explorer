@@ -1,8 +1,8 @@
 'use client'
 
 import React from 'react'
-import { AugmentedItem } from '@/app/(home)/ServicesCard'
-import ServicesGainers from '@/app/(home)/ServicesGainers'
+import { AugmentedItem } from '@/app/(home)/Services/ServicesCard'
+import ServicesGainers from '@/app/(home)/Services/ServicesGainers'
 import BaseDoughnut from '@/app/Charts/BaseDoughnut'
 
 export default function ServicesDoughnutChart({data, includeGainers = true}: {data: AugmentedItem[], includeGainers?: boolean}) {

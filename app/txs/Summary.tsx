@@ -4,7 +4,8 @@ import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import { transactionsSummaryDocument } from '@/app/txs/operations'
 import FourCard from '@/app/components/FourCard'
 import React, { useCallback } from 'react'
-import { getSummaryVariables } from '@/app/txs/utils'
+import { getSummaryVariables, transactionsSummaryLabels } from '@/app/txs/utils'
+import { combineByIndex } from '@/app/components/FourCards/utils'
 
 interface SummaryProps {
   initialData: DocumentNodeData<typeof transactionsSummaryDocument>
@@ -21,24 +22,17 @@ export default function Summary({initialData}: SummaryProps) {
 
   return (
     <FourCard
-      items={[
-        {
-          label: 'Transactions (24H)',
-          children: data.validTxs.totalCount
-        },
-        {
-          label: 'Failed Transactions (24H)',
-          children: data.failedTxs.totalCount
-        },
-        {
-          label: 'Total Transactions (24H)',
-          children: data.validTxs.totalCount + data.failedTxs.totalCount
-        },
-        {
-          label: 'Transactions (Last Block)',
-          children: data.blocks?.nodes?.at(0)?.totalTxs || 0
-        },
-      ]}
+      items={
+        combineByIndex(
+          transactionsSummaryLabels,
+          {
+            1: data.validTxs.totalCount,
+            2: data.failedTxs.totalCount,
+            3: data.validTxs.totalCount + data.failedTxs.totalCount,
+            4: data.blocks?.nodes?.at(0)?.totalTxs || 0,
+          }
+        )
+      }
     />
   )
 }

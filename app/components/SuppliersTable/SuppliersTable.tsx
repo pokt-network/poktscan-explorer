@@ -12,6 +12,114 @@ import Chip from '@/app/components/Chip'
 import { supplierListDocument, } from '@/app/suppliers/operations'
 import SuppliersSubscription from '@/app/components/SuppliersTable/SuppliersSubscription'
 
+// TODO: make detail cell a component
+export const columns: Array<GridColDef> = [
+  {
+    field: 'detail',
+    minWidth: 60,
+    maxWidth: 60,
+    headerName: (
+      <div className={'w-full h-full flex items-center justify-center'}>
+        <TooltipProvider delayDuration={150}>
+          <Tooltip>
+            <TooltipTrigger>
+              <CircleHelp className={"w-4 h-4 text-[color:--secondary]"} />
+            </TooltipTrigger>
+            <TooltipContent side={"left"}>
+              <p className={"p-2 bg-[color:--main-background] rounded-lg border border-[color:--divider]"}>
+                See preview of the supplier details
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    ),
+    renderCell: (cell: RowSupplier) => (
+      <DetailCell
+        rows={
+          [
+            {
+              label: 'Services',
+              value: (
+                <ul className={'pt-2 pl-5 list-disc'}>
+                  {cell.servicesData.map((service) => (
+                    <li key={service.service!.id}>
+                      <p className={"text-xs"}>
+                        {service.service!.name}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )
+            },
+          ]}
+        entityProps={{
+          entity: 'supplier',
+          entityId: cell.id,
+          copy: {
+            enabled: false
+          }
+        }}
+      />
+    )
+  },
+  {
+    field: 'id',
+    headerName: 'Address',
+    minWidth: 200,
+    renderCell: (cell: RowSupplier) => (
+      <div className={'text-xs md:text-sm'}>
+        <EntityLink
+          entity={'supplier'}
+          entityId={cell.id}
+        />
+      </div>
+    )
+  },
+  {
+    field: 'status',
+    headerName: 'Status',
+  },
+  {
+    field: 'stakeType',
+    headerName: 'Stake Type',
+  },
+  {
+    field: 'stakeAmount',
+    headerName: 'Stake Amount',
+    align: 'right',
+  },
+  {
+    field: 'balance',
+    headerName: 'Balance',
+    align: 'right',
+  },
+  {
+    field: "outputAddress",
+    headerName: "Output Address",
+    renderCell: (cell: RowSupplier) => cell.outputAddress === '-' ? '-' : (
+      <div className={'text-xs md:text-sm'}>
+        <EntityLink
+          entity={'account'}
+          entityId={cell.outputAddress}
+        />
+      </div>
+    )
+  },
+  {
+    field: 'outputBalance',
+    headerName: 'Output Balance',
+    align: 'right',
+  },
+  {
+    field: 'services',
+    headerName: 'Services',
+    renderCell: (cell: RowSupplier) => (
+      <Chip values={cell.services} />
+    )
+  }
+]
+
 interface RowSupplier {
   id: string
   status: string
@@ -99,114 +207,6 @@ export default async function SuppliersTable({page, itemsPerPage, basePath, serv
       servicesData: supplier!.supplierServices!.nodes!
     }
   })
-
-  // TODO: make detail cell a component
-  const columns: Array<GridColDef> = [
-    {
-      field: 'detail',
-      minWidth: 60,
-      maxWidth: 60,
-      headerName: (
-        <div className={'w-full h-full flex items-center justify-center'}>
-          <TooltipProvider delayDuration={150}>
-            <Tooltip>
-              <TooltipTrigger>
-                <CircleHelp className={"w-4 h-4 text-[color:--secondary]"} />
-              </TooltipTrigger>
-              <TooltipContent side={"left"}>
-                <p className={"p-2 bg-[color:--main-background] rounded-lg border border-[color:--divider]"}>
-                  See preview of the supplier details
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      ),
-      renderCell: (cell: RowSupplier) => (
-        <DetailCell
-          rows={
-            [
-              {
-                label: 'Services',
-                value: (
-                  <ul className={'pt-2 pl-5 list-disc'}>
-                    {cell.servicesData.map((service) => (
-                      <li key={service.service!.id}>
-                        <p className={"text-xs"}>
-                          {service.service!.name}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                )
-              },
-            ]}
-          entityProps={{
-            entity: 'supplier',
-            entityId: cell.id,
-            copy: {
-              enabled: false
-            }
-          }}
-        />
-      )
-    },
-    {
-      field: 'id',
-      headerName: 'Address',
-      minWidth: 200,
-      renderCell: (cell: RowSupplier) => (
-        <div className={'text-xs md:text-sm'}>
-          <EntityLink
-            entity={'supplier'}
-            entityId={cell.id}
-          />
-        </div>
-      )
-    },
-    {
-      field: 'status',
-      headerName: 'Status',
-    },
-    {
-      field: 'stakeType',
-      headerName: 'Stake Type',
-    },
-    {
-      field: 'stakeAmount',
-      headerName: 'Stake Amount',
-      align: 'right',
-    },
-    {
-      field: 'balance',
-      headerName: 'Balance',
-      align: 'right',
-    },
-    {
-      field: "outputAddress",
-      headerName: "Output Address",
-      renderCell: (cell: RowSupplier) => cell.outputAddress === '-' ? '-' : (
-        <div className={'text-xs md:text-sm'}>
-          <EntityLink
-            entity={'account'}
-            entityId={cell.outputAddress}
-          />
-        </div>
-      )
-    },
-    {
-      field: 'outputBalance',
-      headerName: 'Output Balance',
-      align: 'right',
-    },
-    {
-      field: 'services',
-      headerName: 'Services',
-      renderCell: (cell: RowSupplier) => (
-        <Chip values={cell.services} />
-      )
-    }
-  ]
 
   return (
     <Table

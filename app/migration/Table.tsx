@@ -20,9 +20,10 @@ export interface RowMorseClaimableAccount {
   unstakedBalance: string
   supplierStake: string
   applicationStake: string
+  transactionHash?: string
 }
 
-const columns: Array<GridColDef> = [
+export const columns: Array<GridColDef> = [
   {
     field: 'id',
     headerName: 'Morse Address',
@@ -100,7 +101,24 @@ const columns: Array<GridColDef> = [
 
       return '-'
     }
-  }
+  },
+  {
+    field: 'transactionHash',
+    headerName: 'Transaction',
+    renderCell: (cell: RowMorseClaimableAccount) => {
+      if (cell.transactionHash) {
+        return (
+          <EntityLink
+            entity={'tx'}
+            entityId={cell.transactionHash}
+          />
+        )
+      }
+
+      return '-'
+    },
+    description: 'Transaction hash of the claim transaction, if any'
+  },
 ]
 
 interface MorseClaimableAccountTableProps extends PageProps {
@@ -126,10 +144,15 @@ export default async function MorseClaimableAccountTable({searchParams, address,
       }
     } else if (isValidMorseAddress(address)) {
       filter = {
-        and: [
+        or: [
           {
             id: {
               equalToInsensitive: address
+            }
+          },
+          {
+            morseOutputAddress: {
+              equalToInsensitive: address,
             }
           }
         ]
@@ -184,6 +207,7 @@ export default async function MorseClaimableAccountTable({searchParams, address,
       amount: morseClaimableAccount?.applicationStakeAmount || '0',
       denom: morseClaimableAccount?.applicationStakeDenom || 'upokt',
     }),
+    transactionHash: morseClaimableAccount?.transactionId,
   })) || []
 
 

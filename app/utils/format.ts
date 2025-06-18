@@ -77,7 +77,7 @@ export function formatAmount({
   let amountString: string
 
   if (abbreviateThreshold && amountNumber >= abbreviateThreshold) {
-    if (Number.isSafeInteger(amountNumber)) {
+    if (Number.isSafeInteger(Math.ceil(amountNumber))) {
       amountString = millify(amountNumber)
     } else {
       amountString = toScientificNotation(amountNumber)

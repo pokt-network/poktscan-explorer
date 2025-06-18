@@ -34,6 +34,9 @@ export const supplierByIdDocument = graphql(`
       unstakingEndHeight
       supplierServices: serviceConfigs {
         nodes {
+          activatedAt {
+            id
+          }
           revShare
           endpoints
           service {

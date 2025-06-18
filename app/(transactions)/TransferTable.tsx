@@ -2,12 +2,13 @@ import { graphql } from '@/app/config/gql'
 import { getClient } from '@/app/config/apollo/rsc'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
-import React from 'react'
+import React, { Suspense } from 'react'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import FailedTransactionFeedback from '@/app/(transactions)/FailedTransactionFeedback'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
 import NewTransferByAddress from '@/app/(transactions)/NewTransferByAddress'
+import LoadingListView from '@/app/components/LoadingListView'
 
 const transfersByAddressDocument = graphql(`
   query transfersList($limit: Int!, $offset: Int!, $address: String!) {
@@ -36,11 +37,120 @@ const transfersByAddressDocument = graphql(`
           gasUsed
           gasWanted
           code
+          codespace
         }
       }
     }
   }
 `);
+
+const columns: Array<GridColDef> = [
+  {
+    field: 'id',
+    headerName: 'Tx Hash',
+    maxWidth: 200,
+    renderCell: (cell: RowTransfer) => (
+      <div className={'flex min-w-0 flex-row items-center gap-[6px]'}>
+        {cell.result !== 0 && (
+          <FailedTransactionFeedback
+            text={`Transaction failed with code ${cell.result}${cell.codespace ? ` and codespace: ${cell.codespace}` : ''}`}
+          />
+        )}
+        <div className={'text-xs md:text-sm flex grow min-w-0'}>
+          <EntityLink
+            entity={'tx'}
+            entityId={cell.id}
+            copy={{
+              enabled: true,
+              tooltip: 'Copy transaction hash',
+            }}
+          />
+        </div>
+      </div>
+    )
+  },
+  {
+    field: 'height',
+    headerName: 'Height',
+    renderCell: (cell: RowTransfer) => (
+      <div className={'text-xs md:text-sm'}>
+        <EntityLink
+          entity={'block'}
+          entityId={cell.height}
+        />
+      </div>
+    )
+  },
+  {
+    field: 'timestamp',
+    headerName: <DateColumn />,
+    width: 180,
+    align: 'center',
+    renderCell: (cell: RowTransfer) => (
+      <div className={'text-xs md:text-sm'}>
+        <DateCellText value={cell.timestamp} />
+      </div>
+    )
+  },
+  {
+    description: 'Address of the sender',
+    field: 'from',
+    headerName: 'From',
+    maxWidth: 150,
+    renderCell: (cell: RowTransfer) => (
+      <div className={'text-xs md:text-sm'}>
+        <EntityLink
+          entity={'account'}
+          entityId={cell.from}
+          copy={{
+            enabled: true
+          }}
+        />
+      </div>
+    )
+  },
+  {
+    field: 'flow',
+    headerName: '',
+    maxWidth: 55,
+    minWidth: 55,
+    width: 55,
+    renderCell: (cell: RowTransfer) => {
+      return (
+        <span className={`text-[10px] mx-[-6px] px-[7px] leading-[22px] pt-[1px] font-bold w-[36px] text-center rounded-sm border ${cell.flow === 'IN' ? 'border-[color:--success] text-[color:--success] bg-[color:--success-background]' : 'border-[color:--warning] text-[color:--warning] bg-[color:--warning-background]'} inline-block`}>
+            {cell.flow}
+          </span>
+      )
+    }
+  },
+  {
+    description: 'Address of the recipient',
+    field: 'to',
+    headerName: 'To',
+    maxWidth: 150,
+    renderCell: (cell: RowTransfer) => (
+      <div className={'text-xs md:text-sm'}>
+        <EntityLink
+          entity={'account'}
+          entityId={cell.to}
+          copy={{
+            enabled: true
+          }}
+        />
+      </div>
+    )
+  },
+  {
+    field: 'amount',
+    headerName: 'Amount',
+    align: 'right',
+  },
+  {
+    field: 'fee',
+    headerName: 'Fee',
+    align: 'right',
+  }
+]
 
 interface RowTransfer {
   id: string
@@ -62,7 +172,7 @@ interface TransferTableProps {
   basePath: string
 }
 
-export default async function TransferTable({address, page, itemsPerPage, basePath}: TransferTableProps) {
+async function ServerTransferTable({address, page, itemsPerPage, basePath}: TransferTableProps) {
   let { data } = await getClient().query({
     query: transfersByAddressDocument,
     variables: {
@@ -102,123 +212,16 @@ export default async function TransferTable({address, page, itemsPerPage, basePa
       codespace: transfer?.transaction?.codespace,
       height: transfer?.block?.height,
       timestamp: transfer?.block?.timestamp,
-      from: transfer?.senderId,
-      flow: transfer?.senderId === address ? 'OUT' : 'IN',
-      to: transfer?.recipientId,
+      // TODO: senderId and recipientId is incorrectly mapped in the indexer
+      from: transfer?.recipientId,
+      flow: transfer?.recipientId === address ? 'OUT' : 'IN',
+      to: transfer?.senderId,
       amount: formatAmount(amount),
       raw_amount: convertUpoktToPokt(amount?.amount),
       fee: formatAmount(fee),
       raw_fee: convertUpoktToPokt(fee?.amount),
     }
   }) || []
-
-  const columns: Array<GridColDef> = [
-    {
-      field: 'id',
-      headerName: 'Tx Hash',
-      maxWidth: 200,
-      renderCell: (cell: RowTransfer) => (
-        <div className={'flex min-w-0 flex-row items-center gap-[6px]'}>
-          {cell.result !== 0 && (
-            <FailedTransactionFeedback
-              text={`Transaction failed with code ${cell.result}${cell.codespace ? ` and codespace: ${cell.codespace}` : ''}`}
-            />
-          )}
-          <div className={'text-xs md:text-sm flex grow min-w-0'}>
-            <EntityLink
-              entity={'tx'}
-              entityId={cell.id}
-              copy={{
-                enabled: true,
-                tooltip: 'Copy transaction hash',
-              }}
-            />
-          </div>
-        </div>
-      )
-    },
-    {
-      field: 'height',
-      headerName: 'Height',
-      renderCell: (cell: RowTransfer) => (
-        <div className={'text-xs md:text-sm'}>
-          <EntityLink
-            entity={'block'}
-            entityId={cell.height}
-          />
-        </div>
-      )
-    },
-    {
-      field: 'timestamp',
-      headerName: <DateColumn />,
-      width: 180,
-      align: 'center',
-      renderCell: (cell: RowTransfer) => (
-        <div className={'text-xs md:text-sm'}>
-          <DateCellText value={cell.timestamp} />
-        </div>
-      )
-    },
-    {
-      description: 'Address of the sender',
-      field: 'from',
-      headerName: 'From',
-      maxWidth: 150,
-      renderCell: (cell: RowTransfer) => (
-        <div className={'text-xs md:text-sm'}>
-          <EntityLink
-            entity={'account'}
-            entityId={cell.from}
-            copy={{
-              enabled: true
-            }}
-          />
-        </div>
-      )
-    },
-    {
-      field: 'flow',
-      headerName: '',
-      maxWidth: 55,
-      minWidth: 55,
-      width: 55,
-      renderCell: (cell: RowTransfer) => {
-        return (
-          <span className={`text-[10px] mx-[-6px] px-[7px] leading-[22px] pt-[1px] font-bold w-[36px] text-center rounded-sm border ${cell.flow === 'IN' ? 'border-[color:--success] text-[color:--success] bg-[color:--success-background]' : 'border-[color:--warning] text-[color:--warning] bg-[color:--warning-background]'} inline-block`}>
-            {cell.flow}
-          </span>
-        )
-      }
-    },
-    {
-      description: 'Address of the recipient',
-      field: 'to',
-      headerName: 'To',
-      maxWidth: 150,
-      renderCell: (cell: RowTransfer) => (
-        <div className={'text-xs md:text-sm'}>
-          <EntityLink
-            entity={'account'}
-            entityId={cell.to}
-            copy={{
-              enabled: true
-            }}
-          />
-        </div>
-      )
-    },
-    {
-      field: 'amount',
-      headerName: 'Amount',
-      align: 'right',
-    },
-    {
-      field: 'fee',
-      headerName: 'Fee',
-      align: 'right',
-    }
-  ]
 
   return (
     <Table
@@ -237,5 +240,20 @@ export default async function TransferTable({address, page, itemsPerPage, basePa
         basePath
       }}
     />
+  )
+}
+
+export default async function TransferTable(props: TransferTableProps) {
+  return (
+    <Suspense
+      fallback={
+        <LoadingListView
+          columns={columns}
+          rowsAmount={props.itemsPerPage}
+        />
+      }
+    >
+      <ServerTransferTable {...props} />
+    </Suspense>
   )
 }

@@ -6,7 +6,7 @@ export const morseClaimableAccountsPageDocument = graphql(`
       first: $limit,
       offset: $offset,
       filter: $filter,
-      orderBy: [CLAIMED_DESC, CLAIMED_AT_HEIGHT_DESC],
+      orderBy: [CLAIMED_DESC, CLAIMED_AT_ID_DESC],
     ) {
       totalCount
       nodes {
@@ -15,7 +15,8 @@ export const morseClaimableAccountsPageDocument = graphql(`
 
         shannonDestAddress
         claimed
-        claimedAtHeight
+        claimedAtHeight: claimedAtId
+        transactionId
 
         unstakedBalanceAmount
         unstakedBalanceDenom

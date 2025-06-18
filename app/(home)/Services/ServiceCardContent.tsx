@@ -11,9 +11,10 @@ interface ServiceCardContentProps {
   chart: React.ReactNode;
   defaultType: string;
   hasItems: boolean;
+  disableSelect?: boolean;
 }
 
-export default function ServiceCardContent({table, defaultType, chart, hasItems}: ServiceCardContentProps) {
+export default function ServiceCardContent({table, defaultType, chart, hasItems, disableSelect = false}: ServiceCardContentProps) {
   const [selectedType, setSelectedType] = useState(defaultType)
 
   let content: React.ReactNode
@@ -42,6 +43,7 @@ export default function ServiceCardContent({table, defaultType, chart, hasItems}
         </div>
         <Select
           value={selectedType}
+          disabled={disableSelect}
           onValueChange={(newValue) => {
             setSelectedType(newValue)
             setCookie('dashboard_services_card', newValue)

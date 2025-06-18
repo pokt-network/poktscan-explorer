@@ -9,7 +9,6 @@ export default function usePrice(): Price {
     queryFn: fetchPrice,
     staleTime: Infinity, // Avoids initial refetch
     refetchInterval: 60000, // Fetch every minute
-
   });
 
   return data! || {}

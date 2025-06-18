@@ -1,33 +1,70 @@
 import { getPageAndItems } from '@/app/utils/pagination'
 import { getClient } from '@/app/config/apollo/rsc'
-import React from 'react'
+import React, { Suspense } from 'react'
 import ListTitle from '@/app/components/ListTitle'
 import { applicationSummaryDocument } from '@/app/apps/operations'
 import Summary from '@/app/apps/Summary'
-import AppsTable from '@/app/components/AppsTable/AppsTable'
+import AppsTable, { columns } from '@/app/components/AppsTable/AppsTable'
+import { LabelByIndex } from '@/app/components/FourCards/utils'
+import { LoadingSummary, LoadingTable } from '@/app/components/LoadingListView'
 
 export const dynamic = "force-dynamic";
+
+const summaryLabels: LabelByIndex = {
+  1: 'Staked Applications',
+  2: 'Unstaking Applications',
+  3: 'Staked Tokens',
+  4: 'Unstaking Tokens',
+}
+
+async function AppsSummary() {
+  const {data: summaryData} = await getClient().query({
+    query: applicationSummaryDocument,
+  })
+  return (
+    <Summary initialData={summaryData} labels={summaryLabels} />
+  )
+}
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-export default async function AppsPage({searchParams}: PageProps) {
-  const client = getClient()
-
+async function ServerAppsTable({searchParams}: PageProps) {
   const {page, itemsPerPage,} = await getPageAndItems(searchParams)
-  const [appsTable, {data: summaryData}] = await Promise.all([
-    <AppsTable page={page} itemsPerPage={itemsPerPage} basePath={'/apps'} key={'apps'} />,
-    client.query({
-      query: applicationSummaryDocument,
-    })
-  ])
+
+  return (
+    <AppsTable page={page} itemsPerPage={itemsPerPage} basePath={'/apps'} key={'apps'} />
+  )
+}
+
+export default async function AppsPage({searchParams}: PageProps) {
+  const pageInfo = await getPageAndItems(searchParams)
 
   return (
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <ListTitle title={'Applications'} />
-      <Summary initialData={summaryData} />
-      {appsTable}
+      <Suspense
+        key={`apps-summary`}
+        fallback={
+          <LoadingSummary
+            labels={summaryLabels}
+          />
+        }
+      >
+        <AppsSummary />
+      </Suspense>
+      <Suspense
+        key={`apps-page-${pageInfo.page}-${pageInfo.itemsPerPage}`}
+        fallback={
+          <LoadingTable
+            columns={columns}
+            rowsAmount={pageInfo.itemsPerPage}
+          />
+        }
+      >
+        <ServerAppsTable searchParams={searchParams} />
+      </Suspense>
     </div>
   )
 }

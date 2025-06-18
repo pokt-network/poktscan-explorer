@@ -1,4 +1,5 @@
 import { ComputeUnitsLineChartProps } from '@/app/(home)/ComputeUnitsLineChart'
+import { addDaysToUtc } from '@/app/Charts/utils'
 
 type BlockAggregate = {
   __typename: string;
@@ -112,8 +113,8 @@ export function getSummaryVariables(currentDate: Date) {
 }
 
 export function getServicesVariables(currentDate: Date) {
-  const last24hDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000)
-  const last48hDate = new Date(currentDate.getTime() - 48 * 60 * 60 * 1000)
+  const last24hDate = addDaysToUtc(currentDate, -1)
+  const last48hDate = addDaysToUtc(currentDate, -1)
 
   return {
     currentDate: currentDate.toISOString(),

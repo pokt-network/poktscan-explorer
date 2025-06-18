@@ -1,9 +1,11 @@
 import { graphql } from '@/app/config/gql'
 import { getClient } from '@/app/config/apollo/rsc'
-import React from 'react'
+import React, { Suspense } from 'react'
 import TransactionTable from '@/app/(transactions)/TransactionTable'
 import { Transaction } from '@/app/config/gql/graphql'
 import NewTransactionsByAddress from '@/app/(transactions)/NewTransactionsByAddress'
+import LoadingListView from '@/app/components/LoadingListView'
+import { getTransactionsColumns } from '@/app/(transactions)/columns'
 
 const transactionsByAddressDocument = graphql(`
   query transactionsByAddress($limit: Int!, $offset: Int!, $address: String!) {
@@ -53,7 +55,7 @@ interface TransactionTableProps {
   basePath: string
 }
 
-export default async function TransactionByAddressTable({address, page, itemsPerPage, basePath}: TransactionTableProps) {
+async function ServerTransactionByAddressTable({address, page, itemsPerPage, basePath}: TransactionTableProps) {
   let { data } = await getClient().query({
     query: transactionsByAddressDocument,
     variables: {
@@ -95,5 +97,21 @@ export default async function TransactionByAddressTable({address, page, itemsPer
         <NewTransactionsByAddress address={address} />
       )}
     />
+  )
+}
+
+export default async function TransactionByAddressTable(props: TransactionTableProps) {
+  return (
+    <Suspense
+      key={`transactions-by-address-${props.address}-${props.page}-${props.itemsPerPage}`}
+      fallback={
+        <LoadingListView
+          columns={getTransactionsColumns(true)}
+          rowsAmount={props.itemsPerPage}
+        />
+      }
+    >
+      <ServerTransactionByAddressTable {...props} />
+    </Suspense>
   )
 }

@@ -1,6 +1,6 @@
 import React from 'react'
 
-interface CardItem {
+export interface CardItem {
   label: string
   children: React.ReactNode
 }

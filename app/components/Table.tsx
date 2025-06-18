@@ -198,7 +198,9 @@ Table.Header = function TableHeader({title, subtitle, hidePagination,currentPage
       </div>
 
       <div className={'flex flex-row items-center justify-between gap-2 flex-wrap'}>
-        <TableDownloadButton rows={rows} columns={columns.map((col) => ({...col, renderCell: undefined}))} />
+        {rows.length > 0 && (
+          <TableDownloadButton rows={rows} columns={columns.map((col) => ({...col, renderCell: undefined}))} />
+        )}
         {!hidePagination && (
           <Table.Pagination
             currentPage={currentPage}

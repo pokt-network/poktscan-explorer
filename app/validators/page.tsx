@@ -3,14 +3,94 @@ import { getPageAndItems } from '@/app/utils/pagination'
 import { getClient } from '@/app/config/apollo/rsc'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
-import React from 'react'
+import React, { Suspense } from 'react'
 import { getStakeLabel } from '@/app/utils/stake'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import ListTitle from '@/app/components/ListTitle'
 import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 import { RowTransaction } from '@/app/(transactions)/TransactionTable'
+import LoadingListView from '@/app/components/LoadingListView'
 
 export const dynamic = "force-dynamic";
+
+const columns: Array<GridColDef> = [
+  {
+    field: 'id',
+    headerName: 'Address',
+    maxWidth: 200,
+    renderCell: (row: RowValidator) => (
+      <div className={'text-xs md:text-sm'}>
+        <EntityLink
+          entity={'validator'}
+          entityId={row.id}
+        />
+      </div>
+    )
+  },
+  {
+    description: 'Address of the Validator signer',
+    field: 'signer',
+    headerName: 'Signer',
+    maxWidth: 190,
+    renderCell: (cell: RowTransaction) => (
+      <div className={'text-xs md:text-sm'}>
+        <EntityLink
+          entity={'account'}
+          entityId={cell.signer}
+          copy={{
+            enabled: true
+          }}
+        />
+      </div>
+    )
+  },
+  {
+    field: 'moniker',
+    headerName: 'Moniker',
+  },
+  {
+    field: 'status',
+    headerName: 'Status',
+  },
+  {
+    field: 'stakeAmount',
+    headerName: 'Stake Amount',
+    align: 'right',
+  },
+  {
+    field: 'minSelfDelegation',
+    headerName: 'Self Delegation',
+    align: 'right',
+  },
+  {
+    field: 'commissionRate',
+    headerName: 'Commission',
+    align: 'right',
+    renderCell: (cell: RowValidator) => (
+      <p className={"text-xs"}>
+        {formatAmount({
+          amount: cell.commissionRate * 100,
+          denom: '%',
+          maxDecimals: 2,
+        })}
+      </p>
+    ),
+  },
+  {
+    field: 'commissionMaxRate',
+    headerName: 'Max. Commission',
+    align: 'right',
+    renderCell: (cell: RowValidator) => (
+      <p className={"text-xs"}>
+        {formatAmount({
+          amount: cell.commissionMaxRate * 100,
+          denom: '%',
+          maxDecimals: 2,
+        })}
+      </p>
+    ),
+  },
+]
 
 const validatorsSubscription = graphql(`
   subscription validators {
@@ -58,7 +138,7 @@ interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-export default async function ValidatorsPage({searchParams}: PageProps) {
+async function ServerValidatorsPage({searchParams}: PageProps) {
   const pageInfo = await getPageAndItems(searchParams)
   let page = pageInfo.page
   const itemsPerPage = pageInfo.itemsPerPage
@@ -105,108 +185,46 @@ export default async function ValidatorsPage({searchParams}: PageProps) {
     }
   })
 
-  const columns: Array<GridColDef> = [
-    {
-      field: 'id',
-      headerName: 'Address',
-      maxWidth: 200,
-      renderCell: (row: RowValidator) => (
-        <div className={'text-xs md:text-sm'}>
-          <EntityLink
-            entity={'validator'}
-            entityId={row.id}
+  return (
+    <Table
+      columns={columns}
+      rows={rows}
+      header={{
+        title: `${data.validators?.totalCount} validators found`,
+        subtitle: (
+          <NewEntitiesFound<typeof validatorsSubscription>
+            subscription={validatorsSubscription}
+            entity={'validators'}
           />
-        </div>
-      )
-    },
-    {
-      description: 'Address of the Validator signer',
-      field: 'signer',
-      headerName: 'Signer',
-      maxWidth: 190,
-      renderCell: (cell: RowTransaction) => (
-        <div className={'text-xs md:text-sm'}>
-          <EntityLink
-            entity={'account'}
-            entityId={cell.signer}
-            copy={{
-              enabled: true
-            }}
-          />
-        </div>
-      )
-    },
-    {
-      field: 'moniker',
-      headerName: 'Moniker',
-    },
-    {
-      field: 'status',
-      headerName: 'Status',
-    },
-    {
-      field: 'stakeAmount',
-      headerName: 'Stake Amount',
-      align: 'right',
-    },
-    {
-      field: 'minSelfDelegation',
-      headerName: 'Self Delegation',
-      align: 'right',
-    },
-    {
-      field: 'commissionRate',
-      headerName: 'Commission',
-      align: 'right',
-      renderCell: (cell: RowValidator) => (
-        <p className={"text-xs"}>
-          {formatAmount({
-            amount: cell.commissionRate * 100,
-            denom: '%',
-            maxDecimals: 2,
-          })}
-        </p>
-      ),
-    },
-    {
-      field: 'commissionMaxRate',
-      headerName: 'Max. Commission',
-      align: 'right',
-      renderCell: (cell: RowValidator) => (
-        <p className={"text-xs"}>
-          {formatAmount({
-            amount: cell.commissionMaxRate * 100,
-            denom: '%',
-            maxDecimals: 2,
-          })}
-        </p>
-      ),
-    },
-  ]
+        )
+      }}
+      pagination={{
+        currentPage: page,
+        totalPages,
+        itemsPerPage,
+        basePath: '/validators'
+      }}
+      defaultMinWidth={70}
+    />
+  )
+}
 
+export default async function ValidatorsPage({searchParams}: PageProps) {
+  const pageInfo = await getPageAndItems(searchParams)
   return (
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <ListTitle title={'Validators'} />
-      <Table
-        columns={columns}
-        rows={rows}
-        header={{
-          title: `${data.validators?.totalCount} validators found`,
-          subtitle: (
-            <NewEntitiesFound<typeof validatorsSubscription>
-              subscription={validatorsSubscription}
-              entity={'validators'}
-            />
-          )
-        }}
-        pagination={{
-          currentPage: page,
-          totalPages,
-          itemsPerPage,
-          basePath: '/validators'
-        }}
-        defaultMinWidth={70}
-      />
+      <Suspense
+        key={`validators-page-${pageInfo.page}-${pageInfo.itemsPerPage}`}
+        fallback={
+          <LoadingListView
+            columns={columns}
+            rowsAmount={pageInfo.itemsPerPage}
+          />
+        }
+      >
+        <ServerValidatorsPage searchParams={searchParams} />
+      </Suspense>
     </div>
   )
 }

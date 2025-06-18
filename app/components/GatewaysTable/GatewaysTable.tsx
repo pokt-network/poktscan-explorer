@@ -11,6 +11,133 @@ import { convertUpoktToPokt, formatAmount, truncateAddress } from '@/app/utils/f
 import Chip from '@/app/components/Chip'
 import { GatewaysSubscription } from '@/app/components/GatewaysTable/GatewaysSubscription'
 
+export const columns: Array<GridColDef> = [
+  {
+    field: 'detail',
+    minWidth: 60,
+    maxWidth: 60,
+    headerName: (
+      <div className={'w-full h-full flex items-center justify-center'}>
+        <TooltipProvider delayDuration={150}>
+          <Tooltip>
+            <TooltipTrigger>
+              <CircleHelp className={"w-4 h-4 text-[color:--secondary]"} />
+            </TooltipTrigger>
+            <TooltipContent side={"left"}>
+              <p className={"p-2 bg-[color:--main-background] rounded-lg border border-[color:--divider]"}>
+                See a preview of the gateway details
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    ),
+    renderCell: (row: RowGateway) => {
+      return (
+        <DetailCell
+          rows={
+            [
+              {
+                label: 'Applications',
+                value: row.allApplications.length ?(
+                  <ul className={'pt-2 pl-5 list-disc'}>
+                    {row.allApplications.map((application) => (
+                      <li key={application}>
+                        <EntityLink entity={'app'} entityId={application} copy={{enabled: true}}/>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className={"text-xs mt-1"}>
+                    No Applications
+                  </p>
+                )
+              },
+              {
+                label: 'Services',
+                value: row.servicesData.length ? (
+                  <ul className={'pt-2 pl-5 list-disc'}>
+                    {row.servicesData.map((service) => (
+                      <li key={service!.id}>
+                        <p className={"text-xs"}>
+                          {service!.name}{service.id !== service.name && ` (${service!.id})`}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className={"text-xs mt-1"}>
+                    No Services
+                  </p>
+                )
+              },
+            ]}
+          entityProps={{
+            entity: 'gateway',
+            entityId: row.id,
+            copy: {
+              enabled: false
+            }
+          }}
+        />
+      )
+    }
+  },
+  {
+    field: 'id',
+    headerName: 'Address',
+    minWidth: 200,
+    renderCell: (row: RowGateway) => (
+      <div className={'text-xs md:text-sm'}>
+        <EntityLink
+          entity={'gateway'}
+          entityId={row.id}
+        />
+      </div>
+    )
+  },
+  {
+    field: 'status',
+    headerName: 'Status',
+  },
+  {
+    field: 'stakeAmount',
+    headerName: 'Stake Amount',
+    align: 'right',
+  },
+  {
+    field: 'balance',
+    headerName: 'Balance',
+    align: 'right',
+  },
+  {
+    field: 'applicationsDelegating',
+    headerName: 'Applications Delegating',
+    description: "Applications that this gateways have permissions",
+    renderCell: (cell: RowGateway) => (
+      cell.applicationsDelegating.length ? <Chip values={cell.applicationsDelegating.map((app, index) => !index ? (
+        <div className={'text-[10px] md:text-xs h-[20px] mt-[-4px]'} key={app}>
+          <EntityLink
+            entity={'app'}
+            entityId={app}
+            label={truncateAddress(app)}
+            copy={{
+              enabled: false
+            }}
+          />
+        </div>
+      ) : app)} /> : 'None'
+    )
+  },
+  {
+    field: 'services',
+    headerName: 'Services',
+    renderCell: (cell: RowGateway) => (
+      cell.services.length ? <Chip values={cell.services} /> : 'None'
+    )
+  },
+]
+
 const gatewayListDocument = graphql(`
   query gatewayList($limit: Int!, $offset: Int!, $filter: GatewayFilter) {
     gateways(first: $limit, offset: $offset, filter: $filter) {
@@ -171,133 +298,6 @@ export default async function GatewaysTable({page, itemsPerPage, basePath, servi
       allApplications: applications
     }
   })
-
-  const columns: Array<GridColDef> = [
-    {
-      field: 'detail',
-      minWidth: 60,
-      maxWidth: 60,
-      headerName: (
-        <div className={'w-full h-full flex items-center justify-center'}>
-          <TooltipProvider delayDuration={150}>
-            <Tooltip>
-              <TooltipTrigger>
-                <CircleHelp className={"w-4 h-4 text-[color:--secondary]"} />
-              </TooltipTrigger>
-              <TooltipContent side={"left"}>
-                <p className={"p-2 bg-[color:--main-background] rounded-lg border border-[color:--divider]"}>
-                  See a preview of the gateway details
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      ),
-      renderCell: (row: RowGateway) => {
-        return (
-          <DetailCell
-            rows={
-              [
-                {
-                  label: 'Applications',
-                  value: row.allApplications.length ?(
-                    <ul className={'pt-2 pl-5 list-disc'}>
-                      {row.allApplications.map((application) => (
-                        <li key={application}>
-                          <EntityLink entity={'app'} entityId={application} copy={{enabled: true}}/>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className={"text-xs mt-1"}>
-                      No Applications
-                    </p>
-                  )
-                },
-                {
-                  label: 'Services',
-                  value: row.servicesData.length ? (
-                    <ul className={'pt-2 pl-5 list-disc'}>
-                      {row.servicesData.map((service) => (
-                        <li key={service!.id}>
-                          <p className={"text-xs"}>
-                            {service!.name}{service.id !== service.name && ` (${service!.id})`}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className={"text-xs mt-1"}>
-                      No Services
-                    </p>
-                  )
-                },
-              ]}
-            entityProps={{
-              entity: 'gateway',
-              entityId: row.id,
-              copy: {
-                enabled: false
-              }
-            }}
-          />
-        )
-      }
-    },
-    {
-      field: 'id',
-      headerName: 'Address',
-      minWidth: 200,
-      renderCell: (row: RowGateway) => (
-        <div className={'text-xs md:text-sm'}>
-          <EntityLink
-            entity={'gateway'}
-            entityId={row.id}
-          />
-        </div>
-      )
-    },
-    {
-      field: 'status',
-      headerName: 'Status',
-    },
-    {
-      field: 'stakeAmount',
-      headerName: 'Stake Amount',
-      align: 'right',
-    },
-    {
-      field: 'balance',
-      headerName: 'Balance',
-      align: 'right',
-    },
-    {
-      field: 'applicationsDelegating',
-      headerName: 'Applications Delegating',
-      description: "Applications that this gateways have permissions",
-      renderCell: (cell: RowGateway) => (
-        cell.applicationsDelegating.length ? <Chip values={cell.applicationsDelegating.map((app, index) => !index ? (
-          <div className={'text-[10px] md:text-xs h-[20px] mt-[-4px]'} key={app}>
-            <EntityLink
-              entity={'app'}
-              entityId={app}
-              label={truncateAddress(app)}
-              copy={{
-                enabled: false
-              }}
-            />
-          </div>
-        ) : app)} /> : 'None'
-      )
-    },
-    {
-      field: 'services',
-      headerName: 'Services',
-      renderCell: (cell: RowGateway) => (
-        cell.services.length ? <Chip values={cell.services} /> : 'None'
-      )
-    },
-  ]
 
   return (
     <Table
