@@ -1,7 +1,7 @@
 import { Time } from '@/app/dashboards/services/constants'
 
 export function getTimeBoxLabel(time: string) {
-  let timeToUse = Time.Last30d
+  let timeToUse = Time.Last7d
 
   if (time && (Object.values(Time).includes(time as Time) || time === 'last48h')) {
     timeToUse = time as Time

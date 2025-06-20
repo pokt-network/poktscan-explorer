@@ -7,12 +7,19 @@ export const serviceByIdDocument = graphql(`
       name
       computeUnitsPerRelay
       ownerId
-      newNumRelaysEma
       apps: applicationServices {
         totalCount
       }
       suppliers: supplierServiceConfigs {
         totalCount
+      }
+      relayMiningDifficultyUpdatedEvents(
+        orderBy: BLOCK_ID_DESC
+        first: 1
+      ) {
+        nodes {
+          newNumRelaysEma
+        }
       }
     }
   }

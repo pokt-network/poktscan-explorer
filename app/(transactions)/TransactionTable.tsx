@@ -48,27 +48,19 @@ interface TransactionTableProps {
 
 export default function TransactionTable({rawRows, includeSigner = true, pagination, totalItems, subtitle, disableSubscription = false}: TransactionTableProps) {
   const rows: Array<RowTransaction> = rawRows.map((transaction) => {
-    const sendMessageString = transaction.messages!.nodes.find((msg) => msg!.typeUrl === '/cosmos.bank.v1beta1.MsgSend')
-
-    let sendMessage
-
-    if (sendMessageString && transaction.messages!.nodes.length === 1) {
-      sendMessage = JSON.parse(sendMessageString.json!)
-    }
-
-    const amount = sendMessage?.amount?.at(0)
-
     const fee = transaction.fees!.at(0) || {
       amount: '0',
       denom: 'upokt'
     }
 
+    const amount = transaction.amountSentByDenom?.find(a => a.denom === 'upokt')
+
     return {
       id: transaction.id || '',
       result: transaction.code,
       codespace: transaction.codespace,
-      firstMessage: transaction?.messages?.nodes?.at(0)?.typeUrl?.split('.')?.at(-1)?.replace('Msg', '') || '',
-      totalMessages: transaction?.messages?.totalCount || 0,
+      firstMessage: transaction?.amountOfMessages?.at(0)?.type?.split('.')?.at(-1)?.replace('Msg', '') || '',
+      totalMessages: transaction?.amountOfMessages?.reduce((acc, curr) => acc + curr.amount, 0) || 0,
       height: Number(transaction?.block?.height || 0),
       timestamp: transaction?.block?.timestamp || '',
       amount: amount ? formatAmount(amount) : '-',

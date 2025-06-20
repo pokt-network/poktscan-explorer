@@ -84,12 +84,7 @@ const searchByHashDocument = graphql(`
     transaction(id: $hash) {
       id
       code
-      messages {
-        nodes {
-          typeUrl
-          json
-        }
-      }
+      amountOfMessages
     }
   }
 `)
@@ -542,6 +537,7 @@ export default function SearchContent({value, close, rpcUrl}: SearchContentProps
       }
 
       if (data.transaction) {
+        const amountOfMessages = data?.transaction?.amountOfMessages?.reduce((acc, curr) => acc + curr.amount, 0) || 0
         rows.push({
           entity: 'tx',
           entityId: data.transaction.id,
@@ -552,11 +548,11 @@ export default function SearchContent({value, close, rpcUrl}: SearchContentProps
                {data.transaction.code === 0 ? 'Success' : 'Failed'}
               </span>
               <span className={'inline-block bg-[color:--background] ml-2 mr-[2px] p-2 py-1 rounded-md border-[2px] border border-[color:--divider]'}>
-                {data.transaction.messages.nodes.at(0)?.typeUrl?.split('.')?.at(-1)?.replace('Msg', '') || 'Unknown'}
+                {data.transaction.amountOfMessages?.at(0)?.type?.split('.')?.at(-1)?.replace('Msg', '') || 'Unknown'}
               </span>
-              {data.transaction.messages.nodes.length > 1 && (
+              {amountOfMessages > 1 && (
                 <span className={"text-[color:--secondary] text-xs font-semibold"}>
-                  +{data.transaction.messages.nodes.length - 1}
+                  +{amountOfMessages - 1}
                 </span>
               )}
             </>

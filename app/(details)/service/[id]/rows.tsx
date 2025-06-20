@@ -18,7 +18,7 @@ export function parseServiceFromIndexer(data: DocumentNodeData<typeof serviceByI
     name: service.name,
     computeUnitsPerRelay: service.computeUnitsPerRelay,
     ownerAddress: service.ownerId,
-    relayMiningDifficulty: service.newNumRelaysEma,
+    relayMiningDifficulty: service.relayMiningDifficultyUpdatedEvents?.nodes?.[0]?.newNumRelaysEma,
     applications: service.apps.totalCount,
     suppliers: service.suppliers.totalCount,
   }

@@ -19,13 +19,8 @@ export const transactionsPageDocument = graphql(`
         gasWanted
         signerAddress
         fees
-        messages(first: 1) {
-          totalCount
-          nodes {
-            typeUrl
-            json
-          }
-        }
+        amountOfMessages
+        amountSentByDenom
       }
     }
   }

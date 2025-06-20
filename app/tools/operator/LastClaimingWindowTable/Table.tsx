@@ -4,12 +4,12 @@ import DataProvider from '@/app/context/DataContext'
 import {
   getDataByDelegatorAddressesAndBlocksDocument,
   getParamsDocument,
-} from '@/app/dashboards/node-running/operations'
+} from '@/app/tools/operator/operations'
 import { Suspense } from 'react'
-import LastClaimingWindowTableLoader from '@/app/dashboards/node-running/LastClaimingWindowTable/Loader'
-import LastClaimingWindowTableCard from '@/app/dashboards/node-running/LastClaimingWindowTable/Card'
-import ClientLastClaimingWindowTable from '@/app/dashboards/node-running/LastClaimingWindowTable/ClientTable'
-import TableCardActions from '@/app/dashboards/node-running/CardActions'
+import LastClaimingWindowTableLoader from '@/app/tools/operator/LastClaimingWindowTable/Loader'
+import LastClaimingWindowTableCard from '@/app/tools/operator/LastClaimingWindowTable/Card'
+import ClientLastClaimingWindowTable from '@/app/tools/operator/LastClaimingWindowTable/ClientTable'
+import TableCardActions from '@/app/tools/operator/CardActions'
 
 interface LastClaimingWindowTableProps {
   addresses: Array<string>
