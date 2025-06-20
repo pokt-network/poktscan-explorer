@@ -1,6 +1,6 @@
 import BaseTable from '@/app/components/BaseTable'
-import columns from '@/app/dashboards/node-running/columns'
-import LastClaimingWindowTableCard from '@/app/dashboards/node-running/LastClaimingWindowTable/Card'
+import columns from '@/app/tools/operator/columns'
+import LastClaimingWindowTableCard from '@/app/tools/operator/LastClaimingWindowTable/Card'
 
 export default function LastClaimingWindowTableLoader() {
   return (

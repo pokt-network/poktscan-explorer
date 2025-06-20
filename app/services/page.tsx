@@ -92,13 +92,14 @@ async function ServerServicesPage({searchParams}: PageProps) {
   }
 
   const rows: Array<RowService> = data.services?.nodes?.map((service) => {
+    const relayMiningDifficulty = service?.relayMiningDifficultyUpdatedEvents?.nodes?.at(0)?.newNumRelaysEma
     return {
       id: service?.id,
       name: service?.name,
       computeUnitsPerRelay: formatSimpleAmount(service?.computeUnitsPerRelay),
       apps: service?.apps?.totalCount || 0,
       suppliers: service?.suppliers?.totalCount || 0,
-      relayMiningDifficulty: service?.newNumRelaysEma ? formatSimpleAmount(service?.newNumRelaysEma) : '-'
+      relayMiningDifficulty: relayMiningDifficulty ? formatSimpleAmount(relayMiningDifficulty) : '-'
     }
   })
 

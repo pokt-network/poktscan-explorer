@@ -3,9 +3,9 @@ import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import {
   getDataByDelegatorAddressesAndBlocksDocument,
   getParamsDocument,
-} from '@/app/dashboards/node-running/operations'
+} from '@/app/tools/operator/operations'
 import { useDataContext } from '@/app/context/DataContext'
-import columns, { DataByDelegatorRow } from '@/app/dashboards/node-running/columns'
+import columns, { DataByDelegatorRow } from '@/app/tools/operator/columns'
 import { useLazyQuery } from '@apollo/client'
 import React, { useEffect, useMemo, useRef, useCallback } from 'react'
 import { formatSimpleAmount, formatUpokt } from '@/app/utils/format'

@@ -1,16 +1,16 @@
 import { Suspense } from 'react'
-import ByTimeTableLoader from '@/app/dashboards/node-running/ByTimeTable/Loader'
+import ByTimeTableLoader from '@/app/tools/operator/ByTimeTable/Loader'
 import { getClient } from '@/app/config/apollo/rsc'
 import {
   getDataByDelegatorAddressesAndTimesDocument,
   getDataByDelegatorAddressesAndTimesVariables,
-} from '@/app/dashboards/node-running/operations'
+} from '@/app/tools/operator/operations'
 import { getLatestBlock } from '@/app/api/blocks'
 import DataProvider from '@/app/context/DataContext'
-import ByTimeTableCard from '@/app/dashboards/node-running/ByTimeTable/Card'
-import ClientByTimeTable from '@/app/dashboards/node-running/ByTimeTable/ClientTable'
-import TableCardActions from '@/app/dashboards/node-running/CardActions'
-import TimeSelector from '@/app/dashboards/node-running/TimeSelector'
+import ByTimeTableCard from '@/app/tools/operator/ByTimeTable/Card'
+import ClientByTimeTable from '@/app/tools/operator/ByTimeTable/ClientTable'
+import TableCardActions from '@/app/tools/operator/CardActions'
+import TimeSelector from '@/app/tools/operator/TimeSelector'
 
 interface ByTimeTableProps {
   timeSelected: string

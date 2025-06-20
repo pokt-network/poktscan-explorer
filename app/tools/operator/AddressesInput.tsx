@@ -5,7 +5,7 @@ import React, { useState } from 'react'
 import { isValidPoktAddress } from '@/app/utils/poktroll'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Textarea } from '@/components/ui/textarea'
-import { maxAddresses } from '@/app/dashboards/node-running/constants'
+import { maxAddresses } from '@/app/tools/operator/constants'
 
 interface SearchByAddressProps {
   defaultValue?: string

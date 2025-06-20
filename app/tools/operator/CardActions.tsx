@@ -3,7 +3,7 @@
 import ExportButton from '@/app/components/ExportButton'
 import { useDataContext } from '@/app/context/DataContext'
 import { CsvColumn } from '@/app/utils/exportToCsv'
-import columns, { DataByDelegatorRow } from '@/app/dashboards/node-running/columns'
+import columns, { DataByDelegatorRow } from '@/app/tools/operator/columns'
 import React from 'react'
 
 const labelByColumn: Record<string, string> = {

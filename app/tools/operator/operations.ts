@@ -1,5 +1,5 @@
 import { graphql } from '@/app/config/gql'
-import { Time } from '@/app/dashboards/node-running/constants'
+import { Time } from '@/app/tools/operator/constants'
 import { ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { addHoursToUtc } from '@/app/Charts/utils'
 

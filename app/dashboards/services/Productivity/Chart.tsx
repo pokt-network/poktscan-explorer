@@ -104,7 +104,7 @@ export default function ServicesProductivityChart({
       })
 
       return acc
-    }, {} as Record<string, Array<DataItem>>)
+    }, {} as Record<string, Array<DataItem>>) || []
 
     return Object.entries(dataNotFilled).reduce((acc, [serviceId, data]) => ({
       ...acc,

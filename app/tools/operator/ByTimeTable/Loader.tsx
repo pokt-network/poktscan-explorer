@@ -1,6 +1,6 @@
-import ByTimeTableCard from '@/app/dashboards/node-running/ByTimeTable/Card'
+import ByTimeTableCard from '@/app/tools/operator/ByTimeTable/Card'
 import BaseTable from '@/app/components/BaseTable'
-import columns from '@/app/dashboards/node-running/columns'
+import columns from '@/app/tools/operator/columns'
 
 interface LoaderProps {
   timeSelected: string

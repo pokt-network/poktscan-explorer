@@ -2,7 +2,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   selectedTimeCookieKey, selectedTimeParamKey, Time,
-} from '@/app/dashboards/node-running/constants'
+} from '@/app/tools/operator/constants'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { setCookie } from '@/app/utils/cookies'
 
