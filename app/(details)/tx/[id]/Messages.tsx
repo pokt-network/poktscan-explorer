@@ -49,7 +49,7 @@ async function ServerMessages({hash}: MessagesProps) {
 
 export function DisplayMessages({messages}: {messages: Array<{typeUrl: string, json: string}>}) {
   return (
-    <Accordion type={'multiple'}>
+    <Accordion type={'multiple'} defaultValue={messages.length === 1 ? ['0'] : undefined}>
       {messages.map((node, index) => (
         <AccordionItem value={index.toString()} key={index.toString()}
                        className={index === messages.length - 1 ? 'border-none' : undefined}>

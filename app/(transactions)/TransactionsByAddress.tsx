@@ -16,9 +16,6 @@ const transactionsByAddressDocument = graphql(`
         or: [
           {
             signerAddress: { equalTo: $address },
-          },
-          {
-            messages: { some: {json: {includesInsensitive: $address}}}
           }
         ]
       }

@@ -50,25 +50,39 @@ export default function getRows(app: Application | null, isLoading = false) {
     },
   ]
 
-  if (!isLoading && app!.status !== "Staked" && app!.unstakingBeginAt) {
+  if (!isLoading && app?.status !== 'Staked' && app?.unstakingBeginAt) {
     rows.push({
         type: 'divider'
       }, {
         type: 'row',
-        label: 'Unstaking Begin At',
-        value: app!.unstakingBeginAt
-      },
-      {
-        type: 'row',
-        label: 'Unstaking End At',
-        value: app!.unstakingEndsAt
-      })
+        label: 'Unstaking Begins At',
+        value: (
+          <div className={"text-sm"}>
+            <EntityLink entity={'block'} entityId={app.unstakingBeginAt} copy={{ enabled: true }} />
+          </div>
+        )
+      }
+    )
 
-    if (app!.unstakedAt) {
+    if (app.unstakedAt) {
       rows.push({
         type: 'row',
-        label: 'Unstaked At Height',
-        value: app!.unstakedAt
+        label: 'Unstaked At',
+        value: (
+          <div className={"text-sm"}>
+            <EntityLink entity={'block'} entityId={app.unstakedAt} copy={{ enabled: true }} />
+          </div>
+        )
+      })
+    } else if (app.unstakingEndsAt) {
+      rows.push({
+        type: 'row',
+        label: 'Unstaking Ends At',
+        value: (
+          <div className={"text-sm"}>
+            <EntityLink entity={'block'} entityId={app.unstakingEndsAt} copy={{ enabled: true }} />
+          </div>
+        )
       })
     }
   }

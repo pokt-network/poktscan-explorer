@@ -6,8 +6,8 @@ import { DocumentNode } from 'graphql'
 import useFetchOnBlock from '@/app/hooks/useFetchOnBlock'
 import ErrorBoundary from '@/app/components/ErrorBoundary'
 import EntityDetail, { Item } from '@/app/components/EntityDetail'
-import NotFound from '@/app/not-found'
 import { getSourceChipsRow } from '@/app/components/SourceChips'
+import EntityNotFound from '@/app/(details)/EntityNotFound'
 
 interface DetailWrapperProps<T, TProps, TResult> {
   id: string
@@ -60,13 +60,13 @@ export default function BaseDetail<T, TProps, TResult>({
 
   // Handle not found case (only for components that need it)
   if (showNotFoundForMissingData && !data && !error) {
-    return <NotFound />
+    return <EntityNotFound id={id} />
   }
 
   // Handle error case with retry functionality
   if (error) {
     return (
-      <div className="h-[162px] w-full flex">
+      <div className="h-[200px] w-full flex">
         <ErrorBoundary
           getProps={async () => {
             const res = await fetchFunction(id, rpcUrl, client)

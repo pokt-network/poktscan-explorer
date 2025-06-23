@@ -55,7 +55,7 @@ export function formatAmount({
   denom,
   includeSymbol = true,
   abbreviateThreshold = 1e8,
-  maxDecimals = 4,
+  maxDecimals = 6,
 }: FormatAmountProps) {
   if (!amount) {
     return '0'
@@ -84,7 +84,9 @@ export function formatAmount({
       amountString = toScientificNotation(amountNumber)
     }
   } else {
-    amountString = Number(amountNumber.toFixed(maxDecimals)).toLocaleString()
+    amountString = Number(amountNumber.toFixed(maxDecimals)).toLocaleString(undefined, {
+      maximumFractionDigits: maxDecimals,
+    })
   }
 
   return symbol && includeSymbol ? `${amountString} ${symbol}` : amountString

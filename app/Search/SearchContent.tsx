@@ -248,7 +248,7 @@ function RpcSearch({value, close, rpcUrl}: SearchContentProps) {
         if (tx) {
           rows.push({
             entity: 'tx',
-            entityId: valueTrimmed,
+            entityId: valueTrimmed.toUpperCase(),
             description: (
               <>
               <span
@@ -411,9 +411,7 @@ function RpcSearch({value, close, rpcUrl}: SearchContentProps) {
   }
 
   if (!rows.length) {
-    return (
-      <EmptySearch />
-    )
+    return <IndexerSearch value={value} close={close} rpcUrl={rpcUrl} />
   }
 
   return (
@@ -441,29 +439,8 @@ function RpcSearch({value, close, rpcUrl}: SearchContentProps) {
   )
 }
 
-interface SearchContentProps {
-  value: string;
-  close: () => void;
-  rpcUrl: string
-}
-
-export default function SearchContent({value, close, rpcUrl}: SearchContentProps) {
+function IndexerSearch({value, close}: SearchContentProps) {
   const valueTrimmed = value.trim()
-
-  const {data, error: errorFromMetadata} = useSuspenseQuery(indexerMetadataDocument)
-
-  if (errorFromMetadata) {
-    return (
-      <RpcSearch value={valueTrimmed} close={close} rpcUrl={rpcUrl} />
-    )
-  }
-
-  if (isNaN(Number(valueTrimmed)) ? getUseRpcData(data) : data!._metadata!.lastProcessedHeight! < Number(valueTrimmed)) {
-    return (
-      <RpcSearch value={valueTrimmed} close={close} rpcUrl={rpcUrl} />
-    )
-  }
-
   const rows: Array<{
     entity: EntityLinkProps['entity'];
     entityId: EntityLinkProps['entityId'];
@@ -506,9 +483,9 @@ export default function SearchContent({value, close, rpcUrl}: SearchContentProps
             >
               {getStakeLabel(stakeStatus)}
             </span> - {formatAmount({
-              amount: stakeAmount,
-              denom: stakeDenom
-            })}
+            amount: stakeAmount,
+            denom: stakeDenom
+          })}
           </>
         })
       }
@@ -668,4 +645,30 @@ export default function SearchContent({value, close, rpcUrl}: SearchContentProps
       ))}
     </div>
   )
+}
+
+interface SearchContentProps {
+  value: string;
+  close: () => void;
+  rpcUrl: string
+}
+
+export default function SearchContent({value, close, rpcUrl}: SearchContentProps) {
+  const valueTrimmed = value.trim()
+
+  const {data, error: errorFromMetadata} = useSuspenseQuery(indexerMetadataDocument)
+
+  if (errorFromMetadata) {
+    return (
+      <RpcSearch value={valueTrimmed} close={close} rpcUrl={rpcUrl} />
+    )
+  }
+
+  if (isNaN(Number(valueTrimmed)) ? getUseRpcData(data) : data!._metadata!.lastProcessedHeight! < Number(valueTrimmed)) {
+    return (
+      <RpcSearch value={valueTrimmed} close={close} rpcUrl={rpcUrl} />
+    )
+  }
+
+  return <IndexerSearch value={valueTrimmed} close={close} rpcUrl={rpcUrl} />
 }

@@ -4,8 +4,8 @@ import { Item } from '@/app/components/EntityDetail'
 import EntityLink from '@/app/components/EntityLink'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
-import { formatAmount } from '@/app/utils/format'
 import { Tx } from '@/app/(details)/tx/[id]/getTx'
+import CoinsRow from '@/app/(details)/CoinsRow'
 
 export default function getRows(tx: Tx | null, isLoading = false) {
   const skeleton = isLoading ? (
@@ -109,13 +109,21 @@ export default function getRows(tx: Tx | null, isLoading = false) {
     {
       type: 'row',
       label: 'Fee',
-      value:  skeleton || formatAmount(tx.fees.find(f => f.denom === 'upokt') || {
-        amount: '0',
-        denom: 'upokt',
-        maxDecimals: 6
-      })
+      value: skeleton || (
+        <CoinsRow coins={tx!.fees} />
+      )
     }
   ]
+
+  if (!isLoading && tx?.amountSentByDenom?.length) {
+    rows.push({
+      type: 'row',
+      label: 'Amount',
+      value: skeleton || (
+        <CoinsRow coins={tx.amountSentByDenom} />
+      )
+    })
+  }
 
   if (!isLoading && tx.code !== 0) {
     rows.splice(2, 0, ...[

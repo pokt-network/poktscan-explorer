@@ -37,7 +37,7 @@ export async function getGatewayFromRpc(address: string, rpcUrl: string) {
   return {
     balance: balance,
     stake: gateway.stake.amount,
-    status: gateway.unstake_session_end_height === '0' ? 'Staked' : 'Unstaking/Unstaked',
+    status: gateway.unstake_session_end_height === '0' ? 'Staked' : 'Unstaking',
     unstakingBeginAt: null,
     unstakingEndsAt: null,
     unstakedAt: null,

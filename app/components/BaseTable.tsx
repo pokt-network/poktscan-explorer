@@ -69,14 +69,16 @@ export default function BaseTable({rows, columns, defaultMinWidth, isLoading, sk
                   minWidth: column.minWidth || defaultMinWidth,
                   maxWidth: column.maxWidth,
                   width: column.width,
+                    paddingTop: column.description ? '8px' : '10px',
+                    paddingBottom: column.description ? '12px' : '10px'
                 }}
-                className={`${index ? 'pl-2 md:pl-4' : 'pl-4'} ${align} text-xs md:text-[0.8125rem] whitespace-nowrap py-[10px] ${index === columns.length - 1 ? 'pr-4' : 'pr-2 md:pr-4'}`}
+                className={`${index ? 'pl-2 md:pl-4' : 'pl-4'} ${align} text-xs md:text-[0.8125rem] whitespace-nowrap ${index === columns.length - 1 ? 'pr-4' : 'pr-2 md:pr-4'}`}
               >
                   <span>
                     {column.headerName}
                   </span>
                 {column.description && (
-                  <div className={'inline-flex relative w-4 h-4'}>
+                  <div className={'inline-flex relative w-[15px] h-[15px]'}>
                     <TooltipProvider delayDuration={150}>
                       <Tooltip>
                         <TooltipTrigger className={'ml-[2px] absolute top-[3px] left-[2px]'}>

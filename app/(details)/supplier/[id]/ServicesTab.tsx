@@ -1,10 +1,14 @@
-import { getRawSupplierFromRpc } from '@/app/(details)/supplier/[id]/getSupplier'
+import {
+  getRawSupplierFromRpc,
+  getServicesOfSupplier,
+  SupplierResponseFromRpc,
+} from '@/app/(details)/supplier/[id]/getSupplier'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import EntityLink from '@/app/components/EntityLink'
-import { SupplierRpcType } from '@/app/(details)/supplier/[id]/Detail'
 import React, { Suspense } from 'react'
 import NoData from '@/app/components/NoData'
 import { Skeleton } from '@/components/ui/skeleton'
+import { getClient } from '@/app/config/apollo/rsc'
 
 const rpcUrl = process.env.RPC_BASE_URL!
 
@@ -60,18 +64,26 @@ interface ServicesTabProps {
 }
 
 async function ServerServicesTab({id}: ServicesTabProps) {
-  const supplier: SupplierRpcType = await getRawSupplierFromRpc(id, rpcUrl)
+  const supplier = await getRawSupplierFromRpc(id, rpcUrl)
+
+  let services: Array<SupplierResponseFromRpc['supplier']['services'][number] & {activatedAt?: string}>
+
+  if (supplier) {
+    services = supplier.services
+  } else {
+    services = await getServicesOfSupplier(id, getClient())
+  }
 
   let content: React.ReactNode
 
-  if (supplier.services.length === 0) {
+  if (services.length === 0) {
     content = (
       <div className={'flex grow justify-center items-center'}>
         <NoData label={'No services found'} />
       </div>
     )
   } else {
-    const activationHeightPerService = supplier.service_config_history.reduce((acc, {service, activation_height, deactivation_height}) => {
+    const activationHeightPerService = supplier?.service_config_history?.reduce((acc, {service, activation_height, deactivation_height}) => {
       if (deactivation_height !== '0') return acc
 
       const currentItem = acc[service.service_id]
@@ -82,18 +94,18 @@ async function ServerServicesTab({id}: ServicesTabProps) {
       }
 
       return acc
-    },{} as Record<string, bigint>)
+    },{} as Record<string, bigint>) || {}
 
     content = (
       <Accordion type={'multiple'} className={'p-0'}>
-        {supplier.services.map((service, index) => {
+        {services.map((service, index) => {
           const revSharing = service.rev_share.reduce((acc, item) => acc + Number(item.rev_share_percentage), 0)
 
           return (
             <AccordionItem
               value={index.toString()}
               key={index.toString()}
-              className={index === supplier.services.length - 1 ? 'border-none' : undefined}
+              className={index === services.length - 1 ? 'border-none' : undefined}
             >
               <AccordionTrigger className={'flex flex-row gap-2 justify-start items-center flex-wrap h-14'}>
                 <p className={'font-medium text-md whitespace-nowrap text-ellipsis overflow-hidden'}>
@@ -109,14 +121,14 @@ async function ServerServicesTab({id}: ServicesTabProps) {
                     Rev Sharing: {revSharing}%
                   </p>
                 )}
-                {activationHeightPerService[service.service_id] && (
+                {(service.activatedAt || activationHeightPerService[service.service_id]) && (
                   <div className={'h-7 flex flex-row gap-2 items-center border-[2px] border-[color:--divider] pl-2 py-1 bg-[color:--background] ml-1 mr-[2px] rounded-md'}>
                     <p
                       className={'text-xs whitespace-nowrap'}>
                       Activated at
                     </p>
                     <div className={'text-xs [&_button]:scale-75 [&_button]:-ml-2'}>
-                      <EntityLink entity={'block'} entityId={activationHeightPerService[service.service_id].toString()} />
+                      <EntityLink entity={'block'} entityId={service.activatedAt || activationHeightPerService[service.service_id].toString()} />
                     </div>
                   </div>
                 )}

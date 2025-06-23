@@ -2,6 +2,7 @@ import type { Supplier } from '@/app/(details)/supplier/[id]/getSupplier'
 import { Item } from '@/app/components/EntityDetail'
 import { Skeleton } from '@/components/ui/skeleton'
 import React from 'react'
+import EntityLink from '@/app/components/EntityLink'
 
 export default function getRows(values: Supplier | null,
   isLoading = false
@@ -26,23 +27,12 @@ export default function getRows(values: Supplier | null,
       label: 'Stake Amount',
       value: skeleton || values.stakeAmount
     },
-  ]
-
-  if (!isLoading && values.stakeType === 'Non-Custodian') {
-    rows.push({
-      type: 'divider'
-    }, {
+    {
       type: 'row',
-      label: 'Operator Address',
-      value: values.operatorAddress,
-    })
-  }
-
-  rows.push({
-    type: 'row',
-    label: 'Balance',
-    value: skeleton || values.balance
-  })
+      label: 'Balance',
+      value: skeleton || values.balance
+    }
+  ]
 
   if (!isLoading && values.stakeType === 'Non-Custodian') {
     rows.push({
@@ -50,7 +40,11 @@ export default function getRows(values: Supplier | null,
       }, {
         type: 'row',
         label: 'Owner Address',
-        value: values.ownerAddress,
+        value: (
+          <div className={'text-sm'}>
+            <EntityLink entity={'account'} entityId={values.ownerAddress} />
+          </div>
+        ),
       },
     )
 
@@ -68,20 +62,34 @@ export default function getRows(values: Supplier | null,
         type: 'divider'
       }, {
         type: 'row',
-        label: 'Unstaking Begin At',
-        value: values.unstakingBeginAt
-      },
-      {
-        type: 'row',
-        label: 'Unstaking End At',
-        value: values.unstakingEndAt
-      })
+        label: 'Unstaking Begins At',
+        value: (
+          <div className={"text-sm"}>
+            <EntityLink entity={'block'} entityId={values.unstakingBeginAt} copy={{enabled: true}}/>
+          </div>
+        )
+      }
+    )
 
     if (values.unstakedAt) {
       rows.push({
         type: 'row',
-        label: 'Unstaked At Height',
-        value: values.unstakedAt
+        label: 'Unstaked At',
+        value: (
+          <div className={"text-sm"}>
+            <EntityLink entity={'block'} entityId={values.unstakedAt} copy={{enabled: true}}/>
+          </div>
+        )
+      })
+    } else if (values.unstakingEndAt) {
+      rows.push({
+        type: 'row',
+        label: 'Unstaking Ends At',
+        value: (
+          <div className={"text-sm"}>
+            <EntityLink entity={'block'} entityId={values.unstakingEndAt} copy={{enabled: true}}/>
+          </div>
+        )
       })
     }
   }

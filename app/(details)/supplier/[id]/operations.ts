@@ -48,3 +48,27 @@ export const supplierByIdDocument = graphql(`
     }
   }
 `)
+
+export const servicesOfSupplier = graphql(`
+  query servicesOfSupplier($address: String!, $cursor: Cursor) {
+    supplierServiceConfigs(
+      filter: {
+        supplierId: {
+          equalTo: $address
+        }
+      }
+      after: $cursor
+    ) {
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      nodes {
+        serviceId
+        revShare
+        endpoints
+        activatedAtId
+      }
+    }
+  }
+`)
