@@ -29,6 +29,7 @@ export interface FetchOnBlockOptions<
   resultParser?: (result: DeepRequired<DocumentNodeData<T>>) => R | Promise<R>,
   initialResult?: R,
   skip?: boolean,
+  pollInterval?: number
 }
 
 export default function useFetchOnBlock<
@@ -39,7 +40,8 @@ export default function useFetchOnBlock<
   variables,
   resultParser,
   initialResult,
-  skip
+  skip,
+  pollInterval
 }: FetchOnBlockOptions<T, R>): DeepRequired<R> {
   const lastValueRef = useRef<R | null>(initialResult || null)
   const [parsedData, setParsedData] = useState<R | null>(initialResult || null)
@@ -61,20 +63,30 @@ export default function useFetchOnBlock<
 
     if (currentHeight !== firstHeight) {
       const variablesToUse = typeof variables === 'function' ? variables(currentHeight, currentTime) : variables
-      fetchData({
-        variables: variablesToUse,
-      }).then(async ({data}) => {
-        if (data) {
-          if (resultParser) {
-            const parsed = await resultParser(data)
-            lastValueRef.current = parsed
-            setParsedData(parsed)
-          } else {
-            lastValueRef.current = data
-            setParsedData(data)
+
+      const fetchDataFn = () => {
+        fetchData({
+          variables: variablesToUse,
+        }).then(async ({data}) => {
+          if (data) {
+            if (resultParser) {
+              const parsed = await resultParser(data)
+              lastValueRef.current = parsed
+              setParsedData(parsed)
+            } else {
+              lastValueRef.current = data
+              setParsedData(data)
+            }
           }
-        }
-      })
+        })
+      }
+
+      fetchDataFn()
+
+      if (pollInterval) {
+        const interval = setInterval(fetchDataFn, pollInterval)
+        return () => clearInterval(interval)
+      }
     }
     // eslint-disable-next-line
   }, [currentHeight, query, variables])

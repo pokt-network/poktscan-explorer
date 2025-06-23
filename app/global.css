@@ -10,6 +10,7 @@
         --radius: 0.5rem;
         --divider: #e9ecef;
         --error: #dc2626;
+        --error-background: #ff9c9c;
         --primary: rgb(7,132,195);
         --secondary: #6c757d;
         --highlight-option: #efefef;
@@ -52,6 +53,7 @@
         --foreground: #ededed;
         --divider: #222;
         --error: #f87171;
+        --error-background: #ffaaaa;
         --primary: rgb(106,181,219);
         --secondary: #bbb;
         --highlight-option: #262626;

@@ -57,7 +57,7 @@ export default function getRows(values: Supplier | null,
     }
   }
 
-  if (!isLoading && values.status !== 'Staked' && values?.unstakingBeginAt) {
+  if (!isLoading && values?.status !== 'Staked' && values?.unstakingBeginAt) {
     rows.push({
         type: 'divider'
       }, {
