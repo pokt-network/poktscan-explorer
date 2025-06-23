@@ -10,6 +10,7 @@ interface FetchDataFromRpcOrIndexerOptions<T> {
   rpcUrl: string,
   apolloClient: ApolloClient<any>
   isBlock?: boolean
+  fetchIndexerIfRpcNotFound?: boolean
 }
 
 export interface FetchResult<T> {
@@ -27,49 +28,62 @@ export async function fetchDataFromRpcOrIndexer<T>(
     rpcUrl,
     apolloClient,
     isBlock = false,
+    fetchIndexerIfRpcNotFound = true,
   }: FetchDataFromRpcOrIndexerOptions<T>
 ): Promise<FetchResult<T>> {
+
+
   try {
     let metadata: DocumentNodeData<typeof indexerMetadataDocument>
+
+    const fetchFromRpc = async () => {
+      return {
+        data: await getFromRpc(id, rpcUrl),
+        source: 'rpc' as const,
+        height: metadata?._metadata?.targetHeight || undefined
+      }
+    }
+
+    const fetchFromIndexer = async () => {
+      return {
+        data: await getFromIndexer(id, apolloClient),
+        source: 'indexer' as const,
+        height: metadata?._metadata?.lastProcessedHeight || undefined
+      }
+    }
+
     try {
       metadata = await apolloClient.query({
         query: indexerMetadataDocument
       }).then((res) => res.data)
     } catch {
-      return {
-        data: await getFromRpc(id, rpcUrl),
-        source: 'rpc'
-      }
+      return await fetchFromRpc()
     }
 
     if (isBlock ? isNaN(Number(id)) || metadata!._metadata!.lastProcessedHeight! < Number(id) : getUseRpcData(metadata)) {
+      let dataFromRpc: T | null = null
+
       try {
+        dataFromRpc = await getFromRpc(id, rpcUrl)
+      } catch {
+        return await fetchFromIndexer()
+      }
+
+      if (dataFromRpc || !fetchIndexerIfRpcNotFound) {
         return {
-          data: await getFromRpc(id, rpcUrl),
+          data: dataFromRpc,
           source: 'rpc',
           height: metadata?._metadata?.targetHeight || undefined
         }
-      } catch {
-        return {
-          data: await getFromIndexer(id, apolloClient),
-          source: 'indexer',
-          height: metadata?._metadata?.lastProcessedHeight || undefined
-        }
       }
+
+      return await fetchFromIndexer()
     }
 
     try {
-      return {
-        data: await getFromIndexer(id, apolloClient),
-        source: 'indexer',
-        height: metadata?._metadata?.lastProcessedHeight || undefined
-      }
+      return await fetchFromIndexer()
     } catch {
-      return {
-        data: await getFromRpc(id, rpcUrl),
-        source: 'rpc',
-        height: metadata?._metadata?.targetHeight || undefined
-      }
+      return await fetchFromRpc()
     }
   } catch {
     return {

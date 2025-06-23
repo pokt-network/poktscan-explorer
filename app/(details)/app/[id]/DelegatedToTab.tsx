@@ -10,6 +10,7 @@ import BaseTable from '@/app/components/BaseTable'
 import TableDownloadButton from '@/app/components/TableDownloadButton'
 import { formatSimpleAmount } from '@/app/utils/format'
 import EntityLink from '@/app/components/EntityLink'
+import { CircleAlert } from 'lucide-react'
 
 const rpcUrl = process.env.RPC_BASE_URL!
 
@@ -23,7 +24,7 @@ async function ServerDelegatedTo({searchParams, app}: DelegatedToTabProps) {
   if (getUseRpcData(metadata)) {
     const application = await getRawAppFromRpc(app, rpcUrl)
 
-    const rows = application.delegatee_gateway_addresses?.map(address => ({
+    const rows = application?.delegatee_gateway_addresses?.map(address => ({
       id: address
     })) || []
 
@@ -47,7 +48,7 @@ async function ServerDelegatedTo({searchParams, app}: DelegatedToTabProps) {
       <div className={"w-full h-full flex flex-col rounded-lg border border-[color:--divider] bg-[color:--main-background] base-shadow"}>
         <div className={"flex pt-4 px-3 md:px-4 pb-3 flex-row w-full min-h-[74px] flex-wrap items-center justify-between gap-3"}>
           <p className={"text-sm"}>
-            {formatSimpleAmount(application.delegatee_gateway_addresses.length)} gateway{application.delegatee_gateway_addresses.length === 1 ? '' : 's'} found
+            {formatSimpleAmount(application?.delegatee_gateway_addresses?.length || 0)} gateway{application?.delegatee_gateway_addresses?.length === 1 ? '' : 's'} found
           </p>
           {rows.length > 0 && (
             <TableDownloadButton rows={rows} columns={tableColumns.map((col) => ({...col, renderCell: undefined}))} />
@@ -57,6 +58,17 @@ async function ServerDelegatedTo({searchParams, app}: DelegatedToTabProps) {
           rows={rows}
           columns={tableColumns}
         />
+        {!application?.delegatee_gateway_addresses?.length && (
+          <div className={"h-[400px] flex flex-col items-center justify-center"}>
+            <CircleAlert className={"h-16 w-16 text-[color:--warning]"}/>
+            <p className={"text-lg font-semibold mt-4 mb-3"}>
+              There are no matching records
+            </p>
+            <p className={"text-sm text-[color:--secondary]"}>
+              Please try another search
+            </p>
+          </div>
+        )}
       </div>
     )
   } else {

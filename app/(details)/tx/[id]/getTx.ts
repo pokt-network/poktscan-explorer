@@ -115,6 +115,7 @@ const txByIdDocument = graphql(`
       memo
       isMultisig
       multisig
+      amountSentByDenom
     }
   }
 `)
@@ -158,6 +159,10 @@ export interface Tx {
     bitarrayElems: string,
     extraBitsStored: number,
   } | null
+  amountSentByDenom: Array<{
+    denom: string,
+    amount: string
+  }>
 }
 
 export async function getTxFromRpc(hash: string, rpcUrl: string): Promise<Tx & {messages: TxResponseFromRpc['tx']['body']['messages']} | null> {
@@ -184,6 +189,27 @@ export async function getTxFromRpc(hash: string, rpcUrl: string): Promise<Tx & {
     );
   }
 
+  // eslint-disable-next-line
+  // @ts-ignore
+  const sentMessages: Array<{
+    '@type': '/cosmos.bank.v1beta1.MsgSend',
+    amount: Array<{amount: string, denom: string}>
+  }> = txFromRpc.tx.body.messages.filter(message => message['@type'] === '/cosmos.bank.v1beta1.MsgSend')
+
+  const amountByDenomRecord = sentMessages.reduce((acc, message) => {
+    message.amount.forEach(amount => {
+      acc[amount.denom] = BigInt(acc[amount.denom] || 0) + BigInt(amount.amount)
+    })
+
+    return acc
+  }, {} as Record<string, bigint>)
+
+  const amountSentByDenom = Object.keys(amountByDenomRecord).map(denom => ({
+    denom,
+    amount: amountByDenomRecord[denom].toString()
+  }))
+
+
   return {
     // need to parse this to be able to obtain signerAddress
     signerAddress,
@@ -207,7 +233,8 @@ export async function getTxFromRpc(hash: string, rpcUrl: string): Promise<Tx & {
       multisigPubKey: multisigObject.multisigPubKey,
       bitarrayElems: multisigObject.bitarrayElems,
       extraBitsStored: multisigObject.extraBitsStored,
-    } : null
+    } : null,
+    amountSentByDenom,
   }
 }
 
@@ -237,6 +264,7 @@ async function getTxFromIndexer(hash: string, apolloClient: ApolloClient<any>): 
     memo: txFromIndexer.memo || null,
     isMultisig: txFromIndexer.isMultisig,
     multisig: txFromIndexer.multisig,
+    amountSentByDenom: txFromIndexer.amountSentByDenom,
   }
 }
 

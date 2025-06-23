@@ -66,7 +66,7 @@ export async function getAppDetailFromRcp(address: string, rpcUrl: string): Prom
 
   return {
     balance: balance,
-    status: application.unstake_session_end_height === '0' ? 'Staked' : 'Unstaking/Unstaked',
+    status: application.unstake_session_end_height === '0' ? 'Staked' : 'Unstaking',
     stake: application.stake.amount,
     services: application.service_configs.map(service => service.service_id),
     unstakingBeginAt: null,

@@ -116,6 +116,8 @@ export async function getValidatorFromRpc(address: string, rpcUrl: string): Prom
 }
 
 export function parseValidatorFromIndexer(data: DocumentNodeData<typeof validatorByIdDocument>) {
+  if (!data?.validator) return null
+
   const validator = data!.validator!
 
   return {

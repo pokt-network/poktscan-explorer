@@ -65,7 +65,10 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       timestamp: transaction?.block?.timestamp || '',
       amount: amount ? formatAmount(amount) : '-',
       raw_amount: amount ? convertUpoktToPokt(amount.amount) : '',
-      fee: formatAmount(fee),
+      fee: formatAmount({
+        ...fee,
+        maxDecimals: 6,
+      }),
       raw_fee: convertUpoktToPokt(fee?.amount),
       signer: transaction.signerAddress!,
     } as RowTransaction

@@ -35,6 +35,7 @@ export default function TransactionDetail({hash, rpcUrl, error, source, data,}: 
       </div>
     )
   }
+
   return (
     <EntityDetail
       items={[
