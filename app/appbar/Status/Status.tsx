@@ -16,6 +16,7 @@ export default async function Status() {
   return (
     <StatusPopover
       initialData={data}
+      pollInterval={process.env.METADATA_POLL_INTERVAL ? parseInt(process.env.METADATA_POLL_INTERVAL) : 5000}
     />
   )
 }
