@@ -63,7 +63,7 @@ export default async function TransferAndTxTabs({params, searchParams, entity, s
       case 'migration':
         element = supportMigrationTab ? (
           <Suspense
-            key={`migration-table-${page}-${itemsPerPage}`}
+            key={`migration-table-${page}-${itemsPerPage}-${new Date().toISOString()}`}
             fallback={
               <LoadingListView
                 rowsAmount={itemsPerPage}

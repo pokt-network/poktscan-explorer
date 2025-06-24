@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useEffect, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function ExplorerSelector() {
   const [origin, setOrigin] = useState('')
@@ -30,10 +31,16 @@ export default function ExplorerSelector() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className={"border flex items-center justify-center pt-[2px] border-[color:--divider] rounded-xs h-[28px] gap-2 px-2"}>
-          <p className={'text-[13px] font-medium dark:text-white'}>
-            {isAlphaSelected ? 'Alpha' : isBetaSelected ? 'Beta' : 'MainNet'}
-          </p>
-          <ChevronDown className={'h-4 w-4 text-[color:--secondary]'} />
+        {!origin ? (
+            <Skeleton className={'h-4 w-16'} />
+          ) : (
+          <>
+            <p className={'text-[13px] font-medium dark:text-white'}>
+              {isAlphaSelected ? 'Alpha' : isBetaSelected ? 'Beta' : 'MainNet'}
+            </p>
+            <ChevronDown className={'h-4 w-4 text-[color:--secondary]'} />
+          </>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align={"end"} className={'z-[1026] border-[color:--divider] bg-[color:--main-background] '}>
         <DropdownMenuLabel
