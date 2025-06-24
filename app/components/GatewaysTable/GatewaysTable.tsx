@@ -7,6 +7,7 @@ import { getStakeLabel } from '@/app/utils/stake'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import { ChipText } from '@/app/components/Chip'
 import { GatewaysSubscription } from '@/app/components/GatewaysTable/GatewaysSubscription'
+import { RefreshPageError } from '@/app/components/ErrorBoundary'
 
 export const columns: Array<GridColDef> = [
   {
@@ -120,17 +121,19 @@ interface PageProps {
 }
 
 export default async function GatewaysTable({page, itemsPerPage, basePath, service, application}: PageProps) {
-  let filter = undefined
+  try {
+    let filter = undefined
 
-  if (service) {
-    filter = {
-      applicationGateways: {
-        some: {
-          application: {
-            applicationServices: {
-              some: {
-                serviceId: {
-                  equalTo: service
+    if (service) {
+      filter = {
+        applicationGateways: {
+          some: {
+            application: {
+              applicationServices: {
+                some: {
+                  serviceId: {
+                    equalTo: service
+                  }
                 }
               }
             }
@@ -138,35 +141,20 @@ export default async function GatewaysTable({page, itemsPerPage, basePath, servi
         }
       }
     }
-  }
 
-  if (application) {
-    filter = {
-      applicationGateways: {
-        some: {
-          applicationId: {
-            equalTo: application
+    if (application) {
+      filter = {
+        applicationGateways: {
+          some: {
+            applicationId: {
+              equalTo: application
+            }
           }
         }
       }
     }
-  }
 
-  let {data} = await getClient().query({
-    query: gatewayListDocument,
-    variables: {
-      limit: itemsPerPage,
-      offset: (page - 1) * itemsPerPage,
-      filter
-    }
-  })
-
-  const totalPages = Math.ceil((data.gateways?.totalCount || 0) / itemsPerPage)
-
-  if (page > totalPages) {
-    page = 1
-
-    const result = await getClient().query({
+    let {data} = await getClient().query({
       query: gatewayListDocument,
       variables: {
         limit: itemsPerPage,
@@ -175,47 +163,66 @@ export default async function GatewaysTable({page, itemsPerPage, basePath, servi
       }
     })
 
-    data = result.data
+    const totalPages = Math.ceil((data.gateways?.totalCount || 0) / itemsPerPage)
+
+    if (page > totalPages) {
+      page = 1
+
+      const result = await getClient().query({
+        query: gatewayListDocument,
+        variables: {
+          limit: itemsPerPage,
+          offset: (page - 1) * itemsPerPage,
+          filter
+        }
+      })
+
+      data = result.data
+    }
+
+    const rows: Array<RowGateway> = data.gateways?.nodes?.map((gateway) => {
+      const balance = gateway.account?.balances?.nodes?.at(0) || {
+        amount: '0',
+        denom: 'upokt'
+      }
+
+      return {
+        id: gateway.id,
+        status: getStakeLabel(gateway.stakeStatus),
+        stakeAmount: formatAmount({
+          amount: gateway.stakeAmount,
+          denom: gateway.stakeDenom
+        }),
+        raw_stakeAmount: convertUpoktToPokt(gateway.stakeAmount),
+        balance: formatAmount(balance),
+        raw_balance: convertUpoktToPokt(balance?.amount),
+        firstApplication: gateway.applications.nodes[0]?.applicationId,
+        allApplications: gateway.applications.totalCount,
+      }
+    })
+
+    return (
+      <Table
+        columns={columns}
+        rows={rows}
+        header={{
+          title: `${data.gateways?.totalCount} gateways found`,
+          subtitle: (
+            <GatewaysSubscription service={service} />
+          )
+        }}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          itemsPerPage,
+          basePath
+        }}
+        defaultMinWidth={70}
+      />
+    )
+  } catch {
+    return (
+      <RefreshPageError />
+    )
   }
-
-  const rows: Array<RowGateway> = data.gateways?.nodes?.map((gateway) => {
-    const balance = gateway.account?.balances?.nodes?.at(0) || {
-      amount: '0',
-      denom: 'upokt'
-    }
-
-    return {
-      id: gateway.id,
-      status: getStakeLabel(gateway.stakeStatus),
-      stakeAmount: formatAmount({
-        amount: gateway.stakeAmount,
-        denom: gateway.stakeDenom
-      }),
-      raw_stakeAmount: convertUpoktToPokt(gateway.stakeAmount),
-      balance: formatAmount(balance),
-      raw_balance: convertUpoktToPokt(balance?.amount),
-      firstApplication: gateway.applications.nodes[0]?.applicationId,
-      allApplications: gateway.applications.totalCount,
-    }
-  })
-
-  return (
-    <Table
-      columns={columns}
-      rows={rows}
-      header={{
-        title: `${data.gateways?.totalCount} gateways found`,
-        subtitle: (
-          <GatewaysSubscription service={service} />
-        )
-      }}
-      pagination={{
-        currentPage: page,
-        totalPages,
-        itemsPerPage,
-        basePath
-      }}
-      defaultMinWidth={70}
-    />
-  )
 }

@@ -5,8 +5,8 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import PocketLogo from '../assets/pocket_logo.svg'
 import { useEffect, useState } from 'react'
+import { Check, ChevronDown } from 'lucide-react'
 
 export default function ExplorerSelector() {
   const [origin, setOrigin] = useState('')
@@ -23,15 +23,22 @@ export default function ExplorerSelector() {
 
   const isMainNetSelected = origin.includes('poktscan.com') && !isAlphaSelected && !isBetaSelected
 
+  const check = (
+    <Check className={'h-4 w-4 text-[color:--secondary] dark:text-white'} />
+  )
+
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className={"border flex items-center justify-center pt-[2px] bg-[color:--background] border-[color:--divider] rounded-md h-[34px] min-w-[34px] w-[34px]"}>
-        <PocketLogo className={'scale-[1.05] pocket_logo'} />
+      <DropdownMenuTrigger className={"border flex items-center justify-center pt-[2px] border-[color:--divider] rounded-xs h-[28px] gap-2 px-2"}>
+          <p className={'text-[13px] font-medium dark:text-white'}>
+            {isAlphaSelected ? 'Alpha' : isBetaSelected ? 'Beta' : 'MainNet'}
+          </p>
+          <ChevronDown className={'h-4 w-4 text-[color:--secondary]'} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align={"end"} className={'z-[1026] border-[color:--divider] bg-[color:--main-background] '}>
         <DropdownMenuLabel
           aria-disabled={isMainNetSelected}
-          className={`flex flex-row font-medium items-center gap-2 ${isMainNetSelected ? 'text-[color:--primary]' : 'hover:bg-[color:--highlight-option]'}`}
+          className={`flex flex-row font-medium justify-between items-center gap-2`}
         >
           <a
             className={'cursor-pointer w-full'}
@@ -40,10 +47,11 @@ export default function ExplorerSelector() {
           >
             MainNet
           </a>
+          {isMainNetSelected && check}
         </DropdownMenuLabel>
         <DropdownMenuLabel
           aria-disabled={isAlphaSelected}
-          className={`flex flex-row font-medium items-center gap-2 ${isAlphaSelected ? 'text-[color:--primary]' : 'hover:bg-[color:--highlight-option]'}`}
+          className={`flex flex-row font-medium justify-between items-center gap-2`}
         >
           <a
             className={'cursor-pointer w-full'}
@@ -52,10 +60,11 @@ export default function ExplorerSelector() {
           >
             Alpha
           </a>
+          {isAlphaSelected && check}
         </DropdownMenuLabel>
         <DropdownMenuLabel
           aria-disabled={isBetaSelected}
-          className={`flex flex-row font-medium items-center gap-2 ${isBetaSelected ? 'text-[color:--primary]' : 'hover:bg-[color:--highlight-option]'}`}
+          className={`flex flex-row font-medium justify-between items-center gap-2`}
         >
           <a
             className={'cursor-pointer w-full'}
@@ -64,6 +73,7 @@ export default function ExplorerSelector() {
           >
             Beta
           </a>
+          {isBetaSelected && check}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuLabel

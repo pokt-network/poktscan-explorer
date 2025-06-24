@@ -7,12 +7,20 @@ import ParamsLoader from '@/app/params/Loader'
 export const dynamic = "force-dynamic";
 
 async function ServerParamsPage() {
-  const { data } = await getClient().query({
-    query: paramsDocument
-  })
+  let data, error = false
+
+  try {
+    const response = await getClient().query({
+      query: paramsDocument
+    })
+
+    data = response.data
+  } catch {
+    error = true
+  }
 
   return (
-    <ParamList initialData={data} />
+    <ParamList initialData={data} initialError={error} />
   )
 }
 

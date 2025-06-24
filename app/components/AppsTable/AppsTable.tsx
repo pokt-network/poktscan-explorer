@@ -7,6 +7,7 @@ import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import { ChipText } from '@/app/components/Chip'
 import { applicationListDocument } from '@/app/apps/operations'
 import AppsSubscription from '@/app/components/AppsTable/AppsSubscription'
+import { RefreshPageError } from '@/app/components/ErrorBoundary'
 
 export const columns: Array<GridColDef> = [
   {
@@ -89,50 +90,37 @@ interface PageProps {
 }
 
 export default async function AppsTable({page, itemsPerPage, basePath, service, gateway}: PageProps) {
-  const client = getClient()
+  try {
+    const client = getClient()
 
-  let filter
+    let filter
 
-  if (service) {
-    filter = {
-      applicationServices: {
-        some: {
-          serviceId: {
-            equalTo: service
+    if (service) {
+      filter = {
+        applicationServices: {
+          some: {
+            serviceId: {
+              equalTo: service
+            }
           }
         }
       }
     }
-  }
 
-  if (gateway) {
-    filter = {
-      applicationGateways: {
-        some: {
-          gatewayId: {
-            equalTo: gateway
+    if (gateway) {
+      filter = {
+        applicationGateways: {
+          some: {
+            gatewayId: {
+              equalTo: gateway
+            }
           }
         }
       }
     }
-  }
 
-  // eslint-disable-next-line prefer-const
-  let {data} = await client.query({
-    query: applicationListDocument,
-    variables: {
-      limit: itemsPerPage,
-      offset: (page - 1) * itemsPerPage,
-      filter
-    }
-  })
-
-  const totalPages = Math.ceil((data.applications?.totalCount || 0) / itemsPerPage)
-
-  if (page > totalPages) {
-    page = 1
-
-    const result = await client.query({
+    // eslint-disable-next-line prefer-const
+    let {data} = await client.query({
       query: applicationListDocument,
       variables: {
         limit: itemsPerPage,
@@ -141,48 +129,67 @@ export default async function AppsTable({page, itemsPerPage, basePath, service, 
       }
     })
 
-    data = result.data
+    const totalPages = Math.ceil((data.applications?.totalCount || 0) / itemsPerPage)
+
+    if (page > totalPages) {
+      page = 1
+
+      const result = await client.query({
+        query: applicationListDocument,
+        variables: {
+          limit: itemsPerPage,
+          offset: (page - 1) * itemsPerPage,
+          filter
+        }
+      })
+
+      data = result.data
+    }
+
+    const rows: Array<RowApp> = data.applications?.nodes?.map((application) => {
+      const balance = application.account?.balances?.nodes?.at(0) || {
+        amount: '0',
+        denom: 'upokt'
+      }
+
+      return {
+        id: application!.id,
+        status: getStakeLabel(application!.stakeStatus),
+        stakeAmount: formatAmount({
+          amount: application!.stakeAmount,
+          denom: application!.stakeDenom,
+        }),
+        raw_stakeAmount: convertUpoktToPokt(application!.stakeAmount),
+        balance: formatAmount(balance),
+        raw_balance: convertUpoktToPokt(balance?.amount),
+        firstService: application!.services.nodes.at(0)?.serviceId,
+        amountOfServices: application!.services.totalCount,
+        firstGateway: application!.applicationGateways.nodes.at(0)?.gatewayId,
+        amountOfGateways: application!.applicationGateways.totalCount,
+      }
+    })
+
+    return (
+      <Table
+        columns={columns}
+        rows={rows}
+        header={{
+          title: `${data.applications?.totalCount} applications found`,
+          subtitle: (
+            <AppsSubscription service={service} />
+          )
+        }}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          itemsPerPage,
+          basePath
+        }}
+      />
+    )
+  } catch {
+    return (
+      <RefreshPageError />
+    )
   }
-
-  const rows: Array<RowApp> = data.applications?.nodes?.map((application) => {
-    const balance = application.account?.balances?.nodes?.at(0) || {
-      amount: '0',
-      denom: 'upokt'
-    }
-
-    return {
-      id: application!.id,
-      status: getStakeLabel(application!.stakeStatus),
-      stakeAmount: formatAmount({
-        amount: application!.stakeAmount,
-        denom: application!.stakeDenom,
-      }),
-      raw_stakeAmount: convertUpoktToPokt(application!.stakeAmount),
-      balance: formatAmount(balance),
-      raw_balance: convertUpoktToPokt(balance?.amount),
-      firstService: application!.services.nodes.at(0)?.serviceId,
-      amountOfServices: application!.services.totalCount,
-      firstGateway: application!.applicationGateways.nodes.at(0)?.gatewayId,
-      amountOfGateways: application!.applicationGateways.totalCount,
-    }
-  })
-
-  return (
-    <Table
-      columns={columns}
-      rows={rows}
-      header={{
-        title: `${data.applications?.totalCount} applications found`,
-        subtitle: (
-          <AppsSubscription service={service} />
-        )
-      }}
-      pagination={{
-        currentPage: page,
-        totalPages,
-        itemsPerPage,
-        basePath
-      }}
-    />
-  )
 }

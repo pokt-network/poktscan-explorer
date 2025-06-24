@@ -18,16 +18,24 @@ interface ByTimeTableProps {
 }
 
 async function ServerByTimeTable({timeSelected, addresses}: ByTimeTableProps) {
-  const latestBlock = await getLatestBlock()
+  let data, error = false
 
-  const { data } = await getClient().query({
-    query: getDataByDelegatorAddressesAndTimesDocument,
-    variables: getDataByDelegatorAddressesAndTimesVariables(
-      addresses,
-      latestBlock.timestamp,
-      timeSelected
-    )
-  })
+  try {
+    const latestBlock = await getLatestBlock()
+
+    const response = await getClient().query({
+      query: getDataByDelegatorAddressesAndTimesDocument,
+      variables: getDataByDelegatorAddressesAndTimesVariables(
+        addresses,
+        latestBlock.timestamp,
+        timeSelected
+      )
+    })
+
+    data = response.data
+  } catch {
+    error = true
+  }
 
   return (
     <DataProvider initialData={[]}>
@@ -41,6 +49,7 @@ async function ServerByTimeTable({timeSelected, addresses}: ByTimeTableProps) {
       >
         <ClientByTimeTable
           initialData={data}
+          initialError={error}
           timeSelected={timeSelected}
           addresses={addresses}
         />

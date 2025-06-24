@@ -6,11 +6,10 @@ import SearchByAddress from '@/app/migration/SearchByAddress'
 import { isValidMorseAddress, isValidPoktAddress } from '@/app/utils/poktroll'
 import { getClient } from '@/app/config/apollo/rsc'
 import { morseClaimableAccountsSummaryDocument } from '@/app/migration/operations'
-import Summary from '@/app/migration/Summary'
+import Summary, { SummarySkeleton } from '@/app/migration/Summary'
 import { getPageAndItems } from '@/app/utils/pagination'
 import { LoadingSummary, LoadingTable } from '@/app/components/LoadingListView'
 import { LabelByIndex } from '@/app/components/FourCards/utils'
-import { Skeleton } from '@/components/ui/skeleton'
 
 export const dynamic = "force-dynamic";
 
@@ -22,12 +21,21 @@ const summaryLabels: LabelByIndex = {
 }
 
 async function MigrationSummary() {
-  const {data: summaryData} = await getClient().query({
-    query: morseClaimableAccountsSummaryDocument,
-  })
+  let data, error = false
+
+  try {
+    const response = await getClient().query({
+      query: morseClaimableAccountsSummaryDocument,
+    })
+
+    data = response.data
+  } catch {
+    error = true
+  }
+
 
   return (
-    <Summary initialData={summaryData} labels={summaryLabels} />
+    <Summary initialData={data} initialError={error} labels={summaryLabels} />
   )
 }
 
@@ -68,11 +76,7 @@ export default async function MigrationPage({searchParams}: PageProps) {
           <LoadingSummary
             labels={summaryLabels}
             defaultSkeleton={(
-              <div className={'flex flex-col gap-1'}>
-                <Skeleton className={'h-[19.5px] w-[120px] mt-2'} />
-                <Skeleton className={'h-[19.5px] w-[170px]'} />
-                <Skeleton className={'h-[11.5px] mt-2 w-full'} />
-              </div>
+              <SummarySkeleton />
             )}
           />
         }
@@ -80,7 +84,7 @@ export default async function MigrationPage({searchParams}: PageProps) {
         <MigrationSummary />
       </Suspense>
       <Suspense
-        key={`migration-page-${pageInfo.page}-${pageInfo.itemsPerPage}`}
+        key={`migration-page-${pageInfo.page}-${pageInfo.itemsPerPage}-${new Date().toISOString()}`}
         fallback={
           <LoadingTable
             columns={columns}

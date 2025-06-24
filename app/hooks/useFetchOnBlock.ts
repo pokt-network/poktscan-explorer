@@ -2,7 +2,7 @@
 
 import { useHeightContext } from '@/app/context/height'
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLazyQuery } from '@apollo/client'
 
 export type DeepRequired<T> = NonNullable<{
@@ -28,6 +28,7 @@ export interface FetchOnBlockOptions<
     | ((currentHeight: number, currentTime: string) => ExtractVariables<T>)
   resultParser?: (result: DeepRequired<DocumentNodeData<T>>) => R | Promise<R>,
   initialResult?: R,
+  initialError: boolean
   skip?: boolean,
   pollInterval?: number
 }
@@ -41,10 +42,20 @@ export default function useFetchOnBlock<
   resultParser,
   initialResult,
   skip,
-  pollInterval
-}: FetchOnBlockOptions<T, R>): DeepRequired<R> {
+  pollInterval,
+  initialError
+}: FetchOnBlockOptions<T, R>): {
+  data: DeepRequired<R>,
+  refetch: () => void,
+  // Only error will be true when there is an error and there is no data available to return
+  error: boolean
+  // isLoading will be true when is loading the first data after refetch is executed
+  isLoading: boolean,
+} {
   const lastValueRef = useRef<R | null>(initialResult || null)
   const [parsedData, setParsedData] = useState<R | null>(initialResult || null)
+  const [error, setError] = useState(initialError)
+  const [isLoading, setIsLoading] = useState(false)
   const {currentHeight, currentTime, firstHeight} = useHeightContext()
   const firstRenderRef = useRef(true)
 
@@ -52,6 +63,44 @@ export default function useFetchOnBlock<
     fetchPolicy: 'network-only',
     nextFetchPolicy: 'network-only',
   })
+
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const fetchDataFunction = useCallback(() => {
+    const variablesToUse = typeof variables === 'function' ? variables(currentHeight, currentTime) : variables
+
+    const fetchDataFn = () => {
+      setIsLoading(true)
+      fetchData({
+        variables: variablesToUse,
+      }).then(async ({data, error}) => {
+        if (data) {
+          if (resultParser) {
+            const parsed = await resultParser(data)
+            lastValueRef.current = parsed
+            setParsedData(parsed)
+          } else {
+            lastValueRef.current = data
+            setParsedData(data)
+          }
+
+          setError(false)
+        }
+
+        if (error) {
+          setError(true)
+        }
+      })
+        .catch(() => setError(true))
+        .finally(() => setIsLoading(false))
+    }
+
+    fetchDataFn()
+
+    if (pollInterval) {
+      intervalRef.current = setInterval(fetchDataFn, pollInterval)
+    }
+  }, [variables, currentHeight, currentTime, resultParser, pollInterval, fetchData])
 
   useEffect(() => {
     if (firstRenderRef.current) {
@@ -62,30 +111,12 @@ export default function useFetchOnBlock<
     if (skip) return
 
     if (currentHeight !== firstHeight) {
-      const variablesToUse = typeof variables === 'function' ? variables(currentHeight, currentTime) : variables
+      fetchDataFunction()
 
-      const fetchDataFn = () => {
-        fetchData({
-          variables: variablesToUse,
-        }).then(async ({data}) => {
-          if (data) {
-            if (resultParser) {
-              const parsed = await resultParser(data)
-              lastValueRef.current = parsed
-              setParsedData(parsed)
-            } else {
-              lastValueRef.current = data
-              setParsedData(data)
-            }
-          }
-        })
-      }
-
-      fetchDataFn()
-
-      if (pollInterval) {
-        const interval = setInterval(fetchDataFn, pollInterval)
-        return () => clearInterval(interval)
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current)
+        }
       }
     }
     // eslint-disable-next-line
@@ -93,5 +124,10 @@ export default function useFetchOnBlock<
 
   const data = parsedData || lastValueRef.current
 
-  return data ? data : initialResult
+  return {
+    data: data ? data : initialResult,
+    error: data ? false : error,
+    isLoading: data ? false : isLoading,
+    refetch: fetchDataFunction,
+  }
 }

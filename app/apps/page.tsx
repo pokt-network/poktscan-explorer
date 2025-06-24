@@ -18,11 +18,20 @@ const summaryLabels: LabelByIndex = {
 }
 
 async function AppsSummary() {
-  const {data: summaryData} = await getClient().query({
-    query: applicationSummaryDocument,
-  })
+  let data, error = false
+
+  try {
+    const response = await getClient().query({
+      query: applicationSummaryDocument,
+    })
+
+    data = response.data
+  } catch {
+    error = true
+  }
+
   return (
-    <Summary initialData={summaryData} labels={summaryLabels} />
+    <Summary initialData={data} initialError={error} labels={summaryLabels} />
   )
 }
 
@@ -55,7 +64,7 @@ export default async function AppsPage({searchParams}: PageProps) {
         <AppsSummary />
       </Suspense>
       <Suspense
-        key={`apps-page-${pageInfo.page}-${pageInfo.itemsPerPage}`}
+        key={`apps-page-${pageInfo.page}-${pageInfo.itemsPerPage}-${new Date().toISOString()}`}
         fallback={
           <LoadingTable
             columns={columns}

@@ -50,7 +50,7 @@ export default function BaseDetail<T, TProps, TResult>({
   const variables = useMemo(() => ({ id }), [id])
   const client = useApolloClient()
 
-  const data = useFetchOnBlock({
+  const { data, } = useFetchOnBlock({
     query: graphqlDocument,
     variables,
     initialResult: initialData,

@@ -11,14 +11,17 @@ import React, { useCallback, useEffect, useMemo } from 'react'
 import { formatSimpleAmount, formatUpokt } from '@/app/utils/format'
 import NoData from '@/app/components/NoData'
 import BaseTable from '@/app/components/BaseTable'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
 
 interface ClientByTimeTableProps {
+  initialError: boolean
   initialData: DocumentNodeData<typeof getDataByDelegatorAddressesAndTimesDocument>
   timeSelected: string
   addresses: Array<string>
 }
 
 export default function ClientByTimeTable({
+  initialError,
   initialData,
   timeSelected,
   addresses,
@@ -27,9 +30,10 @@ export default function ClientByTimeTable({
 
   const variables = useCallback((_: number, currentTime: string) => getDataByDelegatorAddressesAndTimesVariables(addresses, currentTime, timeSelected), [addresses, timeSelected])
 
-  const data = useFetchOnBlock({
+  const { data, refetch, error, isLoading } = useFetchOnBlock({
     query: getDataByDelegatorAddressesAndTimesDocument,
     variables,
+    initialError,
     initialResult: initialData,
   })
 
@@ -66,6 +70,20 @@ export default function ClientByTimeTable({
     setData(rows)
     // eslint-disable-next-line
   }, [rows])
+
+  if (isLoading) {
+    return (
+      <BaseTable columns={columns} rows={rows} isLoading={true} />
+    )
+  } else if (error) {
+    return (
+      <div className={'flex pb-10 grow'}>
+        <BaseRetryError
+          onRetry={refetch}
+        />
+      </div>
+    )
+  }
 
   if (rows.length === 0) {
     return (

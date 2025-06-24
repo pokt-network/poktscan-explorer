@@ -16,32 +16,40 @@ interface LastClaimingWindowTableProps {
 }
 
 async function ServerLastClaimingWindowTable({addresses}: LastClaimingWindowTableProps) {
-  const client = getClient()
+  let data, error = false
 
-  const [latestBlock, {data: paramsData}] = await Promise.all([
-    getLatestBlock(),
-    client.query({
-      query: getParamsDocument,
+  try {
+    const client = getClient()
+
+    const [latestBlock, {data: paramsData}] = await Promise.all([
+      getLatestBlock(),
+      client.query({
+        query: getParamsDocument,
+      })
+    ])
+
+    const claimWindowCloseOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'claim_window_close_offset_blocks')?.value
+    const claimWindowOpenOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'claim_window_open_offset_blocks')?.value
+    const proofWindowCloseOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'proof_window_close_offset_blocks')?.value
+
+    const window = Number(claimWindowCloseOffsetBlocks || 0) + Number(claimWindowOpenOffsetBlocks || 0) + Number(proofWindowCloseOffsetBlocks || 0)
+
+    const endHeight = BigInt(latestBlock.height)
+    const startHeight = endHeight - BigInt(window)
+
+    const response = await client.query({
+      query: getDataByDelegatorAddressesAndBlocksDocument,
+      variables: {
+        delegatorAddresses: addresses,
+        startBlock: startHeight.toString() || '0',
+        endBlock: endHeight.toString() || '0',
+      }
     })
-  ])
 
-  const claimWindowCloseOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'claim_window_close_offset_blocks')?.value
-  const claimWindowOpenOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'claim_window_open_offset_blocks')?.value
-  const proofWindowCloseOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'proof_window_close_offset_blocks')?.value
-
-  const window = Number(claimWindowCloseOffsetBlocks || 0) + Number(claimWindowOpenOffsetBlocks || 0) + Number(proofWindowCloseOffsetBlocks || 0)
-
-  const endHeight = BigInt(latestBlock.height)
-  const startHeight = endHeight - BigInt(window)
-
-  const {data} = await client.query({
-    query: getDataByDelegatorAddressesAndBlocksDocument,
-    variables: {
-      delegatorAddresses: addresses,
-      startBlock: startHeight.toString() || '0',
-      endBlock: endHeight.toString() || '0',
-    }
-  })
+    data = response.data
+  } catch {
+    error = true
+  }
 
   return (
     <DataProvider initialData={[]}>
@@ -53,6 +61,7 @@ async function ServerLastClaimingWindowTable({addresses}: LastClaimingWindowTabl
         <ClientLastClaimingWindowTable
           addresses={addresses}
           initialData={data}
+          initialError={error}
         />
       </LastClaimingWindowTableCard>
     </DataProvider>

@@ -9,21 +9,59 @@ import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import { indexerMetadataDocument } from '@/app/operations/metadata'
 import SyncingIcon from './syncing_icon.svg'
 import { clsx } from 'clsx'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
+
+export function StatusLoader() {
+  return (
+    <div
+      className={
+        clsx(
+          'flex items-center justify-center px-2 py-1 rounded-sm border-2 gap-1 border-[color:--divider]',
+        )
+      }
+    >
+      <Skeleton className={'h-4 w-16'} />
+      <Skeleton className={'h-[15px] w-[15px] rounded-[50%]'} />
+    </div>
+  )
+}
 
 interface StatusPopoverProps {
   initialData: DocumentNodeData<typeof indexerMetadataDocument>
+  initialError: boolean
   pollInterval?: number
 }
 
-export default function StatusPopover({initialData, pollInterval}: StatusPopoverProps) {
-  const data = useFetchOnBlock({
+export default function StatusPopover({initialData, initialError, pollInterval}: StatusPopoverProps) {
+  const { data, error, refetch, isLoading } = useFetchOnBlock({
     query: indexerMetadataDocument,
     initialResult: initialData,
     pollInterval,
+    initialError
   })
 
   const [open, setOpen] = useState(false);
   const debouncedOpen = useDebounce(open, 200);
+
+  if (isLoading) {
+    return (
+      <StatusLoader />
+    )
+  } else if (error) {
+    return (
+      <Button
+        className={
+          clsx(
+            'h-7 px-2 py-1 rounded-sm border-2 gap-1 bg-[color:#ffaaaa24] border-[color:--error-background] text-[color:--error] text-xs',
+          )
+        }
+        onClick={refetch}
+      >
+        Status Error. Retry
+      </Button>
+    )
+  }
 
   const handleMouseEnter = () => {
     setOpen(true);
@@ -79,10 +117,10 @@ export default function StatusPopover({initialData, pollInterval}: StatusPopover
         <div
           className={
             clsx(
-              'flex items-center justify-center px-2 py-1 rounded-lg border-2 gap-1',
-              data &&  diff <= 20 && 'border-[color:--success-background]',
-              data && diff > 20 && diff <= 100 && 'border-[color:--warning-background]',
-              (diff > 100 || !data) && 'border-[color:--error-background]',
+              'flex items-center justify-center px-2 py-1 rounded-sm border dark:border-2 gap-1',
+              data &&  diff <= 20 && 'border-[color:--success] dark:border-[color:--success-background]',
+              data && diff > 20 && diff <= 100 && 'border-[color:--warning] dark:border-[color:--warning-background]',
+              (diff > 100 || !data) && 'border-[color:--error] dark:border-[color:--error-background]',
             )
           }
         >
@@ -108,7 +146,7 @@ export default function StatusPopover({initialData, pollInterval}: StatusPopover
       <PopoverContent
         side={"bottom"}
         sideOffset={5}
-        className={'p-2 bg-[color:--main-background] z-[1025] rounded-lg border border-[color:--divider] min-w-0 w-auto text-xs'}
+        className={'p-2 bg-[color:--main-background] z-[1025] rounded-sm border border-[color:--divider] min-w-0 w-auto text-xs'}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >

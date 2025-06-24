@@ -18,7 +18,7 @@ interface SearchInputProps {
   rpcUrl: string
 }
 
-export default function SearchInput({ showIcon = true, zIndex = 1024, pathToHide, height = 34, rpcUrl }: SearchInputProps) {
+export default function SearchInput({ showIcon = true, zIndex = 1023, pathToHide, height = 34, rpcUrl }: SearchInputProps) {
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebounce(search, 500)
   const [show, setShow] = useState(false)

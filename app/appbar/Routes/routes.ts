@@ -3,11 +3,6 @@ import type { RoutesAccordionProps } from '@/app/appbar/Routes/RoutesMenu'
 const routes: RoutesAccordionProps['routeGroups'] = [
   {
     type: 'single',
-    label: 'Morse',
-    href: 'https://morse.poktscan.com',
-  },
-  {
-    type: 'single',
     label: 'Home',
     href: '/',
   },

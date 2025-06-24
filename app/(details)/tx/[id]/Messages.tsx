@@ -3,6 +3,7 @@ import React, { Suspense } from 'react'
 import JsonViewer from '@/app/components/JsonViewer'
 import { getMessages } from '@/app/(details)/tx/[id]/getTx'
 import { Skeleton } from '@/components/ui/skeleton'
+import NoData from '@/app/components/NoData'
 
 const rpcUrl = process.env.RPC_BASE_URL!
 
@@ -41,6 +42,10 @@ interface MessagesProps {
 
 async function ServerMessages({hash}: MessagesProps) {
   const messages = await getMessages(hash, rpcUrl)
+
+  if (messages.length === 0) {
+    return <NoData label={'No messages found.'} />
+  }
 
   return (
     <DisplayMessages messages={messages} />

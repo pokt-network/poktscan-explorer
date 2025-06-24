@@ -28,7 +28,7 @@ export default async function GatewaysPage({searchParams}: PageProps) {
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <ListTitle title={'Gateways'} />
       <Suspense
-        key={`gateways-page-${pageInfo.page}-${pageInfo.itemsPerPage}`}
+        key={`gateways-page-${pageInfo.page}-${pageInfo.itemsPerPage}-${new Date().toISOString()}`}
         fallback={
           <LoadingListView
             columns={columns}

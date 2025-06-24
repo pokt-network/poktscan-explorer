@@ -24,7 +24,7 @@ export default function Price({showLabel = true, priceColor='--primary', fontSiz
   const text = `text-${fontSize}`
 
   return (
-    <p className={`${text} text-[color:--secondary]`}>
+    <p className={`${text} text-[color:--secondary] whitespace-nowrap`}>
       {showLabel && "POKT Price: "}<span className={color}>${usd ? formatAmount({
         amount: usd,
       }) : '-'}</span> <span

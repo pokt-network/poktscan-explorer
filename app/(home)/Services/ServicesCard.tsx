@@ -9,6 +9,8 @@ import { servicesDocument } from '@/app/(home)/operations'
 import { getServicesVariables } from '@/app/(home)/utils'
 import Big from 'big.js';
 import { calculatePercentage, calculatePercentageChange } from '@/app/utils/calculate'
+import ServicesLoader from '@/app/(home)/Services/Loader'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
 
 type Item = {
   keys: string[]; // Array with one string element (id)
@@ -101,19 +103,45 @@ export function calculateChanges(current: Item[], past: Item[]): AugmentedItem[]
 interface ServicesCardProps {
   initialData: DocumentNodeData<typeof servicesDocument>
   defaultType: string
+  initialError: boolean
 }
 
 export default function ServicesCard({
   defaultType,
   initialData,
+  initialError,
 }: ServicesCardProps) {
   const variables = useCallback((_: number, currentTime: string) => getServicesVariables(new Date(currentTime)), [])
 
-  const data = useFetchOnBlock({
+  const { data, refetch, error, isLoading } = useFetchOnBlock({
     query: servicesDocument,
     variables,
     initialResult: initialData,
+    initialError,
   })
+
+  if (isLoading) {
+    return <ServicesLoader defaultType={defaultType} />
+  } else if (error) {
+    const errorComponent = (
+      <div className={'h-[calc(100%)] flex pb-[88px]'}>
+        <BaseRetryError
+          onRetry={refetch}
+          errorMessage={`Oops. There was an error loading the services data.`}
+        />
+      </div>
+    )
+
+    return (
+      <ServiceCardContent
+        table={errorComponent}
+        chart={errorComponent}
+        defaultType={defaultType}
+        hasItems={true}
+        disableSelect={true}
+      />
+    )
+  }
 
   const processedData = calculateChanges(
     (data?.current24h?.aggregated || []) as unknown as Item[],

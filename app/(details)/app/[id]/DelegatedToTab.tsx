@@ -83,7 +83,7 @@ async function ServerDelegatedTo({searchParams, app}: DelegatedToTabProps) {
 export default async function DelegatedToTab({searchParams, app}: DelegatedToTabProps) {
   return (
     <Suspense
-      key={app}
+      key={`${app}-${new Date().toISOString()}`}
       fallback={
         <LoadingTable columns={columns} rowsAmount={25} />
       }

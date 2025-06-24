@@ -87,14 +87,12 @@ export default async function ServiceTabs({params, searchParams}: PageProps) {
         />
       )
       break
-
-
   }
 
   if (activeTab !== 'raw') {
     table = (
       <Suspense
-        key={activeTab as string}
+        key={`${activeTab as string}-${new Date().toISOString()}`}
         fallback={
           <LoadingTable
             columns={

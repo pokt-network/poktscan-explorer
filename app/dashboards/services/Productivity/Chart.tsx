@@ -2,7 +2,7 @@
 
 import useFetchOnBlock, { DocumentNodeData, ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { getProductivityVariables, productivityQuery } from '@/app/dashboards/services/operations'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import BaseLineBarChart from '@/app/Charts/BaseLineBarChart/BaseLineBarChart'
 import ServicesSelector from '@/app/dashboards/services/Productivity/ServicesSelector/ServicesSelector'
 import { setCookie } from '@/app/utils/cookies'
@@ -13,6 +13,8 @@ import NoData from '@/app/components/NoData'
 import { useChartType } from '@/app/dashboards/services/Productivity/ChartType'
 import { useDataContext } from '@/app/context/DataContext'
 import { fillChartData, LineBarItem } from '@/app/Charts/utils'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
+import { ContentLoader } from '@/app/dashboards/services/Productivity/Loader/Loader'
 
 export interface DataItem extends LineBarItem {
   relays: number
@@ -27,6 +29,7 @@ export interface DataItem extends LineBarItem {
 
 interface ServicesProductivityChartProps {
   timeSelected: string
+  initialError: boolean
   initialSelectedServices: Array<string>
   initialData: DocumentNodeData<typeof productivityQuery>
   initialVariables: ExtractVariables<typeof productivityQuery>
@@ -35,6 +38,7 @@ interface ServicesProductivityChartProps {
 export default function ServicesProductivityChart({
   timeSelected,
   initialData,
+  initialError,
   initialVariables,
   initialSelectedServices,
 }: ServicesProductivityChartProps) {
@@ -46,15 +50,16 @@ export default function ServicesProductivityChart({
     return lastVariables.current = getProductivityVariables(timestamp, timeSelected)
   }, [timeSelected])
 
-  const rawData = useFetchOnBlock({
+  const { data: rawData, error, refetch, isLoading } = useFetchOnBlock({
     query: productivityQuery,
     variables,
-    initialResult: initialData
+    initialResult: initialData,
+    initialError,
   })
 
   const data = useMemo(() => ({
-    suppliersData: JSON.parse(rawData.suppliersData),
-    servicesProductivity: JSON.parse(rawData.servicesProductivity),
+    suppliersData: JSON.parse(rawData?.suppliersData || '[]'),
+    servicesProductivity: JSON.parse(rawData?.servicesProductivity || '[]'),
   }), [rawData])
 
   const dataByService: Record<string, Array<DataItem>> = useMemo(() => {
@@ -110,9 +115,9 @@ export default function ServicesProductivityChart({
       ...acc,
       [serviceId]: fillChartData({
         data,
-        startDate: lastVariables.current.startDate,
-        endDate: lastVariables.current.endDate,
-        unitToFormatDate: lastVariables.current.truncInterval === 'day' ? 'day' : 'hour',
+        startDate: lastVariables?.current?.startDate,
+        endDate: lastVariables?.current?.endDate,
+        unitToFormatDate: lastVariables?.current?.truncInterval === 'hour' ? 'hour' : 'day',
         defaultProps: {
           id: serviceId,
           relays: 0,
@@ -173,13 +178,29 @@ export default function ServicesProductivityChart({
     [serviceId]: dataByService[serviceId] || []
   }), {})
 
-  return (
-    <div className={'flex flex-col md:flex-row items-center px-4 pt-2 pb-4 h-[calc(100%-44px)] gap-4'}>
-      {servicesWithComputedUnit.length === 0 ? (
+  let content: React.ReactNode
+
+  if (isLoading) {
+    content = (
+      <ContentLoader chartType={chartType} />
+    )
+  } else if (error) {
+    content = (
+      <div className={'mt-[-40px] flex w-full grow'}>
+        <BaseRetryError
+          onRetry={refetch}
+        />
+      </div>
+    )
+  } else {
+    if (servicesWithComputedUnit.length === 0) {
+      content = (
         <div className={'mt-[-40px] flex w-full items-center justify-center'}>
           <NoData label={'No data available in the time selected.'} />
         </div>
-      ) : (
+      )
+    } else {
+      content = (
         <>
           <div className={'order-2 md:order-1 w-full md:w-[calc(100%-260px-16px)] h-full'}>
             <BaseLineBarChart
@@ -187,7 +208,7 @@ export default function ServicesProductivityChart({
               yAxisKey={'avgComputedUnits'}
               yAxisLabel={'Avg Computed Units'}
               chartType={chartType}
-              unitToFormatDate={lastVariables.current.truncInterval === 'day' ? 'day' : 'hour'}
+              unitToFormatDate={lastVariables?.current?.truncInterval === 'hour' ? 'hour' : 'day'}
               getTooltipLabel={(item) => [
                 `Service: ${item.id}`,
                 `Relays:  ${formatSimpleAmount(item.relays)}`,
@@ -208,7 +229,13 @@ export default function ServicesProductivityChart({
             />
           </div>
         </>
-      )}
+      )
+    }
+  }
+
+  return (
+    <div className={'flex flex-col md:flex-row items-center px-4 pt-2 pb-4 h-[calc(100%-44px)] gap-4'}>
+      {content}
     </div>
   )
 }

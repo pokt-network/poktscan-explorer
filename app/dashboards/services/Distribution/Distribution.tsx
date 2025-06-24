@@ -13,11 +13,19 @@ interface DistributionProps {
 }
 
 async function ServerDistribution({timeSelected}: DistributionProps) {
-  const latestBlock = await getLatestBlock()
-  const {data} = await getClient().query({
-    query: distributionDocument,
-    variables: getDistributionVariables(latestBlock.timestamp, timeSelected)
-  })
+  let data, error = false
+
+  try {
+    const latestBlock = await getLatestBlock()
+    const response = await getClient().query({
+      query: distributionDocument,
+      variables: getDistributionVariables(latestBlock.timestamp, timeSelected)
+    })
+
+    data = response.data
+  } catch {
+    error = true
+  }
 
   return (
     <DataProvider initialData={[]}>
@@ -27,7 +35,7 @@ async function ServerDistribution({timeSelected}: DistributionProps) {
           <DistributionCardActions />
         )}
       >
-        <DistributionChart initialData={data} timeSelected={timeSelected} />
+        <DistributionChart initialData={data} initialError={error} timeSelected={timeSelected} />
       </Card>
     </DataProvider>
   )

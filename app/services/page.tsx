@@ -8,6 +8,7 @@ import React, { Suspense } from 'react'
 import { serviceListDocument, servicesSubscription } from '@/app/services/operations'
 import { formatSimpleAmount } from '@/app/utils/format'
 import LoadingListView from '@/app/components/LoadingListView'
+import { RefreshPageError } from '@/app/components/ErrorBoundary'
 
 const columns: Array<GridColDef> = [
   {
@@ -63,24 +64,13 @@ interface PageProps {
 }
 
 async function ServerServicesPage({searchParams}: PageProps) {
-  const pageInfo = await getPageAndItems(searchParams)
-  let page = pageInfo.page
-  const itemsPerPage = pageInfo.itemsPerPage
+  try {
+    const pageInfo = await getPageAndItems(searchParams)
 
-  let {data} = await getClient().query({
-    query: serviceListDocument,
-    variables: {
-      limit: itemsPerPage,
-      offset: (page - 1) * itemsPerPage
-    }
-  })
+    let page = pageInfo.page
+    const itemsPerPage = pageInfo.itemsPerPage
 
-  const totalPages = Math.ceil((data.services?.totalCount || 0) / itemsPerPage)
-
-  if (page > totalPages) {
-    page = 1
-
-    const result = await getClient().query({
+    let {data} = await getClient().query({
       query: serviceListDocument,
       variables: {
         limit: itemsPerPage,
@@ -88,43 +78,61 @@ async function ServerServicesPage({searchParams}: PageProps) {
       }
     })
 
-    data = result.data
-  }
+    const totalPages = Math.ceil((data.services?.totalCount || 0) / itemsPerPage)
 
-  const rows: Array<RowService> = data.services?.nodes?.map((service) => {
-    const relayMiningDifficulty = service?.relayMiningDifficultyUpdatedEvents?.nodes?.at(0)?.newNumRelaysEma
-    return {
-      id: service?.id,
-      name: service?.name,
-      computeUnitsPerRelay: formatSimpleAmount(service?.computeUnitsPerRelay),
-      apps: service?.apps?.totalCount || 0,
-      suppliers: service?.suppliers?.totalCount || 0,
-      relayMiningDifficulty: relayMiningDifficulty ? formatSimpleAmount(relayMiningDifficulty) : '-'
+    if (page > totalPages) {
+      page = 1
+
+      const result = await getClient().query({
+        query: serviceListDocument,
+        variables: {
+          limit: itemsPerPage,
+          offset: (page - 1) * itemsPerPage
+        }
+      })
+
+      data = result.data
     }
-  })
 
-  return (
-    <Table
-      columns={columns}
-      rows={rows}
-      header={{
-        title: `${data.services?.totalCount} services found`,
-        subtitle: (
-          <NewEntitiesFound<typeof servicesSubscription>
-            subscription={servicesSubscription}
-            entity={'services'}
-          />
-        )
-      }}
-      pagination={{
-        currentPage: page,
-        totalPages,
-        itemsPerPage,
-        basePath: '/services'
-      }}
-      defaultMinWidth={70}
-    />
-  )
+    const rows: Array<RowService> = data.services?.nodes?.map((service) => {
+      const relayMiningDifficulty = service?.relayMiningDifficultyUpdatedEvents?.nodes?.at(0)?.newNumRelaysEma
+      return {
+        id: service?.id,
+        name: service?.name,
+        computeUnitsPerRelay: formatSimpleAmount(service?.computeUnitsPerRelay),
+        apps: service?.apps?.totalCount || 0,
+        suppliers: service?.suppliers?.totalCount || 0,
+        relayMiningDifficulty: relayMiningDifficulty ? formatSimpleAmount(relayMiningDifficulty) : '-'
+      }
+    })
+
+    return (
+      <Table
+        columns={columns}
+        rows={rows}
+        header={{
+          title: `${data.services?.totalCount} services found`,
+          subtitle: (
+            <NewEntitiesFound<typeof servicesSubscription>
+              subscription={servicesSubscription}
+              entity={'services'}
+            />
+          )
+        }}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          itemsPerPage,
+          basePath: '/services'
+        }}
+        defaultMinWidth={70}
+      />
+    )
+  } catch {
+    return (
+      <RefreshPageError />
+    )
+  }
 }
 
 export default async function ServicesPage({searchParams}: PageProps) {
@@ -133,7 +141,7 @@ export default async function ServicesPage({searchParams}: PageProps) {
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <ListTitle title={'Services'} />
       <Suspense
-        key={`services-page-${pageInfo.page}-${pageInfo.itemsPerPage}`}
+        key={`services-page-${pageInfo.page}-${pageInfo.itemsPerPage}-${new Date().toISOString()}`}
         fallback={
           <LoadingListView
             columns={columns}

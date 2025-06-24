@@ -6,6 +6,7 @@ import { useApolloClient } from '@apollo/client'
 import ErrorBoundary from '@/app/components/ErrorBoundary'
 import React from 'react'
 import { getSourceChipsRow } from '@/app/components/SourceChips'
+import EntityNotFound from '@/app/(details)/EntityNotFound'
 
 interface TransactionDetailProps extends GetTxResult {
   hash: string
@@ -33,6 +34,12 @@ export default function TransactionDetail({hash, rpcUrl, error, source, data,}: 
           }
         />
       </div>
+    )
+  }
+
+  if (!data) {
+    return (
+      <EntityNotFound id={hash} />
     )
   }
 

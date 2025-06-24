@@ -656,6 +656,11 @@ interface SearchContentProps {
 export default function SearchContent({value, close, rpcUrl}: SearchContentProps) {
   const valueTrimmed = value.trim()
 
+  if (!valueTrimmed) {
+    return null
+  }
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const {data, error: errorFromMetadata} = useSuspenseQuery(indexerMetadataDocument)
 
   if (errorFromMetadata) {
