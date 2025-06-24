@@ -15,11 +15,9 @@ function Title({title}: {title: string}) {
   )
 }
 
-export default function SummaryLoader() {
+export function ContentLoader() {
   return (
-    <div
-      className={'bg-[color:--main-background] gap-y-[20px] p-5 min-h-[180px] lg:h-[180px] rounded-xl border border-[color:--divider] grid md:grid-cols-2 lg:grid-cols-3 base-shadow z-10 relative'}
-    >
+    <>
       <div className={'flex flex-col gap-y-5 pr-5'}>
         <div className={'flex h-full justify-between'}>
           <div className={'flex grow flex-row h-full'}>
@@ -144,9 +142,18 @@ export default function SummaryLoader() {
         </div>
         <div className={'h-[100px] w-[calc(100vw-90px)] md:w-full flex min-w-0'}>
           <LineChartLoader />
-          {/*<ComputeUnitsLineChart data={groupByDay} />*/}
         </div>
       </div>
+    </>
+  )
+}
+
+export default function SummaryLoader() {
+  return (
+    <div
+      className={'bg-[color:--main-background] gap-y-[20px] p-5 min-h-[180px] lg:h-[180px] rounded-xl border border-[color:--divider] grid md:grid-cols-2 lg:grid-cols-3 base-shadow z-10 relative'}
+    >
+      <ContentLoader />
     </div>
   )
 }

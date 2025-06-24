@@ -13,6 +13,7 @@ async function ServerAppsDelegatedTabs({gateway, searchParams}: AppsDelegatedTab
 
   return (
     <AppsTable
+      gateway={gateway}
       page={pageInfo.page}
       itemsPerPage={pageInfo.itemsPerPage}
       basePath={`/gateway/${gateway}?tab=apps_delegated`}
@@ -25,7 +26,7 @@ export default async function AppsDelegatedTabs({gateway, searchParams}: AppsDel
 
   return (
     <Suspense
-      key={gateway}
+      key={`${gateway}-${new Date().toISOString()}`}
       fallback={
         <LoadingTable columns={columns} rowsAmount={pageInfo.itemsPerPage} />
       }

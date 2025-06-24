@@ -15,6 +15,7 @@ import { graphql } from '@/app/config/gql'
 import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 import { LabelByIndex } from '@/app/components/FourCards/utils'
 import { LoadingSummary, LoadingTable } from '@/app/components/LoadingListView'
+import { RefreshPageError } from '@/app/components/ErrorBoundary'
 
 export const dynamic = "force-dynamic";
 
@@ -26,15 +27,23 @@ const summaryLabelsByIndex: LabelByIndex = {
 }
 
 async function AccountsSummary() {
-  const latestBlock = await getLatestBlock()
+  let data, error = false
 
-  const {data: summaryData} = await getClient().query({
-    query: accountSummaryDocument,
-    variables: getSummaryVariables(latestBlock.timestamp)
-  })
+  try {
+    const latestBlock = await getLatestBlock()
+
+    const response = await getClient().query({
+      query: accountSummaryDocument,
+      variables: getSummaryVariables(latestBlock.timestamp)
+    })
+
+    data = response.data
+  } catch {
+    error = true
+  }
 
   return (
-    <Summary initialData={summaryData} labels={summaryLabelsByIndex} />
+    <Summary initialData={data} initialError={error} labels={summaryLabelsByIndex} />
   )
 }
 
@@ -101,28 +110,16 @@ interface PageProps {
 }
 
 async function AccountsTable({searchParams}: PageProps) {
-  const pageInfo = await getPageAndItems(searchParams)
+  try {
+    const pageInfo = await getPageAndItems(searchParams)
 
-  let page = pageInfo.page
-  const itemsPerPage = pageInfo.itemsPerPage
+    let page = pageInfo.page
+    const itemsPerPage = pageInfo.itemsPerPage
 
-  const client = getClient()
+    const client = getClient()
 
-  // eslint-disable-next-line prefer-const
-  let {data} = await client.query({
-    query: accountListDocument,
-    variables: {
-      limit: itemsPerPage,
-      offset: (page - 1) * itemsPerPage,
-    }
-  })
-
-  const totalPages = Math.ceil((data.balances?.totalCount || 0) / itemsPerPage)
-
-  if (page > totalPages) {
-    page = 1
-
-    const result = await client.query({
+    // eslint-disable-next-line prefer-const
+    let {data} = await client.query({
       query: accountListDocument,
       variables: {
         limit: itemsPerPage,
@@ -130,43 +127,61 @@ async function AccountsTable({searchParams}: PageProps) {
       }
     })
 
-    data = result.data
+    const totalPages = Math.ceil((data.balances?.totalCount || 0) / itemsPerPage)
+
+    if (page > totalPages) {
+      page = 1
+
+      const result = await client.query({
+        query: accountListDocument,
+        variables: {
+          limit: itemsPerPage,
+          offset: (page - 1) * itemsPerPage,
+        }
+      })
+
+      data = result.data
+    }
+
+    const rows: Array<RowAccount> = data?.balances?.nodes?.map((balance) => {
+      return {
+        id: balance?.accountId || '',
+        balance: formatAmount({
+          amount: balance?.amount ||'0',
+          denom: balance?.denom || 'upokt'
+        }),
+        raw_balance: convertUpoktToPokt(balance?.amount),
+        lastUpdatedBlock: balance?.lastUpdatedBlock?.height,
+        lastUpdatedTime: balance?.lastUpdatedBlock?.timestamp,
+      } as RowAccount
+    }) || []
+
+    return (
+      <Table
+        columns={columns}
+        rows={rows}
+        header={{
+          title: `${data.balances?.totalCount} accounts found`,
+          subtitle: (
+            <NewEntitiesFound<typeof accountSubscription>
+              subscription={accountSubscription}
+              entity={'accounts'}
+            />
+          )
+        }}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          itemsPerPage,
+          basePath: '/accounts'
+        }}
+      />
+    )
+  } catch {
+    return (
+      <RefreshPageError />
+    )
   }
-
-  const rows: Array<RowAccount> = data?.balances?.nodes?.map((balance) => {
-    return {
-      id: balance?.accountId || '',
-      balance: formatAmount({
-        amount: balance?.amount ||'0',
-        denom: balance?.denom || 'upokt'
-      }),
-      raw_balance: convertUpoktToPokt(balance?.amount),
-      lastUpdatedBlock: balance?.lastUpdatedBlock?.height,
-      lastUpdatedTime: balance?.lastUpdatedBlock?.timestamp,
-    } as RowAccount
-  }) || []
-
-  return (
-    <Table
-      columns={columns}
-      rows={rows}
-      header={{
-        title: `${data.balances?.totalCount} accounts found`,
-        subtitle: (
-          <NewEntitiesFound<typeof accountSubscription>
-            subscription={accountSubscription}
-            entity={'accounts'}
-          />
-        )
-      }}
-      pagination={{
-        currentPage: page,
-        totalPages,
-        itemsPerPage,
-        basePath: '/accounts'
-      }}
-    />
-  )
 }
 
 export default async function AccountsPage({searchParams}: PageProps) {
@@ -184,7 +199,7 @@ export default async function AccountsPage({searchParams}: PageProps) {
         <AccountsSummary />
       </Suspense>
       <Suspense
-        key={`accounts-page-${pageInfo.page}-${pageInfo.itemsPerPage}`}
+        key={`accounts-page-${pageInfo.page}-${pageInfo.itemsPerPage}-${new Date().toISOString()}`}
         fallback={
           <LoadingTable
             columns={columns}

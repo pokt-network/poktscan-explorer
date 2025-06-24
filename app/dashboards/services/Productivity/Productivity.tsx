@@ -16,17 +16,23 @@ interface ServicesProductivityProps {
 }
 
 export default async function ServerServicesProductivity({timeSelected}: ServicesProductivityProps) {
-  const latestBlock = await getLatestBlock()
+  let data, variables, error = false, cookiesAwaited: Awaited<ReturnType<typeof cookies>>
+  try {
+    cookiesAwaited = await cookies()
 
-  const variables = getProductivityVariables(latestBlock.timestamp, timeSelected)
+    const latestBlock = await getLatestBlock()
+    variables = getProductivityVariables(latestBlock.timestamp, timeSelected)
 
-  const [{data}, cookiesAwaited] = await Promise.all([
-    getClient().query({
+    const response = await getClient().query({
       query: productivityQuery,
       variables,
-    }),
-    cookies()
-  ])
+    })
+
+    data = response.data
+  } catch {
+    error = true
+  }
+
 
   return (
     <DataProvider
@@ -42,7 +48,8 @@ export default async function ServerServicesProductivity({timeSelected}: Service
           <ServicesProductivityChart
             timeSelected={timeSelected}
             initialData={data}
-            initialVariables={variables}
+            initialVariables={variables || null}
+            initialError={error}
             initialSelectedServices={
               cookiesAwaited.get(selectedServicesCookieKey)?.value?.split(',') || []
             }

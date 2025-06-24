@@ -18,12 +18,21 @@ const summaryLabelsByIndex: LabelByIndex = {
 }
 
 async function SuppliersSummary() {
-  const {data: summaryData} = await getClient().query({
-    query: supplierSummaryDocument,
-  })
+  let data, error = false
+
+  try {
+    const response = await getClient().query({
+      query: supplierSummaryDocument,
+    })
+
+    data = response.data
+  } catch {
+    error = true
+  }
+
 
   return (
-    <Summary initialData={summaryData} labels={summaryLabelsByIndex} />
+    <Summary initialData={data} initialError={error} labels={summaryLabelsByIndex} />
   )
 }
 
@@ -56,7 +65,7 @@ export default async function SuppliersPage({searchParams}: PageProps) {
         <SuppliersSummary />
       </Suspense>
       <Suspense
-        key={`suppliers-page-${pageInfo.page}-${pageInfo.itemsPerPage}`}
+        key={`suppliers-page-${pageInfo.page}-${pageInfo.itemsPerPage}-${new Date().toISOString()}`}
         fallback={
           <LoadingTable
             columns={columns}

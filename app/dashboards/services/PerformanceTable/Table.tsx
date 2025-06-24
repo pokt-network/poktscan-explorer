@@ -15,13 +15,15 @@ import NoData from '@/app/components/NoData'
 import columns, { ServicePerformanceRow } from './columns'
 import { useDataContext } from '@/app/context/DataContext'
 import { useLazyQuery } from '@apollo/client'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
 
 interface PerformanceTableProps {
   initialData: DocumentNodeData<typeof servicesPerformanceDocument>
   timeSelected: string
+  initialError: boolean
 }
 
-export default function PerformanceTable({initialData, timeSelected}: PerformanceTableProps) {
+export default function PerformanceTable({initialData, initialError, timeSelected}: PerformanceTableProps) {
   const {setData} = useDataContext<ServicePerformanceRow>()
 
   const latestVariablesRef = useRef<ReturnType<typeof getServicesPerformanceVariables> | null>(null)
@@ -34,10 +36,11 @@ export default function PerformanceTable({initialData, timeSelected}: Performanc
     nextFetchPolicy: 'network-only',
   })
 
-  const data = useFetchOnBlock({
+  const { data, error, refetch, isLoading } = useFetchOnBlock({
     query: servicesPerformanceDocument,
     variables,
     initialResult: initialData,
+    initialError,
     resultParser: async (data) => {
       if (data?.currentData?.nodes.length === 100) {
         let cursor = data.currentData.pageInfo.endCursor
@@ -183,6 +186,20 @@ export default function PerformanceTable({initialData, timeSelected}: Performanc
     setData(rows)
     // eslint-disable-next-line
   }, [rows])
+
+  if (isLoading) {
+    return (
+      <BaseTable columns={columns} rows={[]} isLoading={true} />
+    )
+  } else if (error) {
+    return (
+      <div className={'flex grow pb-10'}>
+        <BaseRetryError
+          onRetry={refetch}
+        />
+      </div>
+    )
+  }
 
   if (rows.length === 0) {
     return (

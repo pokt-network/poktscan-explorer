@@ -9,6 +9,7 @@ import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
 import NewTransferByAddress from '@/app/(transactions)/NewTransferByAddress'
 import LoadingListView from '@/app/components/LoadingListView'
+import { RefreshPageError } from '@/app/components/ErrorBoundary'
 
 const transfersByAddressDocument = graphql(`
   query transfersList($limit: Int!, $offset: Int!, $address: String!) {
@@ -173,21 +174,8 @@ interface TransferTableProps {
 }
 
 async function ServerTransferTable({address, page, itemsPerPage, basePath}: TransferTableProps) {
-  let { data } = await getClient().query({
-    query: transfersByAddressDocument,
-    variables: {
-      limit: itemsPerPage,
-      offset: (page - 1) * itemsPerPage,
-      address,
-    }
-  })
-
-  const totalPages = Math.ceil((data.transfers?.totalCount || 0) / itemsPerPage)
-
-  if (page > totalPages && totalPages > 0) {
-    page = 1
-
-    const result = await getClient().query({
+  try {
+    let { data } = await getClient().query({
       query: transfersByAddressDocument,
       variables: {
         limit: itemsPerPage,
@@ -196,56 +184,76 @@ async function ServerTransferTable({address, page, itemsPerPage, basePath}: Tran
       }
     })
 
-    data = result.data
+    const totalPages = Math.ceil((data.transfers?.totalCount || 0) / itemsPerPage)
+
+    if (page > totalPages && totalPages > 0) {
+      page = 1
+
+      const result = await getClient().query({
+        query: transfersByAddressDocument,
+        variables: {
+          limit: itemsPerPage,
+          offset: (page - 1) * itemsPerPage,
+          address,
+        }
+      })
+
+      data = result.data
+    }
+
+    const rows = data?.transfers?.nodes?.map((transfer) => {
+      const amount = transfer?.amounts?.at(0)
+      const fee = transfer?.transaction?.fees?.at(0) || {
+        amount: '0',
+        denom: 'upokt'
+      }
+
+      return {
+        id: transfer?.transaction?.id,
+        result: transfer?.transaction?.code,
+        codespace: transfer?.transaction?.codespace,
+        height: transfer?.block?.height,
+        timestamp: transfer?.block?.timestamp,
+        // TODO: senderId and recipientId is incorrectly mapped in the indexer
+        from: transfer?.recipientId,
+        flow: transfer?.recipientId === address ? 'OUT' : 'IN',
+        to: transfer?.senderId,
+        amount: formatAmount(amount),
+        raw_amount: convertUpoktToPokt(amount?.amount),
+        fee: formatAmount(fee),
+        raw_fee: convertUpoktToPokt(fee?.amount),
+      }
+    }) || []
+
+    return (
+      <Table
+        columns={columns}
+        rows={rows}
+        header={{
+          title: `${data.transfers?.totalCount} transfers found`,
+          subtitle: (
+            <NewTransferByAddress address={address} />
+          )
+        }}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          itemsPerPage,
+          basePath
+        }}
+      />
+    )
+  } catch {
+    return (
+      <RefreshPageError />
+    )
   }
-
-  const rows = data?.transfers?.nodes?.map((transfer) => {
-    const amount = transfer?.amounts?.at(0)
-    const fee = transfer?.transaction?.fees?.at(0) || {
-      amount: '0',
-      denom: 'upokt'
-    }
-
-    return {
-      id: transfer?.transaction?.id,
-      result: transfer?.transaction?.code,
-      codespace: transfer?.transaction?.codespace,
-      height: transfer?.block?.height,
-      timestamp: transfer?.block?.timestamp,
-      // TODO: senderId and recipientId is incorrectly mapped in the indexer
-      from: transfer?.recipientId,
-      flow: transfer?.recipientId === address ? 'OUT' : 'IN',
-      to: transfer?.senderId,
-      amount: formatAmount(amount),
-      raw_amount: convertUpoktToPokt(amount?.amount),
-      fee: formatAmount(fee),
-      raw_fee: convertUpoktToPokt(fee?.amount),
-    }
-  }) || []
-
-  return (
-    <Table
-      columns={columns}
-      rows={rows}
-      header={{
-        title: `${data.transfers?.totalCount} transfers found`,
-        subtitle: (
-          <NewTransferByAddress address={address} />
-        )
-      }}
-      pagination={{
-        currentPage: page,
-        totalPages,
-        itemsPerPage,
-        basePath
-      }}
-    />
-  )
 }
 
 export default async function TransferTable(props: TransferTableProps) {
   return (
     <Suspense
+      key={new Date().toISOString()}
       fallback={
         <LoadingListView
           columns={columns}

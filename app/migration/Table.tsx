@@ -12,6 +12,7 @@ import { PageProps } from '@/app/types/pages'
 import { MorseClaimableAccountFilter } from '../config/gql/graphql'
 import { isValidMorseAddress, isValidPoktAddress } from '@/app/utils/poktroll'
 import NewEntitiesSubscription from '@/app/migration/NewEntitiesSubscription'
+import { RefreshPageError } from '@/app/components/ErrorBoundary'
 
 export interface RowMorseClaimableAccount {
   id: string
@@ -127,59 +128,46 @@ interface MorseClaimableAccountTableProps extends PageProps {
 }
 
 export default async function MorseClaimableAccountTable({searchParams, address, basePath}: MorseClaimableAccountTableProps) {
-  const pageInfo = await getPageAndItems(searchParams)
+  try {
+    const pageInfo = await getPageAndItems(searchParams)
 
-  let filter: MorseClaimableAccountFilter | undefined = undefined
+    let filter: MorseClaimableAccountFilter | undefined = undefined
 
-  if (address) {
-    if (isValidPoktAddress(address)) {
-      filter = {
-        and: [
-          {
-            shannonDestAddress: {
-              equalToInsensitive: address
+    if (address) {
+      if (isValidPoktAddress(address)) {
+        filter = {
+          and: [
+            {
+              shannonDestAddress: {
+                equalToInsensitive: address
+              }
             }
-          }
-        ]
-      }
-    } else if (isValidMorseAddress(address)) {
-      filter = {
-        or: [
-          {
-            id: {
-              equalToInsensitive: address
+          ]
+        }
+      } else if (isValidMorseAddress(address)) {
+        filter = {
+          or: [
+            {
+              id: {
+                equalToInsensitive: address
+              }
+            },
+            {
+              morseOutputAddress: {
+                equalToInsensitive: address,
+              }
             }
-          },
-          {
-            morseOutputAddress: {
-              equalToInsensitive: address,
-            }
-          }
-        ]
+          ]
+        }
       }
     }
-  }
 
-  let page = pageInfo.page
-  const itemsPerPage = pageInfo.itemsPerPage
+    let page = pageInfo.page
+    const itemsPerPage = pageInfo.itemsPerPage
 
-  const client = getClient()
+    const client = getClient()
 
-  let {data} = await client.query({
-    query: morseClaimableAccountsPageDocument,
-    variables: {
-      limit: itemsPerPage,
-      offset: (page - 1) * itemsPerPage,
-      filter,
-    }
-  })
-
-  const totalPages = Math.ceil((data.morseClaimableAccounts?.totalCount || 0) / itemsPerPage)
-
-  if (page > totalPages) {
-    page = 1
-
-    const result = await client.query({
+    let {data} = await client.query({
       query: morseClaimableAccountsPageDocument,
       variables: {
         limit: itemsPerPage,
@@ -188,48 +176,67 @@ export default async function MorseClaimableAccountTable({searchParams, address,
       }
     })
 
-    data = result.data
+    const totalPages = Math.ceil((data.morseClaimableAccounts?.totalCount || 0) / itemsPerPage)
+
+    if (page > totalPages) {
+      page = 1
+
+      const result = await client.query({
+        query: morseClaimableAccountsPageDocument,
+        variables: {
+          limit: itemsPerPage,
+          offset: (page - 1) * itemsPerPage,
+          filter,
+        }
+      })
+
+      data = result.data
+    }
+
+    const rows: Array<RowMorseClaimableAccount> = data?.morseClaimableAccounts?.nodes?.map((morseClaimableAccount) => ({
+      id: morseClaimableAccount?.id || '',
+      shannonDestAddress: morseClaimableAccount?.shannonDestAddress || '',
+      claimedAtHeight: morseClaimableAccount?.claimedAtHeight,
+      unstakedBalance: formatAmount({
+        amount: morseClaimableAccount?.unstakedBalanceAmount || '0',
+        denom: morseClaimableAccount?.unstakedBalanceDenom || 'upokt',
+      }),
+      supplierStake: formatAmount({
+        amount: morseClaimableAccount?.supplierStakeAmount || '0',
+        denom: morseClaimableAccount?.supplierStakeDenom || 'upokt',
+      }),
+      applicationStake: formatAmount({
+        amount: morseClaimableAccount?.applicationStakeAmount || '0',
+        denom: morseClaimableAccount?.applicationStakeDenom || 'upokt',
+      }),
+      transactionHash: morseClaimableAccount?.transactionId,
+    })) || []
+
+
+    return (
+      <>
+        <Table
+          header={{
+            title: `${formatSimpleAmount(data?.morseClaimableAccounts?.totalCount || 0)} Morse claimable accounts found`,
+            subtitle: (
+              <NewEntitiesSubscription address={address} />
+            )
+          }}
+          columns={columns}
+          rows={rows}
+          pagination={{
+            currentPage: page,
+            totalPages,
+            itemsPerPage,
+            basePath,
+          }}
+        />
+      </>
+    )
+  } catch {
+    return (
+      <RefreshPageError />
+    )
   }
-
-  const rows: Array<RowMorseClaimableAccount> = data?.morseClaimableAccounts?.nodes?.map((morseClaimableAccount) => ({
-    id: morseClaimableAccount?.id || '',
-    shannonDestAddress: morseClaimableAccount?.shannonDestAddress || '',
-    claimedAtHeight: morseClaimableAccount?.claimedAtHeight,
-    unstakedBalance: formatAmount({
-      amount: morseClaimableAccount?.unstakedBalanceAmount || '0',
-      denom: morseClaimableAccount?.unstakedBalanceDenom || 'upokt',
-    }),
-    supplierStake: formatAmount({
-      amount: morseClaimableAccount?.supplierStakeAmount || '0',
-      denom: morseClaimableAccount?.supplierStakeDenom || 'upokt',
-    }),
-    applicationStake: formatAmount({
-      amount: morseClaimableAccount?.applicationStakeAmount || '0',
-      denom: morseClaimableAccount?.applicationStakeDenom || 'upokt',
-    }),
-    transactionHash: morseClaimableAccount?.transactionId,
-  })) || []
-
-
-  return (
-    <>
-      <Table
-        header={{
-          title: `${formatSimpleAmount(data?.morseClaimableAccounts?.totalCount || 0)} Morse claimable accounts found`,
-          subtitle: (
-            <NewEntitiesSubscription address={address} />
-          )
-        }}
-        columns={columns}
-        rows={rows}
-        pagination={{
-          currentPage: page,
-          totalPages,
-          itemsPerPage,
-          basePath,
-        }}
-      />
-    </>
-  )
 }
 

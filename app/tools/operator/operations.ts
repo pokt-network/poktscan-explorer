@@ -34,11 +34,11 @@ export const getDataByDelegatorAddressesAndTimesVariables = (
 
   switch (timeSelectedToUse) {
     case Time.Last24h: {
-      startDate = addHoursToUtc(endDate, -23)
+      startDate = addHoursToUtc(endDate, -24)
       break
     }
     case Time.Last48h: {
-      startDate = addHoursToUtc(endDate, -47)
+      startDate = addHoursToUtc(endDate, -48)
       break
     }
   }

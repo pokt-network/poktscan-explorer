@@ -8,6 +8,19 @@ import React from 'react'
 import { calculatePercentage } from '@/app/utils/calculate'
 import { formatUpokt } from '@/app/utils/format'
 import { combineByIndex, LabelByIndex } from '@/app/components/FourCards/utils'
+import { LoadingSummary } from '@/app/components/LoadingListView'
+import { Skeleton } from '@/components/ui/skeleton'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
+
+export function SummarySkeleton() {
+  return (
+    <div className={'flex flex-col gap-1'}>
+      <Skeleton className={'h-[19.5px] w-[120px] mt-2'} />
+      <Skeleton className={'h-[19.5px] w-[170px]'} />
+      <Skeleton className={'h-[11.5px] mt-2 w-full'} />
+    </div>
+  )
+}
 
 interface PercentProps {
   percentage: number
@@ -68,13 +81,36 @@ function Value({percentage, value, total}: ValueProps) {
 interface SummaryProps {
   initialData: DocumentNodeData<typeof morseClaimableAccountsSummaryDocument>
   labels: LabelByIndex
+  initialError: boolean
 }
 
-export default function Summary({initialData, labels}: SummaryProps) {
-  const data = useFetchOnBlock({
+export default function Summary({initialData, initialError, labels}: SummaryProps) {
+  const { data, isLoading, error, refetch } = useFetchOnBlock({
     query: morseClaimableAccountsSummaryDocument,
-    initialResult: initialData
+    initialResult: initialData,
+    initialError,
   })
+
+  if (isLoading) {
+    return (
+      <div className={'-mt-0'}>
+        <LoadingSummary labels={labels} defaultSkeleton={<SummarySkeleton />} />
+        <hr className={'border-[color:--divider] mt-6 mb-4'} />
+      </div>
+    )
+  } else if (error) {
+    return (
+      <div className={'-mt-0'}>
+        <div className={"bg-[color:--main-background] pt-3 pb-1 gap-1 rounded-lg border border-[color:--divider] base-shadow"}>
+          <BaseRetryError
+            onRetry={refetch}
+            errorMessage={'Oops. There was an error loading the summary data.'}
+          />
+        </div>
+        <hr className={'border-[color:--divider] mt-6 mb-4'} />
+      </div>
+    )
+  }
 
   const notClaimed = data.morseClaimableAccounts.groupedAggregates.find(i => i.keys.at(0) === 'false')
   const claimed = data.morseClaimableAccounts.groupedAggregates.find(i => i.keys.at(0) === 'true')

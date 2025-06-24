@@ -8,6 +8,7 @@ import { useApolloClient } from '@apollo/client'
 import ErrorBoundary from '@/app/components/ErrorBoundary'
 import EntityDetail from '@/app/components/EntityDetail'
 import { getSourceChipsRow } from '@/app/components/SourceChips'
+import EntityNotFound from '@/app/(details)/EntityNotFound'
 
 interface BlockDetailProps extends GetBlockResult {
   id: string
@@ -38,15 +39,27 @@ export default function BlockDetail({id, rpcUrl, error, source, data,}: BlockDet
     )
   }
 
-  return (
-    <>
-      <TitleEntity title={'Block'} text={'#' + id} />
+  let content: React.ReactNode = null
+
+  if (data) {
+    content = (
       <EntityDetail
         items={[
           ...(source ? [getSourceChipsRow(source)] : []),
           ...getRows(data)
         ]}
       />
+    )
+  } else {
+    content = (
+      <EntityNotFound id={id} />
+    )
+  }
+
+  return (
+    <>
+      <TitleEntity title={'Block'} text={'#' + id} />
+      {content}
     </>
   )
 }

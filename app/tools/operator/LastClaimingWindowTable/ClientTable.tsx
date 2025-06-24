@@ -11,15 +11,18 @@ import React, { useEffect, useMemo, useRef, useCallback } from 'react'
 import { formatSimpleAmount, formatUpokt } from '@/app/utils/format'
 import NoData from '@/app/components/NoData'
 import BaseTable from '@/app/components/BaseTable'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
 
 interface ClientLastClaimingWindowTableProps {
+  initialError: boolean
   initialData: DocumentNodeData<typeof getDataByDelegatorAddressesAndBlocksDocument>
   addresses: Array<string>
 }
 
 export default function ClientLastClaimingWindowTable({
   addresses,
-  initialData
+  initialData,
+  initialError,
 }: ClientLastClaimingWindowTableProps) {
   const {setData} = useDataContext<DataByDelegatorRow>()
 
@@ -34,9 +37,10 @@ export default function ClientLastClaimingWindowTable({
     return undefined
   }, [])
 
-  const data = useFetchOnBlock({
+  const { data, error, refetch, isLoading } = useFetchOnBlock({
     variables,
     query: getParamsDocument,
+    initialError,
     initialResult: initialData,
     resultParser: async (paramsData) => {
       const claimWindowCloseOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'claim_window_close_offset_blocks')?.value
@@ -95,6 +99,20 @@ export default function ClientLastClaimingWindowTable({
     // eslint-disable-next-line
   }, [rows])
 
+  if (isLoading) {
+    return (
+      <BaseTable columns={columns} rows={rows} isLoading={true} />
+    )
+  } else if (error) {
+    return (
+      <div className={'flex pb-10 grow'}>
+        <BaseRetryError
+          onRetry={refetch}
+        />
+      </div>
+    )
+  }
+
   if (rows.length === 0) {
     return (
       <NoData label={'No data for the selected addresses and time.'} />
@@ -102,8 +120,6 @@ export default function ClientLastClaimingWindowTable({
   }
 
   return (
-    <>
-      <BaseTable columns={columns} rows={rows} />
-    </>
+    <BaseTable columns={columns} rows={rows} />
   )
 }

@@ -15,7 +15,7 @@ interface LatestBlockProps {
 export default function LatestBlock({
   initialData
 }: LatestBlockProps) {
-  const latestBlock = useFetchOnBlock({
+  const { data: latestBlock } = useFetchOnBlock({
     query: latestBlockQuery,
     resultParser: (result) => result.blocks.nodes.at(0),
     initialResult: initialData,

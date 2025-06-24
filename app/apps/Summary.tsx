@@ -6,17 +6,38 @@ import React from 'react'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import { applicationSummaryDocument } from '@/app/apps/operations'
 import { combineByIndex, LabelByIndex } from '@/app/components/FourCards/utils'
+import { LoadingSummary } from '@/app/components/LoadingListView'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
 
 interface SummaryProps {
   initialData: DocumentNodeData<typeof applicationSummaryDocument>
+  initialError: boolean
   labels: LabelByIndex
 }
 
-export default function Summary({initialData, labels}: SummaryProps) {
-  const data = useFetchOnBlock({
+export default function Summary({initialData, initialError, labels}: SummaryProps) {
+  const { data, error, isLoading, refetch } = useFetchOnBlock({
     query: applicationSummaryDocument,
-    initialResult: initialData
+    initialResult: initialData,
+    initialError,
   })
+
+  if (isLoading) {
+    return (
+      <LoadingSummary
+        labels={labels}
+      />
+    )
+  } else if (error) {
+    return (
+      <div className={"bg-[color:--main-background] pt-3 pb-1 gap-1 rounded-lg border border-[color:--divider] base-shadow"}>
+        <BaseRetryError
+          onRetry={refetch}
+          errorMessage={'Oops. There was an error loading the summary data.'}
+        />
+      </div>
+    )
+  }
 
   return (
     <FourCard

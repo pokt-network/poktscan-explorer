@@ -283,6 +283,10 @@ export async function getTransaction(hash: string, rpcUrl: string, apolloClient:
 export async function getMessages(hash: string, rpcUrl: string) {
   const rpcData = await getRawTxFromRpc(hash, rpcUrl)
 
+  if (!rpcData) {
+    return []
+  }
+
   return rpcData.tx.body.messages.map((message) => ({
     typeUrl: message['@type'],
     json: JSON.stringify({
@@ -306,6 +310,10 @@ function parseAttributeValue(value: string) {
 
 export async function getEvents(hash: string, rpcUrl: string) {
   const rpcData = await getRawTxFromRpc(hash, rpcUrl)
+
+  if (!rpcData) {
+    return []
+  }
 
   return rpcData.tx_response.events.map((event) => ({
     typeUrl: event.type,

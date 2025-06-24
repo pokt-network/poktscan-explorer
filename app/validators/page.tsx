@@ -10,6 +10,7 @@ import ListTitle from '@/app/components/ListTitle'
 import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 import { RowTransaction } from '@/app/(transactions)/TransactionTable'
 import LoadingListView from '@/app/components/LoadingListView'
+import { RefreshPageError } from '@/app/components/ErrorBoundary'
 
 export const dynamic = "force-dynamic";
 
@@ -139,24 +140,12 @@ interface PageProps {
 }
 
 async function ServerValidatorsPage({searchParams}: PageProps) {
-  const pageInfo = await getPageAndItems(searchParams)
-  let page = pageInfo.page
-  const itemsPerPage = pageInfo.itemsPerPage
+  try {
+    const pageInfo = await getPageAndItems(searchParams)
+    let page = pageInfo.page
+    const itemsPerPage = pageInfo.itemsPerPage
 
-  let {data} = await getClient().query({
-    query: validatorsListDocument,
-    variables: {
-      limit: itemsPerPage,
-      offset: (page - 1) * itemsPerPage
-    }
-  })
-
-  const totalPages = Math.ceil((data.validators?.totalCount || 0) / itemsPerPage)
-
-  if (page > totalPages) {
-    page = 1
-
-    const result = await getClient().query({
+    let {data} = await getClient().query({
       query: validatorsListDocument,
       variables: {
         limit: itemsPerPage,
@@ -164,49 +153,67 @@ async function ServerValidatorsPage({searchParams}: PageProps) {
       }
     })
 
-    data = result.data
-  }
+    const totalPages = Math.ceil((data.validators?.totalCount || 0) / itemsPerPage)
 
-  const rows: Array<RowValidator> = data.validators?.nodes?.map((validator) => {
-    return {
-      id: validator?.id,
-      status: getStakeLabel(validator?.stakeStatus as number),
-      stakeAmount: formatAmount({
-        amount: validator?.stakeAmount,
-        denom: validator?.stakeDenom,
-      }),
-      raw_stakeAmount: convertUpoktToPokt(validator?.stakeAmount),
-      moniker: validator?.description?.moniker,
-      minSelfDelegation: validator?.minSelfDelegation,
-      commissionRate: Number(validator?.commission.rate),
-      commissionMaxRate: Number(validator?.commission.maxRate),
-      commissionMaxChangeRate: Number(validator?.commission.maxChangeRate),
-      signer: validator?.signer?.id || '',
+    if (page > totalPages) {
+      page = 1
+
+      const result = await getClient().query({
+        query: validatorsListDocument,
+        variables: {
+          limit: itemsPerPage,
+          offset: (page - 1) * itemsPerPage
+        }
+      })
+
+      data = result.data
     }
-  })
 
-  return (
-    <Table
-      columns={columns}
-      rows={rows}
-      header={{
-        title: `${data.validators?.totalCount} validators found`,
-        subtitle: (
-          <NewEntitiesFound<typeof validatorsSubscription>
-            subscription={validatorsSubscription}
-            entity={'validators'}
-          />
-        )
-      }}
-      pagination={{
-        currentPage: page,
-        totalPages,
-        itemsPerPage,
-        basePath: '/validators'
-      }}
-      defaultMinWidth={70}
-    />
-  )
+    const rows: Array<RowValidator> = data.validators?.nodes?.map((validator) => {
+      return {
+        id: validator?.id,
+        status: getStakeLabel(validator?.stakeStatus as number),
+        stakeAmount: formatAmount({
+          amount: validator?.stakeAmount,
+          denom: validator?.stakeDenom,
+        }),
+        raw_stakeAmount: convertUpoktToPokt(validator?.stakeAmount),
+        moniker: validator?.description?.moniker,
+        minSelfDelegation: validator?.minSelfDelegation,
+        commissionRate: Number(validator?.commission.rate),
+        commissionMaxRate: Number(validator?.commission.maxRate),
+        commissionMaxChangeRate: Number(validator?.commission.maxChangeRate),
+        signer: validator?.signer?.id || '',
+      }
+    })
+
+    return (
+      <Table
+        columns={columns}
+        rows={rows}
+        header={{
+          title: `${data.validators?.totalCount} validators found`,
+          subtitle: (
+            <NewEntitiesFound<typeof validatorsSubscription>
+              subscription={validatorsSubscription}
+              entity={'validators'}
+            />
+          )
+        }}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          itemsPerPage,
+          basePath: '/validators'
+        }}
+        defaultMinWidth={70}
+      />
+    )
+  } catch {
+    return (
+      <RefreshPageError />
+    )
+  }
 }
 
 export default async function ValidatorsPage({searchParams}: PageProps) {
@@ -215,7 +222,7 @@ export default async function ValidatorsPage({searchParams}: PageProps) {
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <ListTitle title={'Validators'} />
       <Suspense
-        key={`validators-page-${pageInfo.page}-${pageInfo.itemsPerPage}`}
+        key={`validators-page-${pageInfo.page}-${pageInfo.itemsPerPage}-${new Date().toISOString()}`}
         fallback={
           <LoadingListView
             columns={columns}

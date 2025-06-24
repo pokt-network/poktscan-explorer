@@ -16,40 +16,69 @@ import ServicesLoader from '@/app/(home)/Services/Loader'
 export const dynamic = "force-dynamic";
 
 async function ServerSummary() {
-  const latestBlock = await getLatestBlock()
-  const {data} = await getClient().query({
-    query: summaryDocument,
-    variables: getSummaryVariables(new Date(latestBlock.timestamp)),
-  })
+  let data, error = false
+
+  try {
+    const latestBlock = await getLatestBlock()
+    const response = await getClient().query({
+      query: summaryDocument,
+      variables: getSummaryVariables(new Date(latestBlock.timestamp)),
+    })
+
+    data = response.data
+  } catch {
+    error = true
+  }
+
 
   return (
-    <Summary initialData={data as DocumentNodeData<typeof summaryDocument>} />
+    <Summary
+      initialData={data as DocumentNodeData<typeof summaryDocument>}
+      initialError={error}
+    />
   )
 }
 
 async function ServerEvolutionCharts() {
-  const latestBlock = await getLatestBlock()
-  const {data: supplierAndAppsEvolutionData} = await getClient().query({
-    query: evolutionDocument,
-    variables: getEvolutionVariables(new Date(latestBlock.timestamp))
-  })
+  let data, error = false
+
+  try {
+    const latestBlock = await getLatestBlock()
+    const response = await getClient().query({
+      query: evolutionDocument,
+      variables: getEvolutionVariables(new Date(latestBlock.timestamp))
+    })
+
+    data = response.data
+  } catch {
+    error = true
+  }
 
   return (
-    <EvolutionCharts initialData={supplierAndAppsEvolutionData} />
+    <EvolutionCharts initialData={data} initialError={error} />
   )
 }
 
 async function ServerServicesCard({defaultType}: {defaultType: string}) {
-  const latestBlock = await getLatestBlock()
+  let data, error = false
 
-  const { data: servicesData } = await getClient().query({
-    query: servicesDocument,
-    variables: getServicesVariables(new Date(latestBlock.timestamp))
-  })
+  try {
+    const latestBlock = await getLatestBlock()
+
+    const response = await getClient().query({
+      query: servicesDocument,
+      variables: getServicesVariables(new Date(latestBlock.timestamp))
+    })
+
+    data = response.data
+  } catch {
+    error = true
+  }
 
   return (
     <ServicesCard
-      initialData={servicesData as DocumentNodeData<typeof servicesDocument>}
+      initialData={data as DocumentNodeData<typeof servicesDocument>}
+      initialError={error}
       defaultType={defaultType}
     />
   )
@@ -88,7 +117,7 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
       </div>
 
       <div className={'px-4 md:px-5 pb-10 flex lg:flex-row flex-col gap-4'}>
-        <div className={'w-full lg:w-[50%] flex flex-col gap-4'}>
+        <div className={'w-full lg:w-[50%] flex flex-col gap-4 h-[652px]'}>
           <Suspense
             fallback={
               <EvolutionChartsLoader />

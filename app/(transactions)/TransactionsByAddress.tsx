@@ -6,6 +6,7 @@ import { Transaction } from '@/app/config/gql/graphql'
 import NewTransactionsByAddress from '@/app/(transactions)/NewTransactionsByAddress'
 import LoadingListView from '@/app/components/LoadingListView'
 import { getTransactionsColumns } from '@/app/(transactions)/columns'
+import { RefreshPageError } from '@/app/components/ErrorBoundary'
 
 const transactionsByAddressDocument = graphql(`
   query transactionsByAddress($limit: Int!, $offset: Int!, $address: String!) {
@@ -48,21 +49,8 @@ interface TransactionTableProps {
 }
 
 async function ServerTransactionByAddressTable({address, page, itemsPerPage, basePath}: TransactionTableProps) {
-  let { data } = await getClient().query({
-    query: transactionsByAddressDocument,
-    variables: {
-      limit: itemsPerPage,
-      offset: (page - 1) * itemsPerPage,
-      address,
-    }
-  })
-
-  const totalPages = Math.ceil((data.transactions?.totalCount || 0) / itemsPerPage)
-
-  if (page > totalPages && totalPages > 0) {
-    page = 1
-
-    const result = await getClient().query({
+  try {
+    let { data } = await getClient().query({
       query: transactionsByAddressDocument,
       variables: {
         limit: itemsPerPage,
@@ -71,31 +59,50 @@ async function ServerTransactionByAddressTable({address, page, itemsPerPage, bas
       }
     })
 
-    data = result.data
-  }
+    const totalPages = Math.ceil((data.transactions?.totalCount || 0) / itemsPerPage)
 
-  return (
-    <TransactionTable
-      rawRows={(data?.transactions?.nodes || []) as Array<Transaction>}
-      pagination={{
-        currentPage: page,
-        totalPages,
-        itemsPerPage,
-        basePath
-      }}
-      totalItems={data.transactions?.totalCount || 0}
-      includeSigner={true}
-      subtitle={(
-        <NewTransactionsByAddress address={address} />
-      )}
-    />
-  )
+    if (page > totalPages && totalPages > 0) {
+      page = 1
+
+      const result = await getClient().query({
+        query: transactionsByAddressDocument,
+        variables: {
+          limit: itemsPerPage,
+          offset: (page - 1) * itemsPerPage,
+          address,
+        }
+      })
+
+      data = result.data
+    }
+
+    return (
+      <TransactionTable
+        rawRows={(data?.transactions?.nodes || []) as Array<Transaction>}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          itemsPerPage,
+          basePath
+        }}
+        totalItems={data.transactions?.totalCount || 0}
+        includeSigner={true}
+        subtitle={(
+          <NewTransactionsByAddress address={address} />
+        )}
+      />
+    )
+  } catch {
+    return (
+      <RefreshPageError />
+    )
+  }
 }
 
 export default async function TransactionByAddressTable(props: TransactionTableProps) {
   return (
     <Suspense
-      key={`transactions-by-address-${props.address}-${props.page}-${props.itemsPerPage}`}
+      key={`transactions-by-address-${props.address}-${props.page}-${props.itemsPerPage}-${new Date().toISOString()}`}
       fallback={
         <LoadingListView
           columns={getTransactionsColumns(true)}
