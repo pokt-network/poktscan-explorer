@@ -1,5 +1,5 @@
 import { graphql } from '@/app/config/gql'
-import { Time } from '@/app/tools/operator/constants'
+import { TimeClaimProofTable } from '@/app/tools/operator/constants'
 import { ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { addHoursToUtc } from '@/app/Charts/utils'
 
@@ -22,10 +22,10 @@ export const getDataByDelegatorAddressesAndTimesVariables = (
   currentDate: Date | string,
   timeSelected: string
 ): ExtractVariables<typeof getDataByDelegatorAddressesAndTimesDocument> => {
-  let timeSelectedToUse = Time.Last24h
+  let timeSelectedToUse = TimeClaimProofTable.Last24h
 
-  if (timeSelected && Object.values(Time).includes(timeSelected as Time)) {
-    timeSelectedToUse = timeSelected as Time
+  if (timeSelected && timeSelected !== TimeClaimProofTable.LastClaimingWindow && Object.values(TimeClaimProofTable).includes(timeSelected as TimeClaimProofTable)) {
+    timeSelectedToUse = timeSelected as TimeClaimProofTable
   }
 
   const endDate = new Date(currentDate)
@@ -33,13 +33,16 @@ export const getDataByDelegatorAddressesAndTimesVariables = (
   let startDate: Date
 
   switch (timeSelectedToUse) {
-    case Time.Last24h: {
+    case TimeClaimProofTable.Last24h: {
       startDate = addHoursToUtc(endDate, -24)
       break
     }
-    case Time.Last48h: {
+    case TimeClaimProofTable.Last48h: {
       startDate = addHoursToUtc(endDate, -48)
       break
+    }
+    default: {
+      throw new Error('Invalid time selected')
     }
   }
 

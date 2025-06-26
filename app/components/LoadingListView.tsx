@@ -9,12 +9,14 @@ interface LoadingSummaryProps {
   defaultSkeleton?: React.ReactNode
   labels: LabelByIndex
   skeletonsPerIndex?: ValueByIndex<React.ReactNode | undefined>
+  containerClassName?: string
 }
 
 export function LoadingSummary({
   defaultSkeleton,
   labels,
-  skeletonsPerIndex
+  skeletonsPerIndex,
+  containerClassName,
 }: LoadingSummaryProps) {
   const defaultSummarySkeleton = defaultSkeleton || (
     <Skeleton className={'h-[18px] mt-[6px] w-4/6'} />
@@ -22,6 +24,7 @@ export function LoadingSummary({
 
   return (
     <FourCard
+      containerClassName={containerClassName}
       items={
         combineByIndex(
           labels,

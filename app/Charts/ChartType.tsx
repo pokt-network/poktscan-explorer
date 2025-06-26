@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useState } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { setCookie } from '@/app/utils/cookies'
-import { chartTypeCookieKey } from '@/app/dashboards/services/constants'
 
 type ChartType = 'bar' | 'line'
 
@@ -38,7 +37,11 @@ function useChartType() {
   return context
 }
 
-function ChartTypeSelect() {
+interface ChartTypeSelectProps {
+  chartTypeCookieKey: string
+}
+
+function ChartTypeSelect({chartTypeCookieKey}: ChartTypeSelectProps) {
   const {chartType, setChartType} = useChartType()
 
   return (

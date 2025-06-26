@@ -1,16 +1,16 @@
 import { PageProps } from '@/app/types/pages'
 import {
-  maxAddresses,
   selectedTimeCookieKey,
   selectedTimeParamKey,
-  Time,
+  TimeClaimProofTable,
 } from './constants'
 import { cookies } from 'next/headers'
-import React from 'react'
-import { isValidPoktAddress } from '@/app/utils/poktroll'
-import ByTimeTable from './ByTimeTable/Table'
-import AddressesInput from './AddressesInput'
-import LastClaimingWindowTable from './LastClaimingWindowTable/Table'
+import React, { Suspense } from 'react'
+import { getValidAddresses } from '@/app/tools/utils'
+import ClaimProofTableTimeSelector from '@/app/tools/operator/ClaimProofTable/ClaimProofTableTimeSelector'
+import { MultipleOptionContextProvider } from '@/app/context/MultipleOptionContext'
+import LastClaimingWindowTableLoader from '@/app/tools/operator/ClaimProofTable/Loader'
+import ServerLastClaimingWindowTable from '@/app/tools/operator/ClaimProofTable/Table'
 
 export default async function NodeRunningPage({searchParams}: PageProps) {
   const [searchParamsAwaited, cookiesAwaited] = await Promise.all([
@@ -18,40 +18,39 @@ export default async function NodeRunningPage({searchParams}: PageProps) {
     cookies()
   ])
 
-  const addresses = searchParamsAwaited?.addresses as string
-  let selectedTime: string = Time.Last24h
+  let selectedTime = TimeClaimProofTable.Last24h
 
   const selectedTimeFromSearchParams = searchParamsAwaited?.[selectedTimeParamKey] as string
 
-  if (selectedTimeFromSearchParams && Object.values(Time).includes(selectedTimeFromSearchParams as Time)) {
-    selectedTime = selectedTimeFromSearchParams
+  if (selectedTimeFromSearchParams && Object.values(TimeClaimProofTable).includes(selectedTimeFromSearchParams as TimeClaimProofTable)) {
+    selectedTime = selectedTimeFromSearchParams as TimeClaimProofTable
   }
 
   const selectedTimeFromCookie = cookiesAwaited.get(selectedTimeCookieKey)?.value
 
-  if (selectedTimeFromCookie && Object.values(Time).includes(selectedTimeFromCookie as Time)) {
-    selectedTime = selectedTimeFromCookie
+  if (selectedTimeFromCookie && Object.values(TimeClaimProofTable).includes(selectedTimeFromCookie as TimeClaimProofTable)) {
+    selectedTime = selectedTimeFromCookie as TimeClaimProofTable
   }
 
-  const validAddresses = typeof addresses === 'string' ? addresses.split(',').filter(isValidPoktAddress).slice(0, maxAddresses) : []
+  const validAddresses = getValidAddresses(searchParamsAwaited?.addresses as string)
 
   return (
-    <div className={"px-3 py-5 md:px-4 gap-6 flex min-h-[calc(100dvh-53px-57px-70px)] flex-col"}>
-      <div className={'flex flex-row items-center gap-4 justify-between'}>
-        <h1 className={'text-lg font-medium'}>
-          Node Running
-        </h1>
-      </div>
-      <hr className={'border-[color:--divider] mb-2'} />
-      <AddressesInput defaultValue={validAddresses.length ? validAddresses.join(',') : ''} />
-
-      {validAddresses.length > 0 && (
-        <>
-          <hr className={'border-[color:--divider] my-2'} />
-          <LastClaimingWindowTable addresses={validAddresses} />
-          <ByTimeTable timeSelected={selectedTime} addresses={validAddresses} />
-        </>
-      )}
+    <div>
+      <hr className={'border-[color:--divider]'} />
+      <MultipleOptionContextProvider initialValue={selectedTime}>
+        <Suspense
+          key={validAddresses.join(',') + selectedTime}
+          fallback={(
+            <>
+              <ClaimProofTableTimeSelector initialValue={selectedTime} disable={true} />
+              <LastClaimingWindowTableLoader />
+            </>
+          )}
+        >
+          <ClaimProofTableTimeSelector initialValue={selectedTime} />
+          <ServerLastClaimingWindowTable addresses={validAddresses} time={selectedTime} />
+        </Suspense>
+      </MultipleOptionContextProvider>
     </div>
   )
 }

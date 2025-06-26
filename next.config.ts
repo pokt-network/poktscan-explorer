@@ -9,14 +9,17 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true
   },
   experimental: {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
+    ppr: true, // Partial Prerendering
+    // reactCompiler: true,
+    // dynamicIO: true, // Enable dynamic IO for better streaming
+  },
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
       },
-    }
+    },
   },
   webpack: (config: NextConfig) => {
     config.module.rules.push(
@@ -26,7 +29,7 @@ const nextConfig: NextConfig = {
       }
     )
     return config
-  }
+  },
 };
 
 export default nextConfig;

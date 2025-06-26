@@ -31,6 +31,8 @@ interface BaseLineBarChartProps<T extends LineBarItem> {
   isLoading?: boolean
   customOptions?: Partial<ChartProps>
   customDataLoaderProps?: Partial<ChartLoaderConfigProps>
+  formatValueAxisY?: (value: string | number) => string
+  displayColorsInTooltip?: boolean
 }
 
 export default function BaseLineBarChart<T extends LineBarItem>({
@@ -44,6 +46,8 @@ export default function BaseLineBarChart<T extends LineBarItem>({
   isLoading = false,
   customOptions,
   customDataLoaderProps,
+  formatValueAxisY,
+  displayColorsInTooltip = true,
 }: BaseLineBarChartProps<T>) {
   const {theme} = useTheme()
   const [colors, setColors] = useState({
@@ -170,6 +174,9 @@ export default function BaseLineBarChart<T extends LineBarItem>({
           },
           color: colors.secondary,
           callback: function (value) {
+            if (formatValueAxisY) {
+              return formatValueAxisY(value)
+            }
             return formatSimpleAmount(value)
           }
         },
@@ -202,7 +209,7 @@ export default function BaseLineBarChart<T extends LineBarItem>({
       tooltip: {
         mode: chartType === 'bar' ? 'point' :'nearest',
         intersect: false,
-        displayColors: true,
+        displayColors: displayColorsInTooltip,
         boxWidth: 8,
         boxHeight: 7,
         caretSize: 8,
