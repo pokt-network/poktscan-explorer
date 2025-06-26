@@ -1,7 +1,7 @@
 'use client'
 
 import type { DataItem } from '@/app/dashboards/services/Productivity/Chart'
-import { ChartTypeSelect } from '@/app/dashboards/services/Productivity/ChartType'
+import { ChartTypeSelect } from '@/app/Charts/ChartType'
 import ScreenshotButton from '@/app/components/ScreenshotButton'
 import { containerId } from '@/app/dashboards/services/Productivity/constants'
 import React from 'react'
@@ -9,6 +9,7 @@ import { useDataContext } from '@/app/context/DataContext'
 import ExportButton from '@/app/components/ExportButton'
 import { formatAmount, formatSimpleAmount } from '@/app/utils/format'
 import { CsvColumn } from '@/app/utils/exportToCsv'
+import { chartTypeCookieKey } from '@/app/dashboards/services/constants'
 
 const csvFormatter = (field: keyof DataItem, row: DataItem) => {
   switch (field) {
@@ -78,7 +79,7 @@ export default function CardActions() {
 
   return (
     <div className={'flex flex-row items-center gap-2'}>
-      <ChartTypeSelect />
+      <ChartTypeSelect chartTypeCookieKey={chartTypeCookieKey} />
       <ExportButton
         columns={csvColumns}
         formatterFunction={csvFormatter}

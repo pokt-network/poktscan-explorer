@@ -6,20 +6,35 @@ import {
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { setCookie } from '@/app/utils/cookies'
 
-interface TimeSelectorProps {
-  selectedTime: string
+const labelByTime: Record<Time, string> = {
+  [Time.Last24h]: 'Last 24h',
+  [Time.Last7d]: 'Last 7d',
+  [Time.Last30d]: 'Last 30d',
+  [Time.Last90d]: 'Last 90d',
 }
 
-export default function TimeSelector({selectedTime}: TimeSelectorProps) {
+interface TimeSelectorProps {
+  selectedTime: string
+  includeLabel?: boolean
+  options?: Array<Time>
+}
+
+export default function TimeSelector({
+  selectedTime,
+  includeLabel = true,
+  options = [Time.Last24h, Time.Last7d, Time.Last30d, Time.Last90d],
+}: TimeSelectorProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
   return (
     <div className={'flex flex-row items-center gap-3 h-[30px]'}>
-      <label className={'text-sm'}>
-        Time
-      </label>
+      {includeLabel && (
+        <label className={'text-sm'}>
+          Time
+        </label>
+      )}
       <Select
       value={selectedTime}
       onValueChange={(newValue) => {
@@ -34,21 +49,13 @@ export default function TimeSelector({selectedTime}: TimeSelectorProps) {
         <SelectValue placeholder={'Time'} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={Time.Last24h}>
-         Last 24 hours
-        </SelectItem>
-        <SelectItem value={Time.Last7d}>
-          Last 7 days
-        </SelectItem>
-        <SelectItem value={Time.Last30d}>
-          Last 30 days
-        </SelectItem>
-        <SelectItem value={Time.Last90d}>
-          Last 90 days
-        </SelectItem>
+        {options?.map(option => (
+          <SelectItem value={option} key={option}>
+            {labelByTime[option] || option}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
     </div>
-
   )
 }

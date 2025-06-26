@@ -23,6 +23,7 @@ import { getServiceFromRpc } from '@/app/(details)/service/[id]/getService'
 import { Button } from '@/components/ui/button'
 import { indexerMetadataDocument } from '@/app/operations/metadata'
 import { getUseRpcData } from '@/app/utils/metadata'
+import { StakeStatus } from '../config/gql/graphql'
 
 const searchByAddressDocument = graphql(`
   query searchByAddress($address: String!) {
@@ -463,7 +464,10 @@ function IndexerSearch({value, close}: SearchContentProps) {
         rows.push({
           entity: 'account',
           entityId: data.account.id,
-          description: formatAmount(data.account.balances.nodes[0]!)
+          description: formatAmount(data.account.balances?.nodes?.find((balance) => balance?.denom === 'upokt') || {
+            amount: '0',
+            denom: 'upokt'
+          })
         })
       }
 
@@ -479,7 +483,7 @@ function IndexerSearch({value, close}: SearchContentProps) {
           entityId: id,
           description: <>
             <span
-              className={stakeStatus === 0 ? 'text-[color:--success]' : stakeStatus === 1 ? 'text-[color:--warning]' : 'text-[color:-error]'}
+              className={stakeStatus === StakeStatus.Staked ? 'text-[color:--success]' : stakeStatus === StakeStatus.Unstaking ? 'text-[color:--warning]' : 'text-[color:-error]'}
             >
               {getStakeLabel(stakeStatus)}
             </span> - {formatAmount({

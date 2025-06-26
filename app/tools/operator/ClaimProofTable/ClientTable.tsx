@@ -1,30 +1,36 @@
 'use client'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import {
-  getDataByDelegatorAddressesAndBlocksDocument,
+  getDataByDelegatorAddressesAndBlocksDocument, getDataByDelegatorAddressesAndTimesDocument,
+  getDataByDelegatorAddressesAndTimesVariables,
   getParamsDocument,
 } from '@/app/tools/operator/operations'
 import { useDataContext } from '@/app/context/DataContext'
 import columns, { DataByDelegatorRow } from '@/app/tools/operator/columns'
 import { useLazyQuery } from '@apollo/client'
-import React, { useEffect, useMemo, useRef, useCallback } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { formatSimpleAmount, formatUpokt } from '@/app/utils/format'
 import NoData from '@/app/components/NoData'
 import BaseTable from '@/app/components/BaseTable'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
+import { TimeClaimProofTable } from '@/app/tools/operator/constants'
+import { useSelectedAddresses } from '@/app/tools/SelectedAddresses'
+import { useMultipleOptionContext } from '@/app/context/MultipleOptionContext'
 
 interface ClientLastClaimingWindowTableProps {
   initialError: boolean
   initialData: DocumentNodeData<typeof getDataByDelegatorAddressesAndBlocksDocument>
-  addresses: Array<string>
+  addresses: Array<string>,
 }
 
 export default function ClientLastClaimingWindowTable({
-  addresses,
+  addresses: initialAddresses,
   initialData,
   initialError,
 }: ClientLastClaimingWindowTableProps) {
   const {setData} = useDataContext<DataByDelegatorRow>()
+  const {addresses} = useSelectedAddresses()
+  const {selectedValue: selectedTime} = useMultipleOptionContext<TimeClaimProofTable>()
 
   const [getData] = useLazyQuery(
     getDataByDelegatorAddressesAndBlocksDocument,
@@ -32,36 +38,42 @@ export default function ClientLastClaimingWindowTable({
 
   const lastBlockRef = useRef<number | null>(null)
 
-  const variables = useCallback((height: number) => {
-    lastBlockRef.current = height
-    return undefined
-  }, [])
+  const variables = useCallback((height: number, currentTime: string) => {
+    if (selectedTime === TimeClaimProofTable.LastClaimingWindow) {
+      lastBlockRef.current = height
+      return undefined
+    } else {
+      return getDataByDelegatorAddressesAndTimesVariables(addresses || initialAddresses, currentTime, selectedTime)
+    }
+  }, [selectedTime, addresses, initialAddresses])
+
+  const resultParser = useCallback(async (paramsData) => {
+    const claimWindowCloseOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'claim_window_close_offset_blocks')?.value
+    const claimWindowOpenOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'claim_window_open_offset_blocks')?.value
+    const proofWindowCloseOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'proof_window_close_offset_blocks')?.value
+
+    const window = Number(claimWindowCloseOffsetBlocks || 0) + Number(claimWindowOpenOffsetBlocks || 0) + Number(proofWindowCloseOffsetBlocks || 0)
+
+    const endHeight = BigInt(lastBlockRef.current)
+    const startHeight = endHeight - BigInt(window)
+
+    const {data: finalData} = await getData({
+      variables: {
+        delegatorAddresses: addresses,
+        startBlock: startHeight.toString() || '0',
+        endBlock: endHeight.toString() || '0',
+      }
+    })
+
+    return finalData
+  }, [addresses, getData])
 
   const { data, error, refetch, isLoading } = useFetchOnBlock({
     variables,
-    query: getParamsDocument,
+    query: selectedTime === TimeClaimProofTable.LastClaimingWindow ? getParamsDocument : getDataByDelegatorAddressesAndTimesDocument,
     initialError,
     initialResult: initialData,
-    resultParser: async (paramsData) => {
-      const claimWindowCloseOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'claim_window_close_offset_blocks')?.value
-      const claimWindowOpenOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'claim_window_open_offset_blocks')?.value
-      const proofWindowCloseOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'proof_window_close_offset_blocks')?.value
-
-      const window = Number(claimWindowCloseOffsetBlocks || 0) + Number(claimWindowOpenOffsetBlocks || 0) + Number(proofWindowCloseOffsetBlocks || 0)
-
-      const endHeight = BigInt(lastBlockRef.current)
-      const startHeight = endHeight - BigInt(window)
-
-      const {data: finalData} = await getData({
-        variables: {
-          delegatorAddresses: addresses,
-          startBlock: startHeight.toString() || '0',
-          endBlock: endHeight.toString() || '0',
-        }
-      })
-
-      return finalData
-    }
+    resultParser: selectedTime === TimeClaimProofTable.LastClaimingWindow ? resultParser : undefined,
   })
 
   const rows: Array<DataByDelegatorRow> = useMemo(() => {
@@ -98,6 +110,12 @@ export default function ClientLastClaimingWindowTable({
     setData(rows)
     // eslint-disable-next-line
   }, [rows])
+
+  if (!addresses.length) {
+    return (
+      <NoData label={'Select addresses to see the data.'} />
+    )
+  }
 
   if (isLoading) {
     return (

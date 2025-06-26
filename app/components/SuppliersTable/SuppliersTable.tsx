@@ -86,9 +86,10 @@ interface PageProps {
   itemsPerPage: number
   basePath: string
   service?: string
+  owners?: Array<string>
 }
 
-export default async function SuppliersTable({page, itemsPerPage, basePath, service}: PageProps) {
+export default async function SuppliersTable({page, itemsPerPage, basePath, service, owners}: PageProps) {
   try {
     const client = getClient()
 
@@ -99,6 +100,10 @@ export default async function SuppliersTable({page, itemsPerPage, basePath, serv
             equalTo: service
           }
         }
+      }
+    } : owners ? {
+      ownerId: {
+        in: owners
       }
     } : undefined
 
@@ -165,7 +170,7 @@ export default async function SuppliersTable({page, itemsPerPage, basePath, serv
         rows={rows}
         header={{
           title: `${data.suppliers?.totalCount} suppliers found`,
-          subtitle: <SuppliersSubscription service={service} />
+          subtitle: <SuppliersSubscription service={service} owners={owners} />
         }}
         pagination={{
           currentPage: page,

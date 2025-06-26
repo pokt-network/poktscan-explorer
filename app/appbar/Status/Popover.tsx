@@ -127,7 +127,7 @@ export default function StatusPopover({initialData, initialError, pollInterval}:
           <p
             className={
               clsx(
-                'text-xs font-semibold',
+                'text-xs font-semibold whitespace-nowrap',
                 data && diff <= 20 && 'text-[color:--success]',
                 data && diff > 20 && diff <= 100 && 'text-[color:--warning]',
                 (diff > 100 || !data) && 'text-[color:--error]',

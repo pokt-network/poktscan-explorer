@@ -4,6 +4,7 @@ import { useHeightContext } from '@/app/context/height'
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLazyQuery } from '@apollo/client'
+import useDidMountEffect from '@/app/hooks/useDidMountEffect'
 
 export type DeepRequired<T> = NonNullable<{
   [K in keyof T]-?: T[K] extends object
@@ -58,6 +59,8 @@ export default function useFetchOnBlock<
   const [isLoading, setIsLoading] = useState(false)
   const {currentHeight, currentTime, firstHeight} = useHeightContext()
   const firstRenderRef = useRef(true)
+  const lastVariablesRef = useRef<ExtractVariables<T> | null>(null)
+  const forceLoadingRef = useRef(false)
 
   const [fetchData] = useLazyQuery(query, {
     fetchPolicy: 'network-only',
@@ -68,6 +71,7 @@ export default function useFetchOnBlock<
 
   const fetchDataFunction = useCallback(() => {
     const variablesToUse = typeof variables === 'function' ? variables(currentHeight, currentTime) : variables
+    lastVariablesRef.current = variablesToUse
 
     const fetchDataFn = () => {
       setIsLoading(true)
@@ -92,7 +96,12 @@ export default function useFetchOnBlock<
         }
       })
         .catch(() => setError(true))
-        .finally(() => setIsLoading(false))
+        .finally(() => {
+          setIsLoading(false)
+          if (forceLoadingRef.current) {
+            forceLoadingRef.current = false
+          }
+        })
     }
 
     fetchDataFn()
@@ -110,7 +119,7 @@ export default function useFetchOnBlock<
 
     if (skip) return
 
-    if (currentHeight !== firstHeight) {
+    if (currentHeight !== firstHeight || lastVariablesRef.current !== variables) {
       fetchDataFunction()
 
       return () => {
@@ -122,12 +131,16 @@ export default function useFetchOnBlock<
     // eslint-disable-next-line
   }, [currentHeight, query, variables])
 
+  useDidMountEffect(() => {
+    forceLoadingRef.current = lastVariablesRef.current !== variables
+  }, [variables])
+
   const data = parsedData || lastValueRef.current
 
   return {
     data: data ? data : initialResult,
     error: data ? false : error,
-    isLoading: data ? false : isLoading,
+    isLoading: data && !forceLoadingRef.current ? false : isLoading,
     refetch: fetchDataFunction,
   }
 }

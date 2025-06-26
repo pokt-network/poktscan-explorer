@@ -10,7 +10,7 @@ import { selectedServicesCookieKey } from '@/app/dashboards/services/Productivit
 import useDidMountEffect from '@/app/hooks/useDidMountEffect'
 import { formatAmount, formatSimpleAmount } from '@/app/utils/format'
 import NoData from '@/app/components/NoData'
-import { useChartType } from '@/app/dashboards/services/Productivity/ChartType'
+import { useChartType } from '@/app/Charts/ChartType'
 import { useDataContext } from '@/app/context/DataContext'
 import { fillChartData, LineBarItem } from '@/app/Charts/utils'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'

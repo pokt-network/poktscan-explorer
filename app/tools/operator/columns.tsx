@@ -32,42 +32,42 @@ const columns: Array<GridColDef> = [
   },
   {
     field: 'claimAmount',
-    headerName: 'Amount of Claims',
+    headerName: '# Claims',
     align: 'right',
   },
   {
     field: 'claimRelays',
-    headerName: 'Relays of Claims',
+    headerName: 'Claims Relays',
     align: 'right',
   },
   {
     field: 'claimComputedUnits',
-    headerName: 'Comp. Units of Claims',
+    headerName: 'Claims C. Units',
     align: 'right',
   },
   {
     field: 'claimPokt',
-    headerName: 'POKT of Claims',
+    headerName: 'Claims POKT',
     align: 'right',
   },
   {
     field: 'proofAmount',
-    headerName: 'Amount of Proofs',
+    headerName: '# Proofs',
     align: 'right',
   },
   {
     field: 'proofRelays',
-    headerName: 'Relays of Proofs',
+    headerName: 'Proofs Relays',
     align: 'right',
   },
   {
     field: 'proofComputedUnits',
-    headerName: 'Comp. Units of Proofs',
+    headerName: 'Proofs C. Units',
     align: 'right',
   },
   {
     field: 'proofPokt',
-    headerName: 'POKT of Proofs',
+    headerName: 'Proofs POKT',
     align: 'right',
   },
 ]

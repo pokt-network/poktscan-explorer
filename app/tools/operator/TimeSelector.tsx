@@ -1,7 +1,7 @@
 'use client'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
-  selectedTimeCookieKey, selectedTimeParamKey, Time,
+  selectedTimeCookieKey, selectedTimeParamKey, TimeClaimProofTable,
 } from '@/app/tools/operator/constants'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { setCookie } from '@/app/utils/cookies'
@@ -34,10 +34,10 @@ export default function TimeSelector({selectedTime}: TimeSelectorProps) {
           <SelectValue placeholder={'Time'} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={Time.Last24h}>
+          <SelectItem value={TimeClaimProofTable.Last24h}>
             Last 24 hours
           </SelectItem>
-          <SelectItem value={Time.Last48h}>
+          <SelectItem value={TimeClaimProofTable.Last48h}>
             Last 48 hours
           </SelectItem>
         </SelectContent>

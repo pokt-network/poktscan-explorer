@@ -14,5 +14,12 @@ export function middleware(request: NextRequest) {
   url.searchParams.set('sp', request.nextUrl.searchParams.toString());
   url.searchParams.set('pt', request.nextUrl.pathname);
 
-  return NextResponse.rewrite(url);
+  const response = NextResponse.rewrite(url)
+
+  // this is to have addresses in the layout of those pages
+  if (['/tools/staking', '/tools/operator'].includes(url.pathname)) {
+    response.headers.set('addresses', url.searchParams.get('addresses') || '')
+  }
+
+  return response;
 }
