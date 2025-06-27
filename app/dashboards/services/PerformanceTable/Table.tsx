@@ -38,17 +38,17 @@ export default function PerformanceTable({initialData, initialError, timeSelecte
 
   const rows: Array<ServicePerformanceRow> = useMemo(() => {
     if (!data) return []
-    const avgDataByServiceId = data.avgData.reduce((acc, item) => ({
+    const avgDataByServiceId = data.avgData?.reduce((acc, item) => ({
       ...acc,
       [item.service_id]: {
         blocks: item.blocks,
         suppliersStaked: item.suppliers_staked,
       },
-    }), {})
+    }), {}) || {}
 
-    const totalComputedUnits = data.performance.reduce((acc, item) => acc.add(new Big(item.computed_units)), new Big(0))
+    const totalComputedUnits = data.performance?.reduce((acc, item) => acc.add(new Big(item.computed_units)), new Big(0)) || new Big(0)
 
-    return  data.performance.map((item) => {
+    return  data.performance?.map((item) => {
       const avgData = avgDataByServiceId[item.service_id]
 
       return {
@@ -71,7 +71,7 @@ export default function PerformanceTable({initialData, initialError, timeSelecte
           totalComputedUnits
         ),
       } as Omit<ServicePerformanceRow, 'network'>
-    })
+    }) || []
   }, [data])
 
   useEffect(() => {
