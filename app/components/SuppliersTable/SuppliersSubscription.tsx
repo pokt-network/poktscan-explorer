@@ -32,7 +32,6 @@ export default function SuppliersSubscription({service, owners}: SuppliersSubscr
       subscription={supplierSubscription}
       entity={'suppliers'}
       addOnTrue={(data) => {
-        console.log(data)
         if (!service && !owners) return true
 
         if (service) return data?.suppliers?._entity?.serviceConfigs?.nodes?.some(service => service?.serviceId === (service || '')) || false

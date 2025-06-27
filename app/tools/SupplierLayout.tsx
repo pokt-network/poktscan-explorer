@@ -14,9 +14,10 @@ interface SupplierLayoutProps {
   children: React.ReactNode
   isOwner: boolean
   pushOnAddressChange?: boolean
+  title: string
 }
 
-export default async function SupplierLayout({children, isOwner, pushOnAddressChange}: SupplierLayoutProps) {
+export default async function SupplierLayout({children, isOwner, pushOnAddressChange, title}: SupplierLayoutProps) {
   const [cookiesAwaited, awaitedHeaders] = await Promise.all([
     cookies(),
     headers()
@@ -39,7 +40,7 @@ export default async function SupplierLayout({children, isOwner, pushOnAddressCh
       <div className={"px-3 py-5 md:px-4 gap-6 flex min-h-[calc(100dvh-53px-57px-70px)] flex-col"}>
         <div className={'flex flex-row items-center gap-4 justify-between'}>
           <h1 className={'text-lg font-medium'}>
-            Staking
+            {title}
           </h1>
         </div>
         <SummaryAndRewards

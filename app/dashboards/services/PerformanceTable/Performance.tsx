@@ -1,7 +1,6 @@
 import { getClient } from '@/app/config/apollo/rsc'
 import {
   getServicesPerformanceVariables,
-  servicesDocument,
   servicesPerformanceDocument,
 } from '@/app/dashboards/services/operations'
 import PerformanceTable from '@/app/dashboards/services/PerformanceTable/Table'
@@ -27,41 +26,7 @@ async function ServerServicesPerformanceTable({timeSelected}: ServicesPerformanc
       variables: getServicesPerformanceVariables(latestBlock.timestamp, timeSelected)
     })
 
-    const moreServices = []
-
-    // for some reason, even when there are less than 100 items, the response returns an endCursor
-    let cursor = response.data.currentData.nodes.length === 100 ? response.data.currentData.pageInfo.endCursor : ''
-
-    while (cursor) {
-      const variables = getServicesPerformanceVariables(latestBlock.timestamp, timeSelected)
-
-      delete variables.endPrevious
-
-      const {data} = await getClient().query({
-        query: servicesDocument,
-        variables: {
-          ...variables,
-          cursor
-        }
-      })
-
-      moreServices.push(...data.currentData.nodes)
-
-      cursor = data.currentData.pageInfo.endCursor
-
-      if (data.currentData.nodes.length < 100) break
-    }
-
-    data = {
-      ...response.data,
-      currentData: {
-        ...response.data.currentData,
-        nodes: [
-          ...response.data.currentData.nodes,
-          ...moreServices
-        ]
-      }
-    }
+    data = response.data
   } catch {
     error = true
   }

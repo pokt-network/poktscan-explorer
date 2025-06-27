@@ -11,142 +11,16 @@ import {
 import { Time } from '@/app/dashboards/services/constants'
 
 export const servicesPerformanceDocument = graphql(`
-  query servicesPerformance($startCurrent: Datetime!, $endCurrentAndStartPrevious: Datetime!, $endPrevious: Datetime!) {
-    previousData: relayByBlockAndServices(
-      first: 1,
-      filter: {block: {timestamp: {greaterThanOrEqualTo: $endPrevious, lessThan: $endCurrentAndStartPrevious}}}
-    ) {
-      nodes {
-        service {
-          stakedSuppliersByBlockAndServices(
-            filter: {block: {timestamp: {greaterThanOrEqualTo: $endPrevious, lessThan: $endCurrentAndStartPrevious}}}
-          ) {
-            totalCount
-            aggregates {
-              sum {
-                amount
-              }
-            }
-          }
-        }
-      }
-      groupedAggregates(groupBy: SERVICE_ID) {
-        keys
-        sum {
-          claimedUpokt
-          computedUnits
-          relays
-        }
-      }
-    }
-    currentData: relayByBlockAndServices(
-      distinct: SERVICE_ID
-      filter: {block: {timestamp: {greaterThanOrEqualTo:$endCurrentAndStartPrevious, lessThan: $startCurrent}}}
-    ) {
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-      nodes {
-        service {
-          id
-          name
-          stakedSuppliers: supplierServiceConfigs(
-            filter: {
-              supplier: {
-                stakeStatus: {
-                  equalTo: Staked
-                }
-              }
-            }
-          ) {
-            totalCount
-          }
-          stakedApps: applicationServices(
-            filter: {
-              application: {
-                stakeStatus: {
-                  equalTo: Staked
-                }
-              }
-            }
-          ) {
-            totalCount
-          }
-          stakedSuppliersByBlockAndServices(
-            filter: {block: {timestamp: {greaterThanOrEqualTo:$endCurrentAndStartPrevious, lessThan: $startCurrent}}}
-          ) {
-            totalCount
-            aggregates {
-              sum {
-                amount
-              }
-            }
-          }
-        }
-      }
-      groupedAggregates(groupBy: SERVICE_ID) {
-        keys
-        sum {
-          claimedUpokt
-          computedUnits
-          relays
-        }
-      }
-    }
-  }
-`)
-
-export const servicesDocument = graphql(`
-  query servicesPerBlockPage($cursor: Cursor!, $startCurrent: Datetime!, $endCurrentAndStartPrevious: Datetime!) {
-    currentData: relayByBlockAndServices(
-      distinct: SERVICE_ID
-      filter: {block: {timestamp: {greaterThanOrEqualTo:$endCurrentAndStartPrevious, lessThan: $startCurrent}}}
-      after: $cursor
-    ) {
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-      nodes {
-        service {
-          id
-          name
-          stakedSuppliers: supplierServiceConfigs(
-            filter: {
-              supplier: {
-                stakeStatus: {
-                  equalTo: Staked
-                }
-              }
-            }
-          ) {
-            totalCount
-          }
-          stakedApps: applicationServices(
-            filter: {
-              application: {
-                stakeStatus: {
-                  equalTo: Staked
-                }
-              }
-            }
-          ) {
-            totalCount
-          }
-          stakedSuppliersByBlockAndServices(
-            filter: {block: {timestamp: {greaterThanOrEqualTo:$endCurrentAndStartPrevious, lessThan: $startCurrent}}}
-          ) {
-            totalCount
-            aggregates {
-              sum {
-                amount
-              }
-            }
-          }
-        }
-      }
-    }
+  query servicesPerformance($endCurrent: Datetime!, $startCurrentAndEndPrevious: Datetime!, $startPrevious: Datetime!) {
+    performance: servicesPerformanceBetweenTimes(
+      endCurrent: $endCurrent,
+      startCurrentAndEndPrevious: $startCurrentAndEndPrevious,
+      startPrevious: $startPrevious
+    )
+    avgData: getAmountOfBlocksAndSuppliersByTimes(
+      startDate: $startCurrentAndEndPrevious
+      endDate: $endCurrent
+    )
   }
 `)
 
@@ -157,37 +31,37 @@ export const getServicesPerformanceVariables = (currentDate: Date | string, time
     timeSelectedToUse = timeSelected as Time
   }
 
-  const startCurrent = new Date(currentDate)
+  const endCurrent = new Date(currentDate)
 
-  let endCurrentAndStartPrevious: Date, endPrevious: Date
+  let startCurrentAndEndPrevious: Date, startPrevious: Date
 
   switch (timeSelectedToUse) {
     case Time.Last24h: {
-      endCurrentAndStartPrevious = addHoursToUtc(startCurrent, -23)
-      endPrevious = addHoursToUtc(endCurrentAndStartPrevious, -23)
+      startCurrentAndEndPrevious = addHoursToUtc(endCurrent, -23)
+      startPrevious = addHoursToUtc(startCurrentAndEndPrevious, -23)
       break
     }
     case Time.Last7d: {
-      endCurrentAndStartPrevious = addDaysToUtc(startCurrent, -6)
-      endPrevious = addDaysToUtc(endCurrentAndStartPrevious, -6)
+      startCurrentAndEndPrevious = addDaysToUtc(endCurrent, -6)
+      startPrevious = addDaysToUtc(startCurrentAndEndPrevious, -6)
       break
     }
     case Time.Last30d: {
-      endCurrentAndStartPrevious = addDaysToUtc(startCurrent, -29)
-      endPrevious = addDaysToUtc(endCurrentAndStartPrevious, -29)
+      startCurrentAndEndPrevious = addDaysToUtc(endCurrent, -29)
+      startPrevious = addDaysToUtc(startCurrentAndEndPrevious, -29)
       break
     }
     case Time.Last90d: {
-      endCurrentAndStartPrevious = addDaysToUtc(startCurrent, -89)
-      endPrevious = addDaysToUtc(endCurrentAndStartPrevious, -89)
+      startCurrentAndEndPrevious = addDaysToUtc(endCurrent, -89)
+      startPrevious = addDaysToUtc(startCurrentAndEndPrevious, -89)
       break
     }
   }
 
   return {
-    startCurrent: startCurrent.toISOString(),
-    endCurrentAndStartPrevious: endCurrentAndStartPrevious.toISOString(),
-    endPrevious: endPrevious.toISOString()
+    endCurrent: endCurrent.toISOString(),
+    startCurrentAndEndPrevious: startCurrentAndEndPrevious.toISOString(),
+    startPrevious: startPrevious.toISOString()
   }
 }
 

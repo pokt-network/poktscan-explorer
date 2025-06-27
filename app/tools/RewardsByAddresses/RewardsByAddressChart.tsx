@@ -79,7 +79,7 @@ export default function RewardsByAddressChart({
         totalAmount: 0,
       }
     })
-  }, [rawData])
+  }, [rawData, addresses?.length])
 
   useEffect(() => {
     if (!isEqual(processedData, data)) {
