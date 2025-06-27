@@ -15,6 +15,7 @@ import { useDataContext } from '@/app/context/DataContext'
 import { fillChartData, LineBarItem } from '@/app/Charts/utils'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { ContentLoader } from '@/app/dashboards/services/Productivity/Loader/Loader'
+import isEqual from 'lodash/isEqual'
 
 export interface DataItem extends LineBarItem {
   relays: number
@@ -43,7 +44,7 @@ export default function ServicesProductivityChart({
   initialSelectedServices,
 }: ServicesProductivityChartProps) {
   const {chartType} = useChartType()
-  const {setData} = useDataContext()
+  const {setData, data: dataFromContext} = useDataContext<DataItem>()
   const lastVariables = useRef<ExtractVariables<typeof productivityQuery>>(initialVariables)
 
   const variables = useCallback((_: number, timestamp: string)=> {
@@ -89,10 +90,10 @@ export default function ServicesProductivityChart({
       let avgStakedSuppliers = 0
 
       if (blocksAmount > 0 && totalStakedSuppliers > 0) {
-        avgRelays = (Number(item!.relays) / totalStakedSuppliers) * blocksAmount
-        avgComputedUnits = (Number(item!.computed_units) / totalStakedSuppliers) * blocksAmount
-        avgClaimedUpokt = (Number(item!.claimed_upokt) / totalStakedSuppliers) * blocksAmount
-        avgStakedSuppliers = totalStakedSuppliers / blocksAmount
+        avgRelays = Number(((Number(item!.relays) / totalStakedSuppliers) * blocksAmount).toFixed(2))
+        avgComputedUnits = Number(((Number(item!.computed_units) / totalStakedSuppliers) * blocksAmount).toFixed(2))
+        avgClaimedUpokt = Number(((Number(item!.claimed_upokt) / totalStakedSuppliers) * blocksAmount).toFixed(2))
+        avgStakedSuppliers = Number((totalStakedSuppliers / blocksAmount).toFixed(0))
       }
 
       acc[item.service_id].push({
@@ -132,15 +133,17 @@ export default function ServicesProductivityChart({
     }), {})
   }, [data])
 
-  const servicesWithComputedUnit = Object.entries(dataByService).map(([serviceId, items]) => {
-    return {
-      id: serviceId,
-      label: '',
-      value: items.reduce((acc, item) => {
-        return acc + item.computedUnits
-      }, 0)
-    }
-  }).sort((a, b) => b.value - a.value)
+  const servicesWithComputedUnit = useMemo(() => {
+    return Object.entries(dataByService).map(([serviceId, items]) => {
+      return {
+        id: serviceId,
+        label: '',
+        value: items.reduce((acc, item) => {
+          return acc + item.computedUnits
+        }, 0)
+      }
+    }).sort((a, b) => b.value - a.value)
+  }, [dataByService])
 
   const [selectedServices, setSelectedServices] = useState<Array<string>>(
     initialSelectedServices.some(id => !!dataByService[id])
@@ -149,22 +152,26 @@ export default function ServicesProductivityChart({
   )
 
   useDidMountEffect(() => {
-    setSelectedServices(
-      initialSelectedServices.some(id => !!dataByService[id])
-        ? initialSelectedServices
-        : servicesWithComputedUnit.slice(0, 5).map(item => item.id)
-    )
+    const newSelection = selectedServices.some(id => !!dataByService[id])
+      ? selectedServices
+      : servicesWithComputedUnit.slice(0, 5).map(item => item.id)
+
+    if (!isEqual(newSelection, selectedServices)) {
+      setSelectedServices(newSelection)
+    }
   }, [data])
 
   useEffect(() => {
-    setData(
-      Object.entries(dataByService).reduce((acc, [serviceId,items]) => {
+    const newData = Object.entries(dataByService).reduce((acc, [serviceId,items]) => {
         if (selectedServices.includes(serviceId)) {
           return acc.concat(items)
         }
         return acc
       }, [] as Array<DataItem>)
-    )
+
+    if (!isEqual(newData, dataFromContext)) {
+      setData(newData)
+    }
     // eslint-disable-next-line
   }, [dataByService, selectedServices])
 
@@ -173,69 +180,83 @@ export default function ServicesProductivityChart({
     setCookie(selectedServicesCookieKey, services.join(','))
   }
 
-  const filteredDataByService: Record<string, Array<DataItem>> = selectedServices.reduce((acc, serviceId) => ({
-    ...acc,
-    [serviceId]: dataByService[serviceId] || []
-  }), {})
+  const filteredDataByService: Record<string, Array<DataItem>> = useMemo(() => {
+    return dataFromContext.reduce((acc, item) => {
+      if (selectedServices.includes(item.id)) {
+        if (acc[item.id]) {
+          acc[item.id].push(item)
+        } else {
+          acc[item.id] = [item]
+        }
+      }
 
-  let content: React.ReactNode
+      return acc
+    }, {} as Record<string, Array<DataItem>> )
+  }, [dataFromContext, selectedServices])
 
-  if (isLoading) {
-    content = (
-      <ContentLoader chartType={chartType} />
-    )
-  } else if (error) {
-    content = (
-      <div className={'mt-[-40px] flex w-full grow'}>
-        <BaseRetryError
-          onRetry={refetch}
-        />
-      </div>
-    )
-  } else {
-    if (servicesWithComputedUnit.length === 0) {
+  const component: React.ReactNode = useMemo(() => {
+    let content: React.ReactNode
+
+    if (isLoading) {
       content = (
-        <div className={'mt-[-40px] flex w-full items-center justify-center'}>
-          <NoData label={'No data available in the time selected.'} />
+        <ContentLoader chartType={chartType} />
+      )
+    } else if (error) {
+      content = (
+        <div className={'mt-[-40px] flex w-full grow'}>
+          <BaseRetryError
+            onRetry={refetch}
+          />
         </div>
       )
     } else {
-      content = (
-        <>
-          <div className={'order-2 md:order-1 w-full md:w-[calc(100%-260px-16px)] h-full'}>
-            <BaseLineBarChart
-              data={filteredDataByService}
-              yAxisKey={'avgComputedUnits'}
-              yAxisLabel={'Avg Computed Units'}
-              chartType={chartType}
-              unitToFormatDate={lastVariables?.current?.truncInterval === 'hour' ? 'hour' : 'day'}
-              getTooltipLabel={(item) => [
-                `Service: ${item.id}`,
-                `Relays:  ${formatSimpleAmount(item.relays)}`,
-                `Computed Units:  ${formatSimpleAmount(item.computedUnits)}`,
-                `Claimed:  ${formatAmount({ amount: item.claimedUpokt, denom: 'upokt' })}`,
-                `Avg Relays:  ${formatSimpleAmount(item.avgRelays)}`,
-                `Avg Computed Units:  ${formatSimpleAmount(item.avgComputedUnits)}`,
-                `Avg Claimed:  ${formatAmount({ amount: item.avgClaimedUpokt, denom: 'upokt' })}`,
-                `Avg Suppliers:  ${formatSimpleAmount(item.avgStakedSuppliers)}`,
-              ]}
-            />
+      if (servicesWithComputedUnit.length === 0) {
+        content = (
+          <div className={'mt-[-40px] flex w-full items-center justify-center'}>
+            <NoData label={'No data available in the time selected.'} />
           </div>
-          <div className={'h-[260px] md:h-[calc(100%-16px)] w-full md:min-w-[260px] md:w-[260px] order-1 md:order-2'}>
-            <ServicesSelector
-              data={servicesWithComputedUnit}
-              servicesSelected={selectedServices}
-              changeSelectedServices={changeSelectedServices}
-            />
-          </div>
-        </>
-      )
+        )
+      } else {
+        content = (
+          <>
+            <div className={'order-2 md:order-1 w-full md:w-[calc(100%-260px-16px)] h-full'}>
+              <BaseLineBarChart
+                data={filteredDataByService}
+                yAxisKey={'avgComputedUnits'}
+                yAxisLabel={'Avg Computed Units'}
+                chartType={chartType}
+                unitToFormatDate={lastVariables?.current?.truncInterval === 'hour' ? 'hour' : 'day'}
+                getTooltipLabel={(item) => [
+                  `Service: ${item.id}`,
+                  `Relays:  ${formatSimpleAmount(item.relays)}`,
+                  `Computed Units:  ${formatSimpleAmount(item.computedUnits)}`,
+                  `Claimed:  ${formatAmount({ amount: item.claimedUpokt, denom: 'upokt' })}`,
+                  `Avg Relays:  ${formatSimpleAmount(item.avgRelays)}`,
+                  `Avg Computed Units:  ${formatSimpleAmount(item.avgComputedUnits)}`,
+                  `Avg Claimed:  ${formatAmount({ amount: item.avgClaimedUpokt, denom: 'upokt' })}`,
+                  `Avg Suppliers:  ${formatSimpleAmount(item.avgStakedSuppliers)}`,
+                ]}
+              />
+            </div>
+            <div className={'h-[260px] md:h-[calc(100%-16px)] w-full md:min-w-[260px] md:w-[260px] order-1 md:order-2'}>
+              <ServicesSelector
+                data={servicesWithComputedUnit}
+                servicesSelected={selectedServices}
+                changeSelectedServices={changeSelectedServices}
+              />
+            </div>
+          </>
+        )
+      }
     }
-  }
+
+    return content
+    // eslint-disable-next-line
+  }, [filteredDataByService, chartType, isLoading, error, selectedServices])
 
   return (
     <div className={'flex flex-col md:flex-row items-center px-4 pt-2 pb-4 h-[calc(100%-44px)] gap-4'}>
-      {content}
+      {component}
     </div>
   )
 }

@@ -258,6 +258,7 @@ export default function BaseLineBarChart<T extends LineBarItem>({
     <Chart
       type={'bar'}
       data={chartData}
+      redraw={false}
       options={options}
     />
   )

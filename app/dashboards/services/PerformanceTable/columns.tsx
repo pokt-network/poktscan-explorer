@@ -4,8 +4,8 @@ import { GridColDef } from '@/app/components/Table'
 export interface ServicePerformanceRow {
   serviceId: string
   serviceName: string
-  stakedNodes: number
-  stakedApps: number
+  stakedNodes: string
+  stakedApps: string
   network: number
   change: number
   computedUnits: string
