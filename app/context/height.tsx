@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useState } from 'react'
 import { useSubscription } from '@apollo/client'
 import { subscriptionQuery } from '@/app/operations/block'
 
@@ -23,15 +23,28 @@ interface HeightContextProviderProps {
 }
 
 export default function HeightContextProvider({children, firstHeight, firstTime}: HeightContextProviderProps) {
-  const {data: subscriptionData} = useSubscription(subscriptionQuery)
+  const [{currentHeight, currentTime}, setState] = useState({
+    currentHeight: Number(firstHeight),
+    currentTime: firstTime,
+  })
 
-  const lastBlock = subscriptionData?.blocks?._entity
+  useSubscription(subscriptionQuery, {
+    onData: (data) => {
+      const block = data?.data?.data?.blocks
+      if (block && Number(block.id) > currentHeight) {
+        setState({
+          currentHeight: Number(block.id),
+          currentTime: block._entity?.timestamp || currentTime,
+        })
+      }
+    }
+  })
 
   return (
     <HeightContext.Provider
       value={{
-        currentHeight: lastBlock?.id || firstHeight,
-        currentTime: lastBlock ? `${lastBlock.timestamp}Z` : firstTime,
+        currentHeight,
+        currentTime,
         firstHeight,
       }}
     >
