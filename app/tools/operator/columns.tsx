@@ -47,7 +47,7 @@ const columns: Array<GridColDef> = [
   },
   {
     field: 'claimPokt',
-    headerName: 'Claims POKT',
+    headerName: 'Gross Claims POKT',
     align: 'right',
   },
   {
@@ -67,7 +67,7 @@ const columns: Array<GridColDef> = [
   },
   {
     field: 'proofPokt',
-    headerName: 'Proofs POKT',
+    headerName: 'Gross Proofs POKT',
     align: 'right',
   },
 ]

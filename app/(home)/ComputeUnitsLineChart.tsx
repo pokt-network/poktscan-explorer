@@ -8,11 +8,13 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend, TooltipItem,
+  Legend,
 } from 'chart.js'
 import { useRef } from 'react'
 import millify from 'millify'
 import { useTheme } from 'next-themes'
+import { formatDate, LineBarItem } from '@/app/Charts/utils'
+import { convertUpoktToPokt, formatSimpleAmount } from '@/app/utils/format'
 
 // Register the components
 ChartJS.register(
@@ -26,10 +28,10 @@ ChartJS.register(
 );
 
 type Item = {
-  day: string;
   totalRelays: number;
   totalComputedUnits: number;
-};
+  totalPokt: number;
+} & LineBarItem
 
 export interface ComputeUnitsLineChartProps {
   data: Array<Item>;
@@ -40,7 +42,7 @@ export default function ComputeUnitsLineChart({data}: ComputeUnitsLineChartProps
   const isDark = theme === 'dark'
   const chartRef= useRef<ChartJS<'line'>>()
 
-  const labels = data.map((item) => item.day);
+  const labels = data.map((item) => item.point);
   const allHaveTheSameValue = data.every((item) => item.totalComputedUnits === data[0].totalComputedUnits);
 
   return (
@@ -74,7 +76,7 @@ export default function ComputeUnitsLineChart({data}: ComputeUnitsLineChartProps
         maintainAspectRatio: false,
         responsive: true,
         parsing: {
-          xAxisKey: 'day',
+          xAxisKey: 'point',
           yAxisKey: 'totalComputedUnits'
         },
         scales:{
@@ -118,9 +120,9 @@ export default function ComputeUnitsLineChart({data}: ComputeUnitsLineChartProps
                 size: 11,
               },
               align: 'center',
-              callback: function(value, index,) {
+              callback: function(_, index,) {
                 if (index === 0 || index === labels.length - 1 || index === Math.floor(labels.length / 2)) {
-                  return labels[index];
+                  return formatDate(labels[index], 'day', true);
                 }
               }
             }
@@ -139,6 +141,7 @@ export default function ComputeUnitsLineChart({data}: ComputeUnitsLineChartProps
             backgroundColor: isDark ? 'rgb(61,61,61)' : 'rgb(89,89,89)',
             intersect: false,
             displayColors: false,
+            bodySpacing: 5,
             bodyFont: {
               weight: 'bold'
             },
@@ -147,9 +150,22 @@ export default function ComputeUnitsLineChart({data}: ComputeUnitsLineChartProps
             },
             padding: 10,
             callbacks: {
-              footer(tooltipItems: TooltipItem<'line'>[]) {
-                return `Relays: ${(tooltipItems?.at(0)?.raw as Item)?.totalRelays?.toLocaleString() || 0}`
-              }
+              title: function(context) {
+                const label = context.at(0)!.label
+
+                if (!label) return ''
+
+                return formatDate(label, 'day', true)
+              },
+              label: function(context) {
+                const data = context.dataset.data[context.dataIndex] as unknown as Item
+
+                return [
+                  `Computed Units: ${formatSimpleAmount(data?.totalComputedUnits || 0)}`,
+                  `Relays: ${formatSimpleAmount(data?.totalRelays || 0)}`,
+                  `POKT: ${formatSimpleAmount(convertUpoktToPokt(data?.totalPokt || 0))}`
+                ]
+              },
             }
           },
           legend: {

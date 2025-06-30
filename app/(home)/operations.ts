@@ -35,15 +35,11 @@ export const summaryDocument = graphql(`
         }
       }
     }
-    groupByDay: blocks(filter: {timestamp: {greaterThanOrEqualTo: $last7DaysDate, lessThanOrEqualTo: $currentDate}}) {
-      groupedAggregates(groupBy: TIMESTAMP_TRUNCATED_TO_DAY) {
-        keys
-        sum {
-          totalRelays
-          totalComputedUnits
-        }
-      }
-    }
+    groupByDay: getRewardsByDate(
+      startDate: $last7DaysDate,
+      endDate: $currentDate,
+      truncInterval: "day"
+    )
   }
 `)
 

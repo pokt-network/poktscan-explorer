@@ -34,6 +34,7 @@ export default function PerformanceTable({initialData, initialError, timeSelecte
     variables,
     initialResult: initialData,
     initialError,
+    updateOnNewSession: true,
   })
 
   const rows: Array<ServicePerformanceRow> = useMemo(() => {
