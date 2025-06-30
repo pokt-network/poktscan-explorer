@@ -9,7 +9,7 @@ import DatesProvider from '@/app/dates/Context'
 import { cookies } from 'next/headers'
 import { dateTimeColumnField, dateTimeZoneField, formatTextField } from '@/app/dates/constants'
 import HeightContextProvider from '@/app/context/height'
-import { getLatestBlock } from '@/app/api/blocks'
+import { getLatestBlock, getNumBlocksPerSession } from '@/app/api/blocks'
 import ReactQueryProvider from '@/app/config/query'
 import getPrice from '@/app/api/price'
 import RegisterPlugins from '@/app/Charts/Plugins/RegisterPlugins'
@@ -33,9 +33,10 @@ const roboto = Roboto({
 export default async function RootLayout({children}: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [cookiesAwaited, latestBlock, price] = await Promise.all([
+  const [cookiesAwaited, latestBlock, blocksPerSession, price] = await Promise.all([
     cookies(),
     getLatestBlock().catch(() => null),
+    getNumBlocksPerSession().catch(() => 0),
     getPrice()
   ])
 
@@ -57,6 +58,7 @@ export default async function RootLayout({children}: Readonly<{
               >
                 <HeightContextProvider
                   firstHeight={latestBlock?.height}
+                  blocksPerSession={blocksPerSession}
                   // the timestamp is in UTC, so we need to add the Z to the end because the api doesn't include it
                   firstTime={latestBlock?.timestamp ? latestBlock.timestamp + 'Z' : ''}
                 >

@@ -32,6 +32,7 @@ export interface FetchOnBlockOptions<
   initialError: boolean
   skip?: boolean,
   pollInterval?: number
+  updateOnNewSession?: boolean
 }
 
 export default function useFetchOnBlock<
@@ -44,7 +45,8 @@ export default function useFetchOnBlock<
   initialResult,
   skip,
   pollInterval,
-  initialError
+  initialError,
+  updateOnNewSession = false
 }: FetchOnBlockOptions<T, R>): {
   data: DeepRequired<R>,
   refetch: () => void,
@@ -57,9 +59,9 @@ export default function useFetchOnBlock<
   const [parsedData, setParsedData] = useState<R | null>(initialResult || null)
   const [error, setError] = useState(initialError)
   const [isLoading, setIsLoading] = useState(false)
-  const {currentHeight, currentTime, firstHeight} = useHeightContext()
+  const {currentHeight, currentTime, firstHeight, blocksPerSession} = useHeightContext()
   const firstRenderRef = useRef(true)
-  const lastVariablesRef = useRef<ExtractVariables<T> | null>(null)
+  const lastVariablesRef = useRef<FetchOnBlockOptions<T, R>['variables']>(variables)
   const forceLoadingRef = useRef(false)
 
   const [fetchData] = useLazyQuery(query, {
@@ -71,7 +73,6 @@ export default function useFetchOnBlock<
 
   const fetchDataFunction = useCallback(() => {
     const variablesToUse = typeof variables === 'function' ? variables(currentHeight, currentTime) : variables
-    lastVariablesRef.current = variablesToUse
 
     const fetchDataFn = () => {
       setIsLoading(true)
@@ -119,7 +120,18 @@ export default function useFetchOnBlock<
 
     if (skip) return
 
-    if (currentHeight !== firstHeight || lastVariablesRef.current !== variables) {
+    if (
+      (currentHeight !== firstHeight &&
+        (
+          !updateOnNewSession ||
+          !blocksPerSession ||
+          ((currentHeight - 1) % blocksPerSession === 0)
+        )
+      ) ||
+      lastVariablesRef.current !== variables
+    ) {
+      forceLoadingRef.current = lastVariablesRef.current !== variables
+      lastVariablesRef.current = variables
       fetchDataFunction()
 
       return () => {
@@ -130,10 +142,6 @@ export default function useFetchOnBlock<
     }
     // eslint-disable-next-line
   }, [currentHeight, query, variables])
-
-  useDidMountEffect(() => {
-    forceLoadingRef.current = lastVariablesRef.current !== variables
-  }, [variables])
 
   const data = parsedData || lastValueRef.current
 

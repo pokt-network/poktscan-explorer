@@ -1,17 +1,15 @@
 import { AugmentedItem } from '@/app/(home)/Services/ServicesCard'
 import { ArrowDown, ArrowUp } from 'lucide-react'
+import orderBy from 'lodash/orderBy'
 
 interface ServicesGainersProps {
   data: Array<AugmentedItem>
 }
 
 export default function ServicesGainers({data}: ServicesGainersProps) {
-  const biggestGainers = data
-    .sort((a, b) => b.changes.computedUnits - a.changes.computedUnits)
-    .slice(0, 5)
+  const biggestGainers = orderBy(data, ['changes.computedUnits'], ['desc']).slice(0, 5)
 
-  const bestPerformance = data
-    .sort((a, b) => b.percentages.computedUnits - a.percentages.computedUnits)
+  const bestPerformance = orderBy(data, ['percentages.computedUnits'])
     .slice(0, 5)
 
   return (

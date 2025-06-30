@@ -54,7 +54,8 @@ export default function RewardsByAddressChart({
     variables,
     initialResult: initialData,
     initialError,
-    skip: !addresses.length
+    skip: !addresses.length,
+    updateOnNewSession: true,
   })
 
   const processedData: Array<RewardItem> = useMemo(() => {
@@ -67,7 +68,7 @@ export default function RewardsByAddressChart({
       totalAmount: Number(item.total_amount),
     }))
 
-    if (!addresses.length) return []
+    if (!addresses.length || !rawData?.rewards) return []
 
     return fillChartData({
       data: notFilled,

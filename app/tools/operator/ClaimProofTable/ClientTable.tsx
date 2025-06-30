@@ -74,6 +74,7 @@ export default function ClientLastClaimingWindowTable({
     initialError,
     initialResult: initialData,
     resultParser: selectedTime === TimeClaimProofTable.LastClaimingWindow ? resultParser : undefined,
+    updateOnNewSession: selectedTime !== TimeClaimProofTable.LastClaimingWindow,
   })
 
   const rows: Array<DataByDelegatorRow> = useMemo(() => {

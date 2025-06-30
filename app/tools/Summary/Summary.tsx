@@ -39,7 +39,8 @@ export default function Summary({isOwners, initialAddresses, initialData, initia
     variables,
     initialResult: initialData,
     initialError,
-    skip: !addresses.length
+    skip: !addresses.length,
+    updateOnNewSession: true,
   })
 
   if (isLoading) {

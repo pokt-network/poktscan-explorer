@@ -25,7 +25,7 @@ export const servicesPerformanceDocument = graphql(`
 `)
 
 export const getServicesPerformanceVariables = (currentDate: Date | string, timeSelected: string): ExtractVariables<typeof servicesPerformanceDocument> => {
-  let timeSelectedToUse = Time.Last30d
+  let timeSelectedToUse = Time.Last7d
 
   if (timeSelected && Object.values(Time).includes(timeSelected as Time)) {
     timeSelectedToUse = timeSelected as Time
@@ -88,7 +88,7 @@ export const distributionDocument = graphql(`
 `)
 
 export function getDistributionVariables(currentDate: Date | string, timeSelected: string): ExtractVariables<typeof distributionDocument> {
-  let timeSelectedToUse = Time.Last30d
+  let timeSelectedToUse = Time.Last7d
 
   if (timeSelected && Object.values(Time).includes(timeSelected as Time)) {
     timeSelectedToUse = timeSelected as Time
@@ -138,7 +138,7 @@ export const productivityQuery = graphql(`
 `)
 
 export function getProductivityVariables(currentDate: Date | string, timeSelected: string): ExtractVariables<typeof productivityQuery> {
-  let timeSelectedToUse = Time.Last30d
+  let timeSelectedToUse = Time.Last7d
 
   if (timeSelected && Object.values(Time).includes(timeSelected as Time)) {
     timeSelectedToUse = timeSelected as Time

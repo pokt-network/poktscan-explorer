@@ -88,8 +88,8 @@ export default function StatusPopover({initialData, initialError, pollInterval}:
       color = 'bg-[color:white]'
       text = 'Syncing'
       icon = (
-        <div className={'w-[18px] h-[18px]'}>
-          <SyncingIcon className={'text-[color:--success] scale-[69%] ml-[-11px] mt-[-11px]'}/>
+        <div className={'w-[10x] h-[10px]'}>
+          <SyncingIcon className={'text-[color:--success] scale-[50%] ml-[0px] mt-[-15px]'}/>
         </div>
       )
     } else if (diff <= 100) {

@@ -58,3 +58,27 @@ export const subscriptionQuery = graphql(`
     }
   }
 `)
+
+export const numBlocksPerSessionDocument = graphql(`
+  query numBlocksPerSession {
+    params(
+      filter:  {
+        key:  {
+          equalTo: "num_blocks_per_session"
+        }
+        namespace:  {
+          equalTo: "shared"
+        }
+      }
+      orderBy: [BLOCK_ID_DESC]
+      first: 1
+    ) {
+      nodes {
+        blockId
+        key
+        namespace
+        value
+      }
+    }
+  }
+`)

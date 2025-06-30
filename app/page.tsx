@@ -1,4 +1,4 @@
-import type { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
+import type { DocumentNodeData, ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import SearchInput from '@/app/Search/Search'
 import { getClient } from '@/app/config/apollo/rsc'
 import { getEvolutionVariables, getServicesVariables, getSummaryVariables } from '@/app/(home)/utils'
@@ -16,13 +16,14 @@ import ServicesLoader from '@/app/(home)/Services/Loader'
 export const dynamic = "force-dynamic";
 
 async function ServerSummary() {
-  let data, error = false
+  let data, error = false, variables: ExtractVariables<typeof summaryDocument>
 
   try {
     const latestBlock = await getLatestBlock()
+    variables = getSummaryVariables(new Date(latestBlock.timestamp))
     const response = await getClient().query({
       query: summaryDocument,
-      variables: getSummaryVariables(new Date(latestBlock.timestamp)),
+      variables,
     })
 
     data = response.data
@@ -35,6 +36,7 @@ async function ServerSummary() {
     <Summary
       initialData={data as DocumentNodeData<typeof summaryDocument>}
       initialError={error}
+      initialVariables={variables!}
     />
   )
 }

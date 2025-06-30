@@ -7,12 +7,14 @@ import { subscriptionQuery } from '@/app/operations/block'
 interface HeightContext {
   currentHeight: number
   firstHeight: number
+  blocksPerSession: number
   currentTime: string
 }
 
 const HeightContext = createContext<HeightContext>({
   currentHeight: 0,
   firstHeight: 0,
+  blocksPerSession: 0,
   currentTime: '',
 });
 
@@ -20,9 +22,10 @@ interface HeightContextProviderProps {
   children: React.ReactNode
   firstHeight: number
   firstTime: string
+  blocksPerSession: number
 }
 
-export default function HeightContextProvider({children, firstHeight, firstTime}: HeightContextProviderProps) {
+export default function HeightContextProvider({children, firstHeight, firstTime, blocksPerSession}: HeightContextProviderProps) {
   const [{currentHeight, currentTime}, setState] = useState({
     currentHeight: Number(firstHeight),
     currentTime: firstTime,
@@ -46,6 +49,7 @@ export default function HeightContextProvider({children, firstHeight, firstTime}
         currentHeight,
         currentTime,
         firstHeight,
+        blocksPerSession,
       }}
     >
       {children}

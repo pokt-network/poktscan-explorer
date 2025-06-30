@@ -1,16 +1,15 @@
 'use client'
 
-import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
+import useFetchOnBlock, { DocumentNodeData, ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { summaryDocument } from '@/app/(home)/operations'
-import React, { useCallback } from 'react'
-import { fillMissingDays, getSummaryVariables } from '@/app/(home)/utils'
+import React, { useCallback, useRef } from 'react'
+import { getSummaryVariables } from '@/app/(home)/utils'
 import PocketLogo from '@/app/assets/pocket_logo.svg'
 import Price from '@/app/components/Price'
 import { Blend, Box, Clock, Globe, Landmark } from 'lucide-react'
 import { formatAmount, formatUpokt } from '@/app/utils/format'
 import BoxLabel from '@/app/components/BoxLabel'
-import ComputeUnitsLineChart from '@/app/(home)/ComputeUnitsLineChart'
-import { useDateContext } from '@/app/dates/Context'
+import ComputeUnitsLineChart, { ComputeUnitsLineChartProps } from '@/app/(home)/ComputeUnitsLineChart'
 import MarketCap from '@/app/(home)/MarketCap'
 import EntityLink from '@/app/components/EntityLink'
 import DateColumn from '@/app/dates/DateColumn'
@@ -18,6 +17,7 @@ import DateCellText from '@/app/dates/DateCellText'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { ContentLoader } from '@/app/(home)/SummaryLoader'
 import { clsx } from 'clsx'
+import { fillChartData } from '@/app/Charts/utils'
 
 
 function Title({title}: {title: string}) {
@@ -31,18 +31,19 @@ function Title({title}: {title: string}) {
 interface SummaryProps {
   initialData: DocumentNodeData<typeof summaryDocument>
   initialError: boolean
+  initialVariables?: ExtractVariables<typeof summaryDocument>
 }
 
-export default function Summary({initialData, initialError}: SummaryProps) {
-  const variables = useCallback((_: number, currentTime: string) => getSummaryVariables(new Date(currentTime)), [])
-
+export default function Summary({initialData, initialError, initialVariables}: SummaryProps) {
+  const lastVariablesRef = useRef<ExtractVariables<typeof summaryDocument>>(initialVariables!)
+  const variables = useCallback((_: number, currentTime: string) => lastVariablesRef.current = getSummaryVariables(new Date(currentTime)), [])
   const { data, error, isLoading, refetch } = useFetchOnBlock({
     query: summaryDocument,
     variables,
     initialResult: initialData,
-    initialError
+    initialError,
+    updateOnNewSession: true
   })
-  const {dateTimeZone} = useDateContext()
 
   let content: React.ReactNode
 
@@ -63,7 +64,26 @@ export default function Summary({initialData, initialError}: SummaryProps) {
     const currentSupply = latestBlock?.supplies?.nodes?.find((s) => s?.supply?.denom === 'upokt')?.supply
     const totalStaked = BigInt(latestBlock?.stakedSuppliersTokens || 0) + BigInt(latestBlock?.stakedAppsTokens || 0) + BigInt(latestBlock?.stakedGatewaysTokens || 0)
     const summary = data?.blocks?.aggregates?.sum
-    const groupByDay = fillMissingDays(data?.groupByDay?.groupedAggregates, dateTimeZone)
+
+    const rawData = (data?.groupByDay || []).map(i => ({
+      point: i.date_truncated,
+      start_date: i.date_truncated,
+      totalRelays: i.relays,
+      totalComputedUnits: i.computed_units,
+      totalPokt: i.claimed_amount,
+    }))
+
+    const groupByDay = fillChartData<ComputeUnitsLineChartProps['data'][number]>({
+      data: rawData,
+      defaultProps: {
+        totalComputedUnits: 0,
+        totalPokt: 0,
+        totalRelays: 0
+      },
+      startDate: lastVariablesRef?.current?.last7DaysDate,
+      endDate: lastVariablesRef?.current?.currentDate,
+      unitToFormatDate: 'day'
+    })
 
     content = (
       <>

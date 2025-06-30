@@ -56,6 +56,7 @@ export default function ServicesProductivityChart({
     variables,
     initialResult: initialData,
     initialError,
+    updateOnNewSession: true,
   })
 
   const data = useMemo(() => ({

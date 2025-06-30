@@ -26,6 +26,7 @@ export default function DistributionChart({initialData, initialError, timeSelect
     variables,
     initialResult: initialData,
     initialError,
+    updateOnNewSession: true,
   })
 
   const processedData = useMemo(() => {
