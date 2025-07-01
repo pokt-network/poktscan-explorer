@@ -2,6 +2,9 @@ import { graphql } from '@/app/config/gql'
 
 export const summaryDocument = graphql(`
   query summary($currentDate: Datetime!, $last24HourDate: Datetime!, $last7DaysDate: Datetime!) {
+    indexerStatus: _metadata {
+      targetHeight
+    }
     lastBlock: blocks(orderBy: ID_DESC, first: 1) {
       nodes {
         height: id

@@ -7,4 +7,10 @@ export enum TimeClaimProofTable {
   LastClaimingWindow = 'lastClaimingWindow',
 }
 
+export enum OperatorTabs {
+  ClaimProof = 'claim_proof',
+  Slashing = 'slashing',
+  Suppliers = 'suppliers',
+}
+
 export const maxAddresses = 10

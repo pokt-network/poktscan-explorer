@@ -9,7 +9,7 @@ interface ServicesGainersProps {
 export default function ServicesGainers({data}: ServicesGainersProps) {
   const biggestGainers = orderBy(data, ['changes.computedUnits'], ['desc']).slice(0, 5)
 
-  const bestPerformance = orderBy(data, ['percentages.computedUnits'])
+  const bestPerformance = orderBy(data, ['percentages.computedUnits'], ['desc'])
     .slice(0, 5)
 
   return (

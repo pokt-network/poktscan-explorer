@@ -4,7 +4,6 @@ import { useHeightContext } from '@/app/context/height'
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLazyQuery } from '@apollo/client'
-import useDidMountEffect from '@/app/hooks/useDidMountEffect'
 
 export type DeepRequired<T> = NonNullable<{
   [K in keyof T]-?: T[K] extends object

@@ -14,10 +14,10 @@ export function truncateBothSides(str: string, length: number) {
   return `${str.substring(0, length)}...${str.substring(str.length - length)}`
 }
 
-export function truncateAddress(address: string) {
+export function truncateAddress(address: string, length = 8) {
   // `pokt` is the prefix for every account and `poktvaloper` is for validators, so replace `valoper` after pokt in case
   // the address is the signer of a validator.
-  return truncateBothSides(address.replace('pokt', '').replace('valoper', ''), 8)
+  return truncateBothSides(address.replace('pokt', '').replace('valoper', ''), length)
 }
 
 function toScientificNotation(num: number): string {

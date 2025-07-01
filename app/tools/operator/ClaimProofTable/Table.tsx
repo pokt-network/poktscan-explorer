@@ -80,6 +80,7 @@ export default async function ServerLastClaimingWindowTable({addresses, time}: L
             }
           />
         }
+        initialSelectedTime={time}
       >
         <ClientLastClaimingWindowTable
           addresses={addresses}

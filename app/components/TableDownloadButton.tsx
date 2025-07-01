@@ -12,7 +12,17 @@ interface TableDownloadButtonProps {
 }
 
 const dateFields = ['timestamp', 'lastUpdatedTime']
-const amountFields = ['balance', 'stakeAmount', 'supply', 'outputBalance', 'fee', 'amount']
+const amountFields = [
+  'balance',
+  'stakeAmount',
+  'supply',
+  'outputBalance',
+  'fee',
+  'amount',
+  'slashed',
+  'previousStake',
+  'afterStake',
+]
 
 export default function TableDownloadButton({rows, columns}: TableDownloadButtonProps) {
   const {dateTimeColumn, dateTimeZone,} = useDateContext()

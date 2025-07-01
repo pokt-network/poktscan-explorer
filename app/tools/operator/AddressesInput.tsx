@@ -51,7 +51,9 @@ export default function AddressesInput({defaultValue, inputHelperText, pushOnCha
             if (pushOnChange) {
               const newSearchParams = new URLSearchParams(searchParams)
               newSearchParams.set('addresses', searchValue.split(',').slice(0, maxAddresses).join(','))
-              router.push(newUrl)
+              router.push(newUrl, {
+                scroll: false
+              })
             } else {
               window.history.pushState(null, '', newUrl)
             }

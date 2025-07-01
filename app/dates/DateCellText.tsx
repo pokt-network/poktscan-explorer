@@ -33,7 +33,7 @@ export function useFormatDate() {
   }
 }
 
-export default function DateCellText({value}: {value: string}) {
+export default function DateCellText({value, forceAge}: {value: string, forceAge?: boolean}) {
   const {formatDate} = useFormatDate()
   const {dateTimeColumn} = useDateContext()
 
@@ -42,7 +42,7 @@ export default function DateCellText({value}: {value: string}) {
   useEffect(() => {
     setFormattedDate(formatDate(value))
 
-    if (dateTimeColumn === 'age') {
+    if (dateTimeColumn === 'age' || forceAge) {
       const currentDate = new Date()
       const date = new Date(value.endsWith('Z') ? value : value + 'Z')
 
@@ -57,7 +57,7 @@ export default function DateCellText({value}: {value: string}) {
       }
     }
     // eslint-disable-next-line
-  }, [dateTimeColumn, value])
+  }, [dateTimeColumn, value, forceAge])
 
   return (
     <span suppressHydrationWarning>
