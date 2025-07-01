@@ -1,7 +1,7 @@
 import { Search } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 
-export default function ServicesSelectorLoader() {
+export default function ItemsSelectorLoader() {
   return (
     <div className={'border border-[color:--divider] p-4 h-full w-full bg-[color:--main-background]'}>
 

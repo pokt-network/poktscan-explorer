@@ -6,13 +6,12 @@ import React, { useCallback, useRef } from 'react'
 import { getSummaryVariables } from '@/app/(home)/utils'
 import PocketLogo from '@/app/assets/pocket_logo.svg'
 import Price from '@/app/components/Price'
-import { Blend, Box, Clock, Globe, Landmark } from 'lucide-react'
+import { Blend, Box, Globe, Landmark, RefreshCcw } from 'lucide-react'
 import { formatAmount, formatUpokt } from '@/app/utils/format'
 import BoxLabel from '@/app/components/BoxLabel'
 import ComputeUnitsLineChart, { ComputeUnitsLineChartProps } from '@/app/(home)/ComputeUnitsLineChart'
 import MarketCap from '@/app/(home)/MarketCap'
 import EntityLink from '@/app/components/EntityLink'
-import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { ContentLoader } from '@/app/(home)/SummaryLoader'
@@ -41,8 +40,7 @@ export default function Summary({initialData, initialError, initialVariables}: S
     query: summaryDocument,
     variables,
     initialResult: initialData,
-    initialError,
-    updateOnNewSession: true
+    initialError
   })
 
   let content: React.ReactNode
@@ -87,7 +85,7 @@ export default function Summary({initialData, initialError, initialVariables}: S
 
     content = (
       <>
-        <div className={'flex flex-col gap-y-5 pr-5'}>
+        <div className={'flex flex-col gap-y-5 md:pr-5'}>
           <div className={'flex h-full justify-between'}>
             <div className={'flex grow flex-row h-full'}>
               <div className={'h-[41px] w-[24px] mr-2'}>
@@ -97,21 +95,24 @@ export default function Summary({initialData, initialError, initialVariables}: S
                 <Title
                   title={'Latest Block'}
                 />
-                <div className={'text-[15px!important]'}>
-                  <EntityLink entity={'block'} entityId={latestBlock?.height || 0} />
+                <div className={'text-[14px!important]'}>
+                  <EntityLink entity={'block'} entityId={data?.indexerStatus?.targetHeight || latestBlock?.height || 0} copy={{enabled: false}} />
                 </div>
               </div>
             </div>
-            <div className={'flex flex-row items-end'}>
+            <div className={'flex flex-row items-end h-[51.5px] max-h-[51.5px]'}>
               <div className={'h-[41px] w-[24px] mr-2'}>
-                <Clock className={'stroke-1 w-[26px] h-[26px] ml-[-1px] mt-[-7px] lg:mt-[-15px]'} />
+                <RefreshCcw className={'stroke-1 w-[26px] h-[26px] ml-[-1px] mt-[-17px]'} />
               </div>
-              <div className={'flex grow flex-col gap-0.5 h-full'}>
-                <div className={'text-xs tracking-tight text-[color:--secondary] uppercase'}>
-                  <DateColumn />
+              <div className={'flex grow flex-col items-end gap-0.5 h-full'}>
+                <Title
+                  title={'Indexer Block'}
+                />
+                <div className={'text-[14px!important] text-left'}>
+                  <EntityLink entity={'block'} entityId={latestBlock?.height || 0} copy={{enabled: false}} />
                 </div>
-                <p className={'text-[15px]'}>
-                  <DateCellText value={latestBlock?.timestamp} />
+                <p className={'text-[11px] text-left -mt-1'}>
+                  <DateCellText value={latestBlock?.timestamp} forceAge={true} />
                 </p>
               </div>
             </div>

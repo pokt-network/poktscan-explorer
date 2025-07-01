@@ -1,6 +1,6 @@
 'use client'
 import ProductivityLoaderChart from '@/app/dashboards/services/Productivity/Loader/Chart'
-import ServicesSelectorLoader from '@/app/dashboards/services/Productivity/Loader/Selector'
+import ServicesSelectorLoader from '@/app/Charts/ItemsSelector/Loader'
 import ProductivityCard from '@/app/dashboards/services/Productivity/Card'
 import React, { Suspense } from 'react'
 

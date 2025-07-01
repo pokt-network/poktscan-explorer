@@ -11,8 +11,8 @@ import {
 } from '@/app/Charts/utils'
 
 export const rewardsByAddressAndTimeGroupByDateDocument = graphql(`
-  query getRewardsByAddressAndTimeGroupByDate($addresses: [String!]!, $startDate: Datetime!, $endDate: Datetime!, $truncInterval: String!) {
-    rewards: getRewardsByAddressesAndTimeGroupByDate(
+  query getRewardsByAddressesAndTimeGroupByAddressAndDate($addresses: [String!]!, $startDate: Datetime!, $endDate: Datetime!, $truncInterval: String!) {
+    rewards: getRewardsByAddressesAndTimeGroupByAddressAndDate(
       addresses: $addresses, 
       startDate: $startDate, 
       endDate: $endDate, 

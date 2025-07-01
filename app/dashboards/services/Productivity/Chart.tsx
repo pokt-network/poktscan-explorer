@@ -4,7 +4,7 @@ import useFetchOnBlock, { DocumentNodeData, ExtractVariables } from '@/app/hooks
 import { getProductivityVariables, productivityQuery } from '@/app/dashboards/services/operations'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import BaseLineBarChart from '@/app/Charts/BaseLineBarChart/BaseLineBarChart'
-import ServicesSelector from '@/app/dashboards/services/Productivity/ServicesSelector/ServicesSelector'
+import ServicesSelector from '@/app/Charts/ItemsSelector/ItemsSelector'
 import { setCookie } from '@/app/utils/cookies'
 import { selectedServicesCookieKey } from '@/app/dashboards/services/Productivity/constants'
 import useDidMountEffect from '@/app/hooks/useDidMountEffect'
@@ -242,8 +242,8 @@ export default function ServicesProductivityChart({
             <div className={'h-[260px] md:h-[calc(100%-16px)] w-full md:min-w-[260px] md:w-[260px] order-1 md:order-2'}>
               <ServicesSelector
                 data={servicesWithComputedUnit}
-                servicesSelected={selectedServices}
-                changeSelectedServices={changeSelectedServices}
+                selectedItems={selectedServices}
+                changeSelectedItems={changeSelectedServices}
               />
             </div>
           </>

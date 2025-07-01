@@ -2,7 +2,12 @@ import { graphql } from '@/app/config/gql'
 
 export const supplierListDocument = graphql(`
   query supplierList($limit: Int!, $offset: Int!, $filter: SupplierFilter) {
-    suppliers(first: $limit, offset: $offset, filter: $filter) {
+    suppliers(
+      first: $limit,
+      offset: $offset,
+      filter: $filter
+      orderBy: [STAKE_STATUS_ASC]
+    ) {
       totalCount
       nodes {
         id

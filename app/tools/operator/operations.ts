@@ -89,3 +89,27 @@ export const getDataByDelegatorAddressesAndBlocksDocument = graphql(`
     )
   }
 `)
+
+export const slashedDocument = graphql(`
+  query slashedItems($limit: Int!, $offset: Int!, $filter: EventSupplierSlashedFilter!) {
+    eventSupplierSlasheds(
+      orderBy: [BLOCK_ID_DESC, SUPPLIER_ID_DESC]
+      filter: $filter
+      first: $limit,
+      offset: $offset,
+    ) {
+      totalCount
+      nodes {
+        supplierId
+        blockId
+        proofValidationStatus
+        proofMissingPenalty
+        previousStakeAmount
+        afterStakeAmount
+        sessionId
+        serviceId
+        applicationId
+      }
+    }
+  }
+`)

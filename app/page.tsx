@@ -104,7 +104,7 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
              style={{ backgroundImage: 'url(/waves-light.svg)' }}
         />
         <div className={'w-full md:w-[480px] lg:w-[580px] mb-[12px]'}>
-          <SearchInput zIndex={1} height={48} rpcUrl={rpcUrl} />
+          <SearchInput zIndex={100} height={48} rpcUrl={rpcUrl} />
         </div>
         {/*<SponsoredLabel />*/}
       </section>

@@ -6,6 +6,7 @@ export default function Layout({children}: React.PropsWithChildren) {
     <SupplierLayout
       isOwner={false}
       title={'Operator Staking'}
+      pushOnAddressChange={true}
     >
       {children}
     </SupplierLayout>

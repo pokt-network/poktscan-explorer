@@ -1,11 +1,11 @@
-import { Blend, Box, Clock, Globe, Landmark } from 'lucide-react'
-import DateColumn from '@/app/dates/DateColumn'
+import { Blend, Box, Globe, Landmark, RefreshCcw } from 'lucide-react'
 import PocketLogo from '@/app/assets/pocket_logo.svg'
 import Price from '@/app/components/Price'
 import MarketCap from '@/app/(home)/MarketCap'
 import BoxLabel from '@/app/components/BoxLabel'
 import { Skeleton } from '@/components/ui/skeleton'
 import LineChartLoader from '@/app/(home)/LineChartLoader'
+import React from 'react'
 
 function Title({title}: {title: string}) {
   return (
@@ -33,11 +33,13 @@ export function ContentLoader() {
           </div>
           <div className={'flex flex-row items-end'}>
             <div className={'h-[41px] w-[24px] mr-2'}>
-              <Clock className={'stroke-1 w-[26px] h-[26px] ml-[-1px] mt-[-7px] lg:mt-[-15px]'} />
+              <RefreshCcw className={'stroke-1 w-[26px] h-[26px] ml-[-1px] mt-[-7px] lg:mt-[-14px]'} />
             </div>
             <div className={'flex grow flex-col gap-0.5 h-full'}>
               <div className={'text-xs tracking-tight text-[color:--secondary] uppercase'}>
-                <DateColumn />
+                <Title
+                  title={'Indexer Block'}
+                />
               </div>
               <Skeleton className={'w-full min-w-20 max-w-28 h-[18px] mt-0.5'} />
             </div>

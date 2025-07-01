@@ -6,20 +6,29 @@ import {
 } from '@/app/tools/RewardsByAddresses/operations'
 import { useChartType } from '@/app/Charts/ChartType'
 import { useDataContext } from '@/app/context/DataContext'
-import React, { useCallback, useEffect, useMemo, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import useFetchOnBlock, { DocumentNodeData, ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { useSelectedAddresses } from '@/app/tools/SelectedAddresses'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import NoData from '@/app/components/NoData'
 import BaseLineBarChart from '@/app/Charts/BaseLineBarChart/BaseLineBarChart'
-import { formatAmount } from '@/app/utils/format'
+import { convertUpoktToPokt, formatAmount, truncateAddress } from '@/app/utils/format'
 import { fillChartData, LineBarItem } from '@/app/Charts/utils'
 import { ContentLoader } from '@/app/tools/RewardsByAddresses/Loader'
 import isEqual from 'lodash/isEqual'
-import { useSelectedTime } from '@/app/Charts/SelectedTime'
+import { TimeSelector, useSelectedTime } from '@/app/Charts/SelectedTime'
+import orderBy from 'lodash/orderBy'
+import useDidMountEffect from '@/app/hooks/useDidMountEffect'
+import ItemsSelector from '@/app/Charts/ItemsSelector/ItemsSelector'
+import { Time } from '@/app/dashboards/services/constants'
+import { selectedTimeCookieKey } from '@/app/tools/RewardsByAddresses/constants'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { clsx } from 'clsx'
 
 export interface RewardItem extends LineBarItem {
   totalAmount: number
+  start_date: string
 }
 
 interface RewardsByAddressChartProps {
@@ -58,36 +67,135 @@ export default function RewardsByAddressChart({
     updateOnNewSession: true,
   })
 
-  const processedData: Array<RewardItem> = useMemo(() => {
-    const rawPoints: Array<{date_truncated: string, total_amount: string | number}> = rawData?.rewards || []
+  const [groupAllAddresses, setGroupAllAddresses] = useState(false)
 
-    const notFilled = rawPoints.map(item => ({
-      id: 'rewards',
-      point: item.date_truncated,
-      start_date: item.date_truncated,
-      totalAmount: Number(item.total_amount),
-    }))
+  const processedData: Record<string, Array<RewardItem>> = useMemo(() => {
+    const rawPoints: Array<{date_truncated: string, total_amount: string | number, address: string}> = rawData?.rewards || []
 
-    if (!addresses.length || !rawData?.rewards) return []
+    if (!addresses.length || !rawData?.rewards) return {}
 
-    return fillChartData({
-      data: notFilled,
-      startDate: lastVariables?.current?.startDate,
-      endDate: lastVariables?.current?.endDate,
-      unitToFormatDate: lastVariables?.current?.truncInterval === 'hour' ? 'hour' : 'day',
-      defaultProps: {
-        id: 'rewards',
-        totalAmount: 0,
-      }
-    })
-  }, [rawData, addresses?.length])
+    if (groupAllAddresses) {
+      const amountByDate = rawPoints.reduce((acc, item) => ({
+        ...acc,
+        [item.date_truncated]: (acc[item.date_truncated] || 0) + Number(item.total_amount)
+      }), {} as Record<string, number>)
+
+      const dataNotFilled = Object.keys(amountByDate).map((date) => ({
+        id: '',
+        point: date,
+        start_date: date,
+        totalAmount: amountByDate[date]
+      }))
+
+      return {
+        'all': fillChartData({
+          data: dataNotFilled,
+          startDate: lastVariables?.current?.startDate,
+          endDate: lastVariables?.current?.endDate,
+          unitToFormatDate: lastVariables?.current?.truncInterval === 'hour' ? 'hour' : 'day',
+          defaultProps: {
+            totalAmount: 0,
+          }
+        })
+      } as Record<string, Array<RewardItem>>
+    }
+
+    const dataByAddress = rawPoints.reduce((acc: Record<string, Array<RewardItem>>, item) => ({
+      ...acc,
+      [item.address]: [
+        ...(acc[item.address] || []),
+        {
+          id: item.address,
+          point: item.date_truncated,
+          start_date: item.date_truncated,
+          totalAmount: Number(item.total_amount)
+        },
+      ]
+    }), {} as Record<string, Array<RewardItem>>)
+
+    return addresses.reduce((acc, address) => ({
+      ...acc,
+      [address]: fillChartData({
+        data: dataByAddress[address] || [],
+        startDate: lastVariables?.current?.startDate,
+        endDate: lastVariables?.current?.endDate,
+        unitToFormatDate: lastVariables?.current?.truncInterval === 'hour' ? 'hour' : 'day',
+        defaultProps: {
+          id: address,
+          totalAmount: 0,
+        }
+      })
+    }), {})
+  }, [rawData, addresses, groupAllAddresses])
+
+  const addressesWithRewards = useMemo(() => {
+    return orderBy(Object.entries(processedData).map(([address, items]) => ({
+      id: address,
+      label: truncateAddress(address, 6),
+      value: items.reduce((acc, item) => {
+        return acc + convertUpoktToPokt(item.totalAmount)
+      }, 0)
+    })), ['value'], ['desc'])
+  }, [processedData])
+
+  const [selectedAddresses, setSelectedAddresses] = React.useState<Array<string>>(
+    addressesWithRewards.map(item => item.id).slice(0, 5)
+  )
+
+  useDidMountEffect(() => {
+    if (groupAllAddresses) return
+
+    const newSelection = addressesWithRewards.map(item => item.id).slice(0, 5)
+
+    if (!isEqual(newSelection, selectedAddresses)) {
+      setSelectedAddresses(newSelection)
+    }
+  }, [processedData])
 
   useEffect(() => {
-    if (!isEqual(processedData, data)) {
-      setData(processedData)
+    let newData: Array<RewardItem> = []
+
+    if (groupAllAddresses) {
+      newData = processedData['all']
+    } else {
+      newData = Object.entries(processedData).reduce((acc, [address,items]) => {
+        if (selectedAddresses.includes(address)) {
+          return acc.concat(items)
+        }
+        return acc
+      }, [] as Array<RewardItem>)
+    }
+
+    if (!isEqual(newData, data)) {
+      setData(newData)
     }
     // eslint-disable-next-line
-  }, [processedData])
+  }, [processedData, selectedAddresses])
+
+  const changeSelectedAddresses = (addresses: Array<string>) => {
+    setSelectedAddresses(addresses)
+  }
+
+  const filteredDataByAddress: Record<string, Array<RewardItem>> = useMemo(() => {
+    if (groupAllAddresses) {
+      return data.reduce((acc, item) => {
+        acc.eth.push(item)
+        return acc
+      }, {'eth': []})
+    }
+
+    return data.reduce((acc, item) => {
+      if (selectedAddresses.includes(item.id)) {
+        if (acc[item.id]) {
+          acc[item.id].push(item)
+        } else {
+          acc[item.id] = [item]
+        }
+      }
+
+      return acc
+    }, {} as Record<string, Array<RewardItem>> )
+  }, [data, selectedAddresses, groupAllAddresses])
 
   let content: React.ReactNode
 
@@ -99,7 +207,7 @@ export default function RewardsByAddressChart({
     )
   } else if (isLoading) {
     content = (
-      <ContentLoader chartType={chartType} />
+      <ContentLoader chartType={chartType} hideSelector={groupAllAddresses} />
     )
   } else if (error) {
     content = (
@@ -110,45 +218,107 @@ export default function RewardsByAddressChart({
       </div>
     )
   } else {
-    if (data.length === 0 && processedData.length === 0) {
-      content = (
-        <div className={'mt-[-40px] flex w-full items-center justify-center'}>
-          <NoData label={'No data available for the time and addresses selected.'} />
+    const actions = (
+      <div className={'flex items-center self-start gap-2 h-[30px] -mt-2 ml-2'}>
+        <TimeSelector
+          includeLabel={true}
+          options={[
+            Time.Last24h,
+            Time.Last7d,
+            Time.Last30d,
+          ]}
+          cookieKey={selectedTimeCookieKey}
+        />
+
+        <div className={'flex items-center gap-2 text-xs'}>
+          <Switch
+            id={'group-all-addresses'}
+            checked={groupAllAddresses}
+            onCheckedChange={setGroupAllAddresses}
+          />
+          <Label htmlFor={'group-all-addresses'} className={'text-xs sm:text-sm font-medium'}>
+            Group Addresses
+          </Label>
         </div>
+      </div>
+    )
+
+    if (data.length === 0 && addressesWithRewards.every(i => i.value === 0)) {
+      content = (
+        <>
+          {actions}
+          <div className={'mt-[-40px] flex w-full items-center justify-center'}>
+            <NoData label={'No data available for the time and addresses selected.'} />
+          </div>
+        </>
       )
     } else {
       content = (
-        <div className={'order-2 md:order-1 w-full md:w-[calc(100%-0px)] h-full'}>
-          <BaseLineBarChart
-            data={{
-              'eth': data.length ? data : processedData
-            }}
-            displayColorsInTooltip={false}
-            yAxisKey={'totalAmount'}
-            yAxisLabel={'Rewards (POKT)'}
-            chartType={chartType}
-            unitToFormatDate={lastVariables?.current?.truncInterval === 'hour' ? 'hour' : 'day'}
-            getTooltipLabel={(item) => {
-              const value = formatAmount({ amount: item.totalAmount, denom: 'upokt' })
+        <>
+          {actions}
+          <div className={'flex flex-col md:flex-row w-full grow items-center gap-4'}>
+            <div
+              className={
+                clsx(
+                  'order-2 md:order-1',
+                  groupAllAddresses && 'w-full h-full md:h-[294px]',
+                  !groupAllAddresses && 'w-full md:w-[calc(100%-260px-16px)] h-[294px]'
+                )
+              }
+            >
+              <BaseLineBarChart
+                data={filteredDataByAddress}
+                displayColorsInTooltip={false}
+                yAxisKey={'totalAmount'}
+                yAxisLabel={'Rewards (POKT)'}
+                chartType={chartType}
+                unitToFormatDate={lastVariables?.current?.truncInterval === 'hour' ? 'hour' : 'day'}
+                getTooltipLabel={(item) => {
+                  const value = formatAmount({ amount: item.totalAmount, denom: 'upokt' })
 
-              return value === '0' ? '0 POKT' : value
-            }}
-            formatValueAxisY={
-              (value) => formatAmount({
-                amount: value,
-                denom: 'upokt',
-                includeSymbol: false,
-                abbreviateThreshold: 1e6,
-              })
-            }
-          />
-        </div>
+                  if (groupAllAddresses) {
+                    return value
+                  }
+
+                  return [
+                    `Address: ${truncateAddress(item.id, 6)}`,
+                    `Rewards: ${value}`,
+                  ]
+                }}
+                formatValueAxisY={
+                  (value) => formatAmount({
+                    amount: value,
+                    denom: 'upokt',
+                    includeSymbol: false,
+                    abbreviateThreshold: 1e6,
+                  })
+                }
+              />
+            </div>
+            {!groupAllAddresses && (
+              <div className={'min-h-[180px] h-[180px] md:h-[calc(100%-16px)] w-full md:min-w-[260px] md:w-[260px] order-1 md:order-2'}>
+                <ItemsSelector
+                  data={addressesWithRewards}
+                  selectedItems={selectedAddresses}
+                  changeSelectedItems={changeSelectedAddresses}
+                />
+              </div>
+            )}
+          </div>
+        </>
       )
     }
   }
 
   return (
-    <div className={'flex flex-col md:flex-row items-center px-4 pt-2 pb-4 h-[calc(100%-44px)] gap-4'}>
+    <div
+      className={
+        clsx(
+          !isLoading && 'flex flex-col items-center px-4 pt-2 pb-4 h-full gap-4',
+          isLoading && 'flex flex-col md:flex-row items-center px-4 pt-2 pb-4 h-[calc(100%-44px)] gap-4'
+        )
+      }
+    >
       {content}
     </div>
   )

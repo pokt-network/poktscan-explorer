@@ -47,7 +47,6 @@ export default function Summary({isOwners, initialAddresses, initialData, initia
     return (
       <LoadingSummary
         labels={labels}
-        containerClassName={'flex-col lg:!flex lg:[&_.card-container]:!h-[90px]'}
       />
     )
   } else if (error) {
@@ -63,7 +62,7 @@ export default function Summary({isOwners, initialAddresses, initialData, initia
 
   if (!addresses.length) {
     return (
-      <div className={'rounded-lg border border-[color:--divider] bg-[color:--main-background] base-shadow h-full flex w-full items-center justify-center'}>
+      <div className={'rounded-lg border h-[130px] pt-2 border-[color:--divider] bg-[color:--main-background] base-shadow flex w-full items-center justify-center'}>
         <NoData label={'Select addresses to see the data.'} />
       </div>
     )
@@ -108,9 +107,6 @@ export default function Summary({isOwners, initialAddresses, initialData, initia
             ),
           }
         )
-      }
-      containerClassName={
-        'flex-col lg:!flex lg:[&_.card-container]:!h-[90px]'
       }
     />
   )

@@ -33,13 +33,13 @@ export default function SummaryAndRewards({
       />
 
       <hr className={'border-[color:--divider] my-2'} />
-      <div className={'flex flex-col lg:flex-row gap-4'}>
+      <div className={'flex flex-col gap-4'}>
 
         <div className={'min-w-[260px]'}>
           <Suspense
             key={validAddresses.join(',')}
             fallback={
-              <LoadingSummary labels={labels} containerClassName={'flex-col lg:!flex lg:[&_.card-container]:!h-[90px]'} />
+              <LoadingSummary labels={labels} />
             }
           >
             <ServerSummary addresses={validAddresses} isOwners={isOwner} />

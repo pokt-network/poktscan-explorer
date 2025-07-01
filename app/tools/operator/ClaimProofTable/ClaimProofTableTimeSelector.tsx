@@ -1,10 +1,9 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
 import { selectedTimeCookieKey, TimeClaimProofTable } from '@/app/tools/operator/constants'
-import { clsx } from 'clsx'
 import { useMultipleOptionContext } from '@/app/context/MultipleOptionContext'
 import { setCookie } from '@/app/utils/cookies'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const timeOptionsLabel: Record<TimeClaimProofTable, string> = {
   last24h: 'Last 24h',
@@ -13,51 +12,32 @@ const timeOptionsLabel: Record<TimeClaimProofTable, string> = {
 }
 
 interface ClaimProofTableProps {
-  disable?: true
+  disable?: boolean
   initialValue: TimeClaimProofTable
 }
 
 export default function ClaimProofTableTimeSelector({disable, initialValue}: ClaimProofTableProps) {
   const {selectedValue, setSelectedValue} = useMultipleOptionContext<TimeClaimProofTable>()
 
-  const activeValue = selectedValue || initialValue
-
   return (
-    <div
-      className={
-        clsx(
-          "flex flex-row gap-4 mt-6 mb-4",
-          disable && "opacity-80 pointer-events-none",
-        )
-      }
+    <Select
+      disabled={disable}
+      value={selectedValue || initialValue}
+      onValueChange={(newValue) => {
+        setSelectedValue(newValue as TimeClaimProofTable)
+        setCookie(selectedTimeCookieKey, newValue)
+      }}
     >
-      {Object.values(TimeClaimProofTable).map((time) => {
-        const isActive = activeValue === time
-
-        if (isActive) {
-          return (
-            <span
-              key={time}
-              className={`text-xs px-[10px] font-semibold leading-[36px] cursor-not-allowed select-none rounded-lg transition-transform duration-300 bg-[color:--primary-background] text-white`}
-            >
-              {timeOptionsLabel[time] || time}
-            </span>
-          )
-        }
-
-        return (
-          <Button
-            className={`text-xs px-[10px] font-semibold hover:bg-[color:--background] aria-disabled:cursor-not-allowed py-1 rounded-lg transition-transform duration-300 bg-[color:rgba(141,141,141,0.12)]`}
-            key={time}
-            onClick={() => {
-              setSelectedValue(time)
-              setCookie(selectedTimeCookieKey, time)
-            }}
-          >
+      <SelectTrigger className={'w-fit h-[30px] gap-1 px-2 text-xs bg-[color:--main-background]'}>
+        <SelectValue placeholder={'Time'} />
+      </SelectTrigger>
+      <SelectContent>
+        {Object.values(TimeClaimProofTable).map(time => (
+          <SelectItem value={time} key={time}>
             {timeOptionsLabel[time] || time}
-          </Button>
-        )
-      })}
-    </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }

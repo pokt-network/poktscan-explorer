@@ -33,7 +33,12 @@ export default function Tabs({tabs, activeTab, basePath}: TabsProps) {
         return (
           <Link
             className={`text-xs px-[10px] font-semibold aria-disabled:cursor-not-allowed leading-[24px] py-1 rounded-lg transition-transform duration-300 bg-[color:rgba(141,141,141,0.12)]`}
-            href={`${basePath}?tab=${tab.tab}`}
+            href={
+              basePath.includes('?') ?
+                `${basePath}&tab=${tab.tab}`:
+                `${basePath}?tab=${tab.tab}`
+            }
+            scroll={false}
             key={tab.tab}
             aria-disabled={isActive}
             prefetch={!isActive}

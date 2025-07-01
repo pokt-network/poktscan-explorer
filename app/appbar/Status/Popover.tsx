@@ -154,7 +154,7 @@ export default function StatusPopover({initialData, initialError, pollInterval}:
           <>
             <div className={'min-w-[160px] flex flex-row items-center justify-between gap-2'}>
               <p className={'font-bold mb-1'}>
-                Current Height:
+                Indexer Height:
               </p>
               <p>
                 {data?._metadata?.lastProcessedHeight}
@@ -162,7 +162,7 @@ export default function StatusPopover({initialData, initialError, pollInterval}:
             </div>
             <div className={'min-w-[160px] flex flex-row items-center justify-between gap-2'}>
               <p className={'font-bold'}>
-                Target Height:
+                Latest Height:
               </p>
               <p>
                 {data?._metadata?.targetHeight}

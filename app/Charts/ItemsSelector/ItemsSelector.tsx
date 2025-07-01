@@ -1,6 +1,6 @@
 'use client'
 
-import SearchInput from '@/app/dashboards/services/Productivity/ServicesSelector/SearchInput'
+import SearchInput from '@/app/Charts/ItemsSelector/SearchInput'
 import { useState } from 'react'
 import { hashStringToColor } from '@/app/Charts/utils'
 import { clsx } from 'clsx'
@@ -10,22 +10,22 @@ import { Button } from '@/components/ui/button'
 
 interface DataItem {
   id: string
-  label: string
+  label?: string
   value: number
   color?: string
 }
 
 function getLabel({id, label}: DataItem) {
-  return label ? `${label} (${id})` : id
+  return label ? label : id
 }
 
-interface ServiceItemProps {
+interface ItemProps {
   item: DataItem
   isSelected: boolean
   onClick: () => void
 }
 
-function ServiceItem({item, isSelected, onClick}: ServiceItemProps) {
+function Item({item, isSelected, onClick}: ItemProps) {
   const color = item.color || hashStringToColor(item.id)
 
   return (
@@ -61,19 +61,19 @@ function ServiceItem({item, isSelected, onClick}: ServiceItemProps) {
 interface TopChipProps {
   top: number
   data: Array<DataItem>
-  selectedServices: Array<string>
-  changeSelectedServices: (services: Array<string>) => void
+  selectedItems: Array<string>
+  changeSelectedItems: (items: Array<string>) => void
 }
 
 function TopChip({
   top,
   data,
-  selectedServices,
-  changeSelectedServices,
+  selectedItems,
+  changeSelectedItems,
 }: TopChipProps) {
   if (data.length < top) return null
 
-  const areAllSelected = data.slice(0, top).every(item => selectedServices.includes(item.id)) && selectedServices.length === top
+  const areAllSelected = data.slice(0, top).every(item => selectedItems.includes(item.id)) && selectedItems.length === top
 
   return (
     <Button
@@ -81,7 +81,7 @@ function TopChip({
       onClick={() => {
         if (areAllSelected) return
 
-        changeSelectedServices(
+        changeSelectedItems(
           data.slice(0, top).map(item => item.id)
         )
       }}
@@ -99,17 +99,17 @@ function TopChip({
   )
 }
 
-interface ServicesSelectorProps {
-  servicesSelected: Array<string>
-  changeSelectedServices: (services: Array<string>) => void
+interface ItemsSelectorProps {
+  selectedItems: Array<string>
+  changeSelectedItems: (items: Array<string>) => void
   data: Array<DataItem>
 }
 
-export default function ServicesSelector({
-  servicesSelected,
-  changeSelectedServices,
+export default function ItemsSelector({
+  selectedItems,
+  changeSelectedItems,
   data,
-}: ServicesSelectorProps) {
+}: ItemsSelectorProps) {
   const [searchInput, setSearchInput] = useState('')
 
   const changeSearchInput = (searchInput: string) => {
@@ -136,8 +136,8 @@ export default function ServicesSelector({
             <TopChip
               key={top}
               top={top}
-              selectedServices={servicesSelected}
-              changeSelectedServices={changeSelectedServices}
+              selectedItems={selectedItems}
+              changeSelectedItems={changeSelectedItems}
               data={data}
             />
           ))}
@@ -150,17 +150,17 @@ export default function ServicesSelector({
         }}
       >
         {filteredData.map((item) => {
-          const isSelected = servicesSelected.includes(item.id)
+          const isSelected = selectedItems.includes(item.id)
           return (
-            <ServiceItem
+            <Item
               key={item.id}
               item={item}
               isSelected={isSelected}
               onClick={() => {
                 if (isSelected) {
-                  changeSelectedServices(servicesSelected.filter(id => id !== item.id))
+                  changeSelectedItems(selectedItems.filter(id => id !== item.id))
                 } else {
-                  changeSelectedServices([...servicesSelected, item.id])
+                  changeSelectedItems([...selectedItems, item.id])
                 }
               }}
             />

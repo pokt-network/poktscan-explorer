@@ -9,7 +9,7 @@
     "start": "next start -p 3001",
     "lint": "next lint",
     "codegen": "graphql-codegen --config codegen.ts",
-    "docker:build": "pnpm codegen && docker build -t registry.digitalocean.com/poktscan/shannon-web:alpha ."
+    "docker:build": "pnpm codegen && docker build -t registry.digitalocean.com/poktscan/shannon-web:mainnet ."
   },
   "dependencies": {
     "@apollo/client": "^3.11.8",
@@ -26,6 +26,7 @@
     "@radix-ui/react-popover": "^1.1.2",
     "@radix-ui/react-select": "^2.1.2",
     "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-switch": "^1.2.5",
     "@radix-ui/react-tooltip": "^1.1.3",
     "@svgr/webpack": "^8.1.0",
     "@tanstack/react-query": "^5.66.9",

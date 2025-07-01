@@ -14,6 +14,7 @@ const supplierSubscription = graphql(`
         serviceConfigs {
           nodes {
             serviceId
+            revShare
           }
         }
       }
@@ -24,9 +25,10 @@ const supplierSubscription = graphql(`
 interface SuppliersSubscriptionProps {
   service?: string
   owners?: Array<string>
+  delegators?: Array<string>
 }
 
-export default function SuppliersSubscription({service, owners}: SuppliersSubscriptionProps) {
+export default function SuppliersSubscription({service, owners, delegators}: SuppliersSubscriptionProps) {
   return (
     <NewEntitiesFound<typeof supplierSubscription>
       subscription={supplierSubscription}
@@ -36,7 +38,9 @@ export default function SuppliersSubscription({service, owners}: SuppliersSubscr
 
         if (service) return data?.suppliers?._entity?.serviceConfigs?.nodes?.some(service => service?.serviceId === (service || '')) || false
 
-        return owners ? owners.includes(data?.suppliers?._entity?.ownerId || '') : true
+        if (owners) return owners.includes(data?.suppliers?._entity?.ownerId || '')
+
+        return delegators ? data?.suppliers?._entity?.serviceConfigs?.nodes?.some(sc => sc?.revShare?.some(rs => delegators.includes(rs?.address))) || false  : true
       }}
     />
   )
