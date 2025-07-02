@@ -1,7 +1,6 @@
 import { graphql } from '@/app/config/gql'
-import { TimeClaimProofTable } from '@/app/tools/operator/constants'
 import { ExtractVariables } from '@/app/hooks/useFetchOnBlock'
-import { addHoursToUtc } from '@/app/Charts/utils'
+import { getStartAndEndDateBasedOnTime } from '@/app/utils/dates'
 
 export const getDataByDelegatorAddressesAndTimesDocument = graphql(`
   query getDataByDelegatorAddressesAndTimes(
@@ -19,37 +18,18 @@ export const getDataByDelegatorAddressesAndTimesDocument = graphql(`
 
 export const getDataByDelegatorAddressesAndTimesVariables = (
   addresses: Array<string>,
-  currentDate: Date | string,
+  dateStr: string,
   timeSelected: string
 ): ExtractVariables<typeof getDataByDelegatorAddressesAndTimesDocument> => {
-  let timeSelectedToUse = TimeClaimProofTable.Last24h
-
-  if (timeSelected && timeSelected !== TimeClaimProofTable.LastClaimingWindow && Object.values(TimeClaimProofTable).includes(timeSelected as TimeClaimProofTable)) {
-    timeSelectedToUse = timeSelected as TimeClaimProofTable
-  }
-
-  const endDate = new Date(currentDate)
-
-  let startDate: Date
-
-  switch (timeSelectedToUse) {
-    case TimeClaimProofTable.Last24h: {
-      startDate = addHoursToUtc(endDate, -24)
-      break
-    }
-    case TimeClaimProofTable.Last48h: {
-      startDate = addHoursToUtc(endDate, -48)
-      break
-    }
-    default: {
-      throw new Error('Invalid time selected')
-    }
-  }
+  const { start, end } = getStartAndEndDateBasedOnTime(
+    dateStr,
+    timeSelected
+  )
 
   return {
     delegatorAddresses: addresses,
-    startTime: startDate.toISOString(),
-    endTime: endDate.toISOString()
+    startTime: start.toISOString(),
+    endTime: end.toISOString()
   }
 }
 
@@ -111,5 +91,19 @@ export const slashedDocument = graphql(`
         applicationId
       }
     }
+  }
+`)
+
+export const rewardsByServicesDocument = graphql(`
+  query rewardsByServices(
+    $delegatorAddresses: [String!]!
+    $startTime: Datetime!
+    $endTime: Datetime!
+  ) {
+    data: getRewardsByAddressesAndTimeGroupByService(
+      addresses: $delegatorAddresses,
+      startTs: $startTime,
+      endTs: $endTime
+    )
   }
 `)

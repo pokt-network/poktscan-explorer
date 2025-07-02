@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers'
 import { getLatestBlock } from '@/app/api/blocks'
 import {
-  getValidSelectedTime,
   rewardsByAddressAndTimeGroupByDateDocument,
   rewardsByAddressAndTimeGroupByDateVariables,
 } from '@/app/tools/RewardsByAddresses/operations'
@@ -10,10 +9,9 @@ import DataProvider from '@/app/context/DataContext'
 import { ChartTypeProvider } from '@/app/Charts/ChartType'
 import { chartTypeCookieKey } from '@/app/tools/RewardsByAddresses/constants'
 import RewardsByAddressCard from '@/app/tools/RewardsByAddresses/Card'
-import { Time } from '@/app/dashboards/services/constants'
-import { SelectedTimeProvider } from '@/app/Charts/SelectedTime'
 import RewardsByAddressChart from '@/app/tools/RewardsByAddresses/RewardsByAddressChart'
 import CardActions from '@/app/tools/RewardsByAddresses/CardActions'
+import { MultipleOptionContextProvider } from '@/app/context/MultipleOptionContext'
 
 interface RewardsByAddressesProps {
   addresses: Array<string>
@@ -50,9 +48,8 @@ export default async function ServerRewardsByAddresses({addresses, timeSelected}
       initialData={[]}
     >
       <ChartTypeProvider defaultChartType={cookiesAwaited?.get(chartTypeCookieKey)?.value}>
-        <SelectedTimeProvider defaultTime={timeSelected ? getValidSelectedTime(timeSelected) : Time.Last7d}>
+        <MultipleOptionContextProvider initialValue={false}>
           <RewardsByAddressCard
-            includeTimeSelector={true}
             actions={(
               <CardActions />
             )}
@@ -64,7 +61,7 @@ export default async function ServerRewardsByAddresses({addresses, timeSelected}
               initialVariables={variables || null}
             />
           </RewardsByAddressCard>
-        </SelectedTimeProvider>
+        </MultipleOptionContextProvider>
       </ChartTypeProvider>
     </DataProvider>
   )

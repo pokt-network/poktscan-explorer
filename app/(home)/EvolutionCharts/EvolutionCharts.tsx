@@ -40,7 +40,7 @@ export default function EvolutionCharts({
 }: SupplierAndAppsEvolutionProps) {
   const {currentTime} = useHeightContext()
 
-  const variables = useCallback((_: number, currentTime: string) => getEvolutionVariables(new Date(currentTime)), [])
+  const variables = useCallback((_: number, currentTime: string) => getEvolutionVariables(currentTime), [])
 
   const { data, error, isLoading, refetch } = useFetchOnBlock({
     query: evolutionDocument,
@@ -65,7 +65,7 @@ export default function EvolutionCharts({
   } else {
     const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "2-digit", timeZone: dateTimeZone === 'utc' ? 'UTC' : undefined });
 
-    const dates = getEvolutionVariables(new Date(currentTime))
+    const dates = getEvolutionVariables(currentTime)
     const currentDate = dateFormatter.format(new Date(dates.currentDate))
     const yesterdayDate = dateFormatter.format(new Date(dates.yesterdayDate))
     const previous2Date = dateFormatter.format(new Date(dates.previous2Date))

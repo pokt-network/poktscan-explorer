@@ -14,12 +14,6 @@ import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 import merge from 'lodash/merge'
 
-const dayFormatter = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  day: '2-digit',
-  timeZone: 'UTC'
-})
-
 interface BaseLineBarChartProps<T extends LineBarItem> {
   chartType?: 'line' | 'bar'
   data: Record<string, Array<T>>
@@ -227,7 +221,7 @@ export default function BaseLineBarChart<T extends LineBarItem>({
         padding: 10,
         callbacks: {
           title: function(tooltipItems) {
-            return dayFormatter.format(new Date(tooltipItems.at(0).label))
+            return formatDate(tooltipItems.at(0).label, unitToFormatDate === 'day' ? 'day' : 'hour', unitToFormatDate === 'day')
           },
           label: function(context) {
             const data = context.dataset.data[context.dataIndex] as T

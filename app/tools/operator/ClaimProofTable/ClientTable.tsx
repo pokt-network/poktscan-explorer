@@ -3,19 +3,16 @@ import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import {
   getDataByDelegatorAddressesAndBlocksDocument, getDataByDelegatorAddressesAndTimesDocument,
   getDataByDelegatorAddressesAndTimesVariables,
-  getParamsDocument,
 } from '@/app/tools/operator/operations'
 import { useDataContext } from '@/app/context/DataContext'
 import columns, { DataByDelegatorRow } from '@/app/tools/operator/columns'
-import { useLazyQuery } from '@apollo/client'
-import React, { useCallback, useEffect, useMemo, useRef } from 'react'
-import { formatSimpleAmount, formatUpokt } from '@/app/utils/format'
+import React, { useCallback, useEffect, useMemo } from 'react'
+import { convertUpoktToPokt, formatSimpleAmount, formatUpokt } from '@/app/utils/format'
 import NoData from '@/app/components/NoData'
 import BaseTable from '@/app/components/BaseTable'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
-import { TimeClaimProofTable } from '@/app/tools/operator/constants'
 import { useSelectedAddresses } from '@/app/tools/SelectedAddresses'
-import { useMultipleOptionContext } from '@/app/context/MultipleOptionContext'
+import { useSelectedTime } from '@/app/Charts/SelectedTime'
 
 interface ClientLastClaimingWindowTableProps {
   initialError: boolean
@@ -30,51 +27,18 @@ export default function ClientLastClaimingWindowTable({
 }: ClientLastClaimingWindowTableProps) {
   const {setData} = useDataContext<DataByDelegatorRow>()
   const {addresses} = useSelectedAddresses()
-  const {selectedValue: selectedTime} = useMultipleOptionContext<TimeClaimProofTable>()
-
-  const [getData] = useLazyQuery(
-    getDataByDelegatorAddressesAndBlocksDocument,
-  )
-
-  const lastBlockRef = useRef<number | null>(null)
+  const {selectedTime} = useSelectedTime()
 
   const variables = useCallback((height: number, currentTime: string) => {
-    if (selectedTime === TimeClaimProofTable.LastClaimingWindow) {
-      lastBlockRef.current = height
-      return undefined
-    } else {
-      return getDataByDelegatorAddressesAndTimesVariables(addresses || initialAddresses, currentTime, selectedTime)
-    }
+    return getDataByDelegatorAddressesAndTimesVariables(addresses || initialAddresses, currentTime, selectedTime)
   }, [selectedTime, addresses, initialAddresses])
-
-  const resultParser = useCallback(async (paramsData) => {
-    const claimWindowCloseOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'claim_window_close_offset_blocks')?.value
-    const claimWindowOpenOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'claim_window_open_offset_blocks')?.value
-    const proofWindowCloseOffsetBlocks = paramsData?.params?.nodes?.find(n => n.key === 'proof_window_close_offset_blocks')?.value
-
-    const window = Number(claimWindowCloseOffsetBlocks || 0) + Number(claimWindowOpenOffsetBlocks || 0) + Number(proofWindowCloseOffsetBlocks || 0)
-
-    const endHeight = BigInt(lastBlockRef.current)
-    const startHeight = endHeight - BigInt(window)
-
-    const {data: finalData} = await getData({
-      variables: {
-        delegatorAddresses: addresses,
-        startBlock: startHeight.toString() || '0',
-        endBlock: endHeight.toString() || '0',
-      }
-    })
-
-    return finalData
-  }, [addresses, getData])
 
   const { data, error, refetch, isLoading } = useFetchOnBlock({
     variables,
-    query: selectedTime === TimeClaimProofTable.LastClaimingWindow ? getParamsDocument : getDataByDelegatorAddressesAndTimesDocument,
+    query: getDataByDelegatorAddressesAndTimesDocument,
     initialError,
     initialResult: initialData,
-    resultParser: selectedTime === TimeClaimProofTable.LastClaimingWindow ? resultParser : undefined,
-    updateOnNewSession: selectedTime !== TimeClaimProofTable.LastClaimingWindow,
+    updateOnNewSession: true,
   })
 
   const rows: Array<DataByDelegatorRow> = useMemo(() => {
@@ -85,25 +49,32 @@ export default function ClientLastClaimingWindowTable({
     })?.map(item => ({
       id: item.address,
       delegatorAddress: item.address,
+      raw_slashed: convertUpoktToPokt(item.slashed),
       slashed: formatUpokt({
         amount: item.slashed,
       }),
+      raw_proofPokt: convertUpoktToPokt(item.proof_upokt),
       proofPokt: formatUpokt({
         amount: item.proof_upokt,
       }),
+      raw_proofRelays: item.proof_relays,
       proofRelays: formatSimpleAmount(item.proof_relays),
+      raw_proofComputedUnits: item.proof_computed_units,
       proofComputedUnits: formatSimpleAmount(item.proof_computed_units),
+      raw_proofAmount: item.proof_amount,
       proofAmount: formatSimpleAmount(item.proof_amount),
 
-      proof_computed_units: item.proof_computed_units,
-
+      raw_claimPokt: convertUpoktToPokt(item.claim_upokt),
       claimPokt: formatUpokt({
         amount: item.claim_upokt,
       }),
+      raw_claimRelays: item.claim_relays,
       claimRelays: formatSimpleAmount(item.claim_relays),
+      raw_claimComputedUnits: item.claim_computed_units,
       claimComputedUnits: formatSimpleAmount(item.claim_computed_units),
+      raw_claimAmount: item.claim_amount,
       claimAmount: formatSimpleAmount(item.claim_amount),
-    }))
+    } as DataByDelegatorRow ))
       .sort((a, b) => b.proof_computed_units - a.proof_computed_units) || []
   }, [data])
 

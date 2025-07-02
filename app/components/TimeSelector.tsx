@@ -1,28 +1,34 @@
 'use client'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import {
-  selectedTimeCookieKey, selectedTimeParamKey, Time,
-} from '@/app/dashboards/services/constants'
+import {Time} from '@/app/utils/dates'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { setCookie } from '@/app/utils/cookies'
 
 const labelByTime: Record<Time, string> = {
   [Time.Last24h]: 'Last 24h',
+  [Time.Last48h]: 'Last 48h',
   [Time.Last7d]: 'Last 7d',
   [Time.Last30d]: 'Last 30d',
-  [Time.Last90d]: 'Last 90d',
 }
 
 interface TimeSelectorProps {
   selectedTime: string
   includeLabel?: boolean
   options?: Array<Time>
+  cookie?: string
+  param?: string
+  onChange?: (time: Time) => void
+  enablePush?: boolean
 }
 
 export default function TimeSelector({
   selectedTime,
+  cookie,
+  param,
+  onChange,
+  enablePush = !!param,
   includeLabel = true,
-  options = [Time.Last24h, Time.Last7d, Time.Last30d, Time.Last90d],
+  options = [Time.Last24h, Time.Last48h, Time.Last7d, Time.Last30d],
 }: TimeSelectorProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -38,14 +44,26 @@ export default function TimeSelector({
       <Select
       value={selectedTime}
       onValueChange={(newValue) => {
-        setCookie(selectedTimeCookieKey, newValue)
+        if (cookie) {
+          setCookie(cookie, newValue)
+        }
 
-        const params = new URLSearchParams(searchParams)
-        params.set(selectedTimeParamKey, newValue)
-        router.push(`${pathname}?${params.toString()}`)
+        if (param) {
+          const params = new URLSearchParams(searchParams)
+          params.set(param, newValue)
+          if (enablePush) {
+            router.push(`${pathname}?${params.toString()}`, {scroll: false})
+          } else {
+            window.history.pushState(null, '', `${pathname}?${params.toString()}`)
+          }
+        }
+
+        if (onChange) {
+          onChange(newValue as Time)
+        }
       }}
     >
-      <SelectTrigger className={'w-[140px] h-[30px] text-xs bg-[color:--main-background]'}>
+      <SelectTrigger className={'min-w-20 w-fit gap-1 h-[30px] text-xs bg-[color:--main-background]'}>
         <SelectValue placeholder={'Time'} />
       </SelectTrigger>
       <SelectContent>

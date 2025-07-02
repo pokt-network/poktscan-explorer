@@ -19,6 +19,7 @@ export function middleware(request: NextRequest) {
   // this is to have addresses in the layout of those pages
   if (['/tools/staking', '/tools/operator'].includes(url.pathname)) {
     response.headers.set('addresses', url.searchParams.get('addresses') || '')
+    response.headers.set('time', url.searchParams.get('time')?.toString() || request.cookies.get('time')?.value || '')
   }
 
   return response;

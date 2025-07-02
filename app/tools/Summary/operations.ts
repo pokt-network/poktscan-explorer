@@ -1,7 +1,7 @@
 import { graphql } from '@/app/config/gql'
 import { StakeStatus, SupplierFilter } from '@/app/config/gql/graphql'
 import { ExtractVariables } from '@/app/hooks/useFetchOnBlock'
-import { addHoursToUtc } from '@/app/Charts/utils'
+import { addHoursToUtc, getDateFromIsoString } from '@/app/Charts/utils'
 
 export const summaryDocument = graphql(`
   query nodesSummary(
@@ -38,9 +38,9 @@ export const summaryDocument = graphql(`
 export const summaryVariables = (
   filterForOwners: boolean,
   addresses: Array<string>,
-  currentDate: Date | string,
+  dateStr: string,
 ): ExtractVariables<typeof summaryDocument> => {
-  const date = new Date(currentDate)
+  const date = getDateFromIsoString(dateStr)
 
   const addressesFilter: SupplierFilter = filterForOwners ? {
     ownerId: {

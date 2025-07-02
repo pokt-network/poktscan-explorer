@@ -1,14 +1,6 @@
 import { graphql } from '@/app/config/gql'
 import { ExtractVariables } from '@/app/hooks/useFetchOnBlock'
-import {
-  addDaysToUtc,
-  addHoursToUtc,
-  getUtcEndOfDay,
-  getUtcEndOfHour,
-  getUtcStartOfDay,
-  getUtcStartOfHour,
-} from '@/app/Charts/utils'
-import { Time } from '@/app/dashboards/services/constants'
+import { getStartAndEndDateBasedOnTime, getStartMiddleAndEndDateBasedOnTime } from '@/app/utils/dates'
 
 export const servicesPerformanceDocument = graphql(`
   query servicesPerformance($endCurrent: Datetime!, $startCurrentAndEndPrevious: Datetime!, $startPrevious: Datetime!) {
@@ -24,44 +16,16 @@ export const servicesPerformanceDocument = graphql(`
   }
 `)
 
-export const getServicesPerformanceVariables = (currentDate: Date | string, timeSelected: string): ExtractVariables<typeof servicesPerformanceDocument> => {
-  let timeSelectedToUse = Time.Last7d
-
-  if (timeSelected && Object.values(Time).includes(timeSelected as Time)) {
-    timeSelectedToUse = timeSelected as Time
-  }
-
-  const endCurrent = new Date(currentDate)
-
-  let startCurrentAndEndPrevious: Date, startPrevious: Date
-
-  switch (timeSelectedToUse) {
-    case Time.Last24h: {
-      startCurrentAndEndPrevious = addHoursToUtc(endCurrent, -23)
-      startPrevious = addHoursToUtc(startCurrentAndEndPrevious, -23)
-      break
-    }
-    case Time.Last7d: {
-      startCurrentAndEndPrevious = addDaysToUtc(endCurrent, -6)
-      startPrevious = addDaysToUtc(startCurrentAndEndPrevious, -6)
-      break
-    }
-    case Time.Last30d: {
-      startCurrentAndEndPrevious = addDaysToUtc(endCurrent, -29)
-      startPrevious = addDaysToUtc(startCurrentAndEndPrevious, -29)
-      break
-    }
-    case Time.Last90d: {
-      startCurrentAndEndPrevious = addDaysToUtc(endCurrent, -89)
-      startPrevious = addDaysToUtc(startCurrentAndEndPrevious, -89)
-      break
-    }
-  }
+export const getServicesPerformanceVariables = (dateStr: string, timeSelected: string): ExtractVariables<typeof servicesPerformanceDocument> => {
+  const {end, middle, start} = getStartMiddleAndEndDateBasedOnTime(
+    dateStr,
+    timeSelected,
+  )
 
   return {
-    endCurrent: endCurrent.toISOString(),
-    startCurrentAndEndPrevious: startCurrentAndEndPrevious.toISOString(),
-    startPrevious: startPrevious.toISOString()
+    endCurrent: end.toISOString(),
+    startCurrentAndEndPrevious: middle.toISOString(),
+    startPrevious: start.toISOString()
   }
 }
 
@@ -87,38 +51,12 @@ export const distributionDocument = graphql(`
   }
 `)
 
-export function getDistributionVariables(currentDate: Date | string, timeSelected: string): ExtractVariables<typeof distributionDocument> {
-  let timeSelectedToUse = Time.Last7d
-
-  if (timeSelected && Object.values(Time).includes(timeSelected as Time)) {
-    timeSelectedToUse = timeSelected as Time
-  }
-
-  const endDate = new Date(currentDate)
-  let startDate: Date
-
-  switch (timeSelectedToUse) {
-    case Time.Last24h: {
-      startDate = addHoursToUtc(endDate, -23)
-      break
-    }
-    case Time.Last7d: {
-      startDate = addDaysToUtc(endDate, -6)
-      break
-    }
-    case Time.Last30d: {
-      startDate = addDaysToUtc(endDate, -29)
-      break
-    }
-    case Time.Last90d: {
-      startDate = addDaysToUtc(endDate, -89)
-      break
-    }
-  }
+export function getDistributionVariables(dateStr: string, timeSelected: string): ExtractVariables<typeof distributionDocument> {
+  const {start, end} = getStartAndEndDateBasedOnTime(dateStr, timeSelected)
 
   return {
-    endDate: endDate.toISOString(),
-    startDate: startDate.toISOString()
+    endDate: end.toISOString(),
+    startDate: start.toISOString()
   }
 }
 
@@ -137,38 +75,12 @@ export const productivityQuery = graphql(`
   }
 `)
 
-export function getProductivityVariables(currentDate: Date | string, timeSelected: string): ExtractVariables<typeof productivityQuery> {
-  let timeSelectedToUse = Time.Last7d
-
-  if (timeSelected && Object.values(Time).includes(timeSelected as Time)) {
-    timeSelectedToUse = timeSelected as Time
-  }
-
-  const endDate = timeSelectedToUse === Time.Last24h ? getUtcEndOfHour(currentDate) : getUtcEndOfDay(currentDate)
-  let startDate: Date
-
-  switch (timeSelectedToUse) {
-    case Time.Last24h: {
-      startDate = getUtcStartOfHour(addHoursToUtc(endDate, -23))
-      break
-    }
-    case Time.Last7d: {
-      startDate = getUtcStartOfDay(addDaysToUtc(endDate, -6))
-      break
-    }
-    case Time.Last30d: {
-      startDate = getUtcStartOfDay(addDaysToUtc(endDate, -29))
-      break
-    }
-    case Time.Last90d: {
-      startDate = getUtcStartOfDay(addDaysToUtc(endDate, -89))
-      break
-    }
-  }
+export function getProductivityVariables(dateStr: string, timeSelected: string): ExtractVariables<typeof productivityQuery> {
+  const {start, end, truncInterval} = getStartAndEndDateBasedOnTime(dateStr, timeSelected, true)
 
   return {
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    truncInterval: timeSelectedToUse === Time.Last24h ? 'hour' : 'day'
+    startDate: start.toISOString(),
+    endDate: end.toISOString(),
+    truncInterval,
   }
 }

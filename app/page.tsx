@@ -20,7 +20,7 @@ async function ServerSummary() {
 
   try {
     const latestBlock = await getLatestBlock()
-    variables = getSummaryVariables(new Date(latestBlock.timestamp))
+    variables = getSummaryVariables(latestBlock.timestamp)
     const response = await getClient().query({
       query: summaryDocument,
       variables,
@@ -30,7 +30,6 @@ async function ServerSummary() {
   } catch {
     error = true
   }
-
 
   return (
     <Summary
@@ -48,7 +47,7 @@ async function ServerEvolutionCharts() {
     const latestBlock = await getLatestBlock()
     const response = await getClient().query({
       query: evolutionDocument,
-      variables: getEvolutionVariables(new Date(latestBlock.timestamp))
+      variables: getEvolutionVariables(latestBlock.timestamp)
     })
 
     data = response.data
@@ -69,7 +68,7 @@ async function ServerServicesCard({defaultType}: {defaultType: string}) {
 
     const response = await getClient().query({
       query: servicesDocument,
-      variables: getServicesVariables(new Date(latestBlock.timestamp))
+      variables: getServicesVariables(latestBlock.timestamp)
     })
 
     data = response.data

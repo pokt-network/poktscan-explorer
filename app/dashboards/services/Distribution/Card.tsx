@@ -1,7 +1,7 @@
 import BoxLabel from '@/app/components/BoxLabel'
-import { getTimeBoxLabel } from '@/app/dashboards/services/utils'
 import React from 'react'
 import { containerId } from '@/app/dashboards/services/Distribution/constants'
+import { getTimeBoxLabel } from '@/app/utils/dates'
 
 interface DistributionCardProps {
   timeSelected: string

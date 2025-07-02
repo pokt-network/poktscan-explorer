@@ -2,16 +2,16 @@ import ServicesPerformanceTable from '@/app/dashboards/services/PerformanceTable
 import React from 'react'
 import Distribution from '@/app/dashboards/services/Distribution/Distribution'
 import ServicesProductivity from '@/app/dashboards/services/Productivity/Productivity'
-import TimeSelector from '@/app/dashboards/services/TimeSelector'
+import TimeSelector from '@/app/components/TimeSelector'
 import { cookies } from 'next/headers'
 import { PageProps } from '@/app/types/pages'
 import {
   chartTypeCookieKey,
   selectedTimeCookieKey,
   selectedTimeParamKey,
-  Time,
 } from '@/app/dashboards/services/constants'
 import ServicesProductivityLoader from '@/app/dashboards/services/Productivity/Loader/Loader'
+import { getValidTime, Time } from '@/app/utils/dates'
 
 export default async function DashboardServicesPage({searchParams}: PageProps) {
   const [cookiesAwaited, searchParamsAwaited] = await Promise.all([
@@ -19,18 +19,15 @@ export default async function DashboardServicesPage({searchParams}: PageProps) {
     searchParams
   ])
 
-  let selectedTime: string = Time.Last30d
-
   const selectedTimeFromSearchParams = searchParamsAwaited?.[selectedTimeParamKey] as string
-
-  if (selectedTimeFromSearchParams && Object.values(Time).includes(selectedTimeFromSearchParams as Time)) {
-    selectedTime = selectedTimeFromSearchParams
-  }
-
   const selectedTimeFromCookie = cookiesAwaited.get(selectedTimeCookieKey)?.value
 
-  if (selectedTimeFromCookie && Object.values(Time).includes(selectedTimeFromCookie as Time)) {
-    selectedTime = selectedTimeFromCookie
+  let selectedTime: Time = getValidTime(
+    selectedTimeFromCookie || ''
+  )
+
+  if (selectedTimeFromSearchParams && Object.values(Time).includes(selectedTimeFromSearchParams as Time)) {
+    selectedTime = selectedTimeFromSearchParams as Time
   }
 
   return (
@@ -40,7 +37,11 @@ export default async function DashboardServicesPage({searchParams}: PageProps) {
           Services
         </h1>
 
-        <TimeSelector selectedTime={selectedTime} />
+        <TimeSelector
+          selectedTime={selectedTime}
+          cookie={selectedTimeCookieKey}
+          param={selectedTimeParamKey}
+        />
       </div>
       <hr className={'border-[color:--divider] mb-2'} />
 
