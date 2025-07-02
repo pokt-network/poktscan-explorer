@@ -3,31 +3,24 @@
 import ExportButton from '@/app/components/ExportButton'
 import { useDataContext } from '@/app/context/DataContext'
 import { CsvColumn } from '@/app/utils/exportToCsv'
-import columns, { DataByDelegatorRow } from '@/app/tools/operator/columns'
 import React from 'react'
+import { rewardsByServiceColumns, RewardsByServiceRow } from '@/app/tools/operator/ServicesTab/columns'
 
 const labelByColumn: Record<string, string> = {
 
 }
 
-const csvColumns: Array<CsvColumn> = columns.map((column) => ({
+const csvColumns: Array<CsvColumn> = rewardsByServiceColumns.map((column) => ({
   field: column.field,
   headerName: labelByColumn[column.field] || column.headerName?.toString() || '',
 }))
 
-const formatterFunction = (field: keyof DataByDelegatorRow, row: DataByDelegatorRow) => {
+const formatterFunction = (field: keyof RewardsByServiceRow, row: DataByDelegatorRow) => {
   switch (field) {
-    case 'delegatorAddress':
-      return row.delegatorAddress
-    case 'claimAmount':
-    case 'claimPokt':
-    case 'claimComputedUnits':
-    case 'claimRelays':
-    case 'proofAmount':
-    case 'proofPokt':
-    case 'proofComputedUnits':
-    case 'proofRelays':
-    case 'slashed':
+    case 'relays':
+    case 'computedUnits':
+    case 'grossRewards':
+    case 'netRewards':
       return row[`raw_${field}`] || 0
     default:
       return row[field]
@@ -36,10 +29,9 @@ const formatterFunction = (field: keyof DataByDelegatorRow, row: DataByDelegator
 
 interface TableCardActionsProps {
   children?: React.ReactNode
-  filenameKey: string
 }
 
-export default function TableCardActions({children, filenameKey}: TableCardActionsProps) {
+export default function TableCardActions({children}: TableCardActionsProps) {
   const {data} = useDataContext<DataByDelegatorRow>()
 
   return (
@@ -50,7 +42,7 @@ export default function TableCardActions({children, filenameKey}: TableCardActio
           columns={csvColumns}
           formatterFunction={formatterFunction}
           rows={data}
-          fileNameKey={filenameKey}
+          fileNameKey={'rewards_by_service'}
         />
       )}
     </div>

@@ -12,7 +12,7 @@ import { formatAmount, formatSimpleAmount } from '@/app/utils/format'
 import NoData from '@/app/components/NoData'
 import { useChartType } from '@/app/Charts/ChartType'
 import { useDataContext } from '@/app/context/DataContext'
-import { fillChartData, LineBarItem } from '@/app/Charts/utils'
+import { fillChartData, LineBarItem, normalizeIsoDate } from '@/app/Charts/utils'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { ContentLoader } from '@/app/dashboards/services/Productivity/Loader/Loader'
 import isEqual from 'lodash/isEqual'
@@ -99,8 +99,8 @@ export default function ServicesProductivityChart({
 
       acc[item.service_id].push({
         id: item!.service_id,
-        point: item!.date_truncated,
-        start_date: item!.date_truncated,
+        point: normalizeIsoDate(item!.date_truncated),
+        start_date: normalizeIsoDate(item!.date_truncated),
         relays: Number(item!.relays),
         computedUnits: Number(item!.computed_units),
         claimedUpokt: Number(item!.claimed_upokt),

@@ -23,7 +23,7 @@ export interface Point {
 
 export const getUtcEndOfDay = (date: Date | string) => {
   if (typeof date === 'string') {
-    date = new Date(date);
+    date = getDateFromIsoString(date);
   }
 
   return new Date(Date.UTC(
@@ -39,7 +39,7 @@ export const getUtcEndOfDay = (date: Date | string) => {
 
 export function getUtcStartOfDay(date: Date | string) {
   if (typeof date === 'string') {
-    date = new Date(date);
+    date = getDateFromIsoString(date);
   }
 
   return new Date(Date.UTC(
@@ -55,7 +55,7 @@ export function getUtcStartOfDay(date: Date | string) {
 
 export const getUtcEndOfHour = (date: Date | string) => {
   if (typeof date === 'string') {
-    date = new Date(date);
+    date = getDateFromIsoString(date);
   }
 
   return new Date(Date.UTC(
@@ -71,7 +71,7 @@ export const getUtcEndOfHour = (date: Date | string) => {
 
 export const getUtcStartOfHour = (date: Date | string) => {
   if (typeof date === 'string') {
-    date = new Date(date);
+    date = getDateFromIsoString(date);
   }
 
   return new Date(Date.UTC(
@@ -87,7 +87,7 @@ export const getUtcStartOfHour = (date: Date | string) => {
 
 export function addHoursToUtc(date: Date | string, hours: number) {
   if (typeof date === 'string') {
-    date = new Date(date);
+    date = getDateFromIsoString(date);
   }
 
   return new Date(date.getTime() + hours * 60 * 60 * 1000)
@@ -95,7 +95,7 @@ export function addHoursToUtc(date: Date | string, hours: number) {
 
 export function addDaysToUtc(date: Date | string, days: number) {
   if (typeof date === 'string') {
-    date = new Date(date);
+    date = getDateFromIsoString(date);
   }
 
   return new Date(date.getTime() + days * 24 * 60 * 60 * 1000)
@@ -103,10 +103,22 @@ export function addDaysToUtc(date: Date | string, days: number) {
 
 export function addMinutesToUtc(date: Date | string, minutes: number) {
   if (typeof date === 'string') {
-    date = new Date(date);
+    date = getDateFromIsoString(date);
   }
 
   return new Date(date.getTime() + minutes * 60 * 1000)
+}
+
+export function normalizeIsoDate(dateStr: string): string {
+  if (dateStr.length === 19) {
+    return `${dateStr}.000Z`;
+  }
+
+  return dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`
+}
+
+export function getDateFromIsoString(date: string) {
+  return new Date(normalizeIsoDate(date))
 }
 
 export const getFormatForUnit = (unitTime: UnitTimeGroup) => {
@@ -315,6 +327,7 @@ export function formatDate(dateString: string, type: UnitTimeGroup, includeMonth
       return date.toLocaleString("en-US", {
         month: "short",
         day: "2-digit",
+        timeZone: "UTC",
       }).replace(',', '');
     }
 
@@ -327,6 +340,7 @@ export function formatDate(dateString: string, type: UnitTimeGroup, includeMonth
       day: "2-digit",
       hour: "2-digit",
       hour12: false, // Uses 24-hour format
+      timeZone: "UTC",
     }).replace(',', ''); // Ensures clean format
   }
 

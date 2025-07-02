@@ -111,7 +111,7 @@ export default function ServicesCard({
   initialData,
   initialError,
 }: ServicesCardProps) {
-  const variables = useCallback((_: number, currentTime: string) => getServicesVariables(new Date(currentTime)), [])
+  const variables = useCallback((_: number, currentTime: string) => getServicesVariables(currentTime), [])
 
   const { data, refetch, error, isLoading } = useFetchOnBlock({
     query: servicesDocument,

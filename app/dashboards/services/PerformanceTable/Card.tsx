@@ -1,6 +1,6 @@
 import BoxLabel from '@/app/components/BoxLabel'
-import { getTimeBoxLabel } from '@/app/dashboards/services/utils'
 import React from 'react'
+import { getTimeBoxLabel } from '@/app/utils/dates'
 
 interface PerformanceTableCardProps {
   timeSelected: string

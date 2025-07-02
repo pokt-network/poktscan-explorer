@@ -1,5 +1,5 @@
 import { ComputeUnitsLineChartProps } from '@/app/(home)/ComputeUnitsLineChart'
-import { addDaysToUtc } from '@/app/Charts/utils'
+import { addDaysToUtc, addHoursToUtc, getDateFromIsoString, getUtcEndOfDay, getUtcStartOfDay } from '@/app/Charts/utils'
 
 type BlockAggregate = {
   __typename: string;
@@ -79,8 +79,8 @@ export function get24hoursBefore(date: Date) {
   return new Date(date.getTime() - 24 * 60 * 60 * 1000)
 }
 
-export function getEvolutionVariables(currentDateFromProps: Date) {
-  const currentDate =  new Date(currentDateFromProps.getTime())
+export function getEvolutionVariables(dateStr: string) {
+  const currentDate = getDateFromIsoString(dateStr)
   currentDate.setUTCHours(0, 0, 0, 0)
   const yesterdayDate = get24hoursBefore(currentDate)
   const previous2Date = get24hoursBefore(yesterdayDate)
@@ -100,19 +100,22 @@ export function getEvolutionVariables(currentDateFromProps: Date) {
   }
 }
 
-export function getSummaryVariables(currentDate: Date) {
-  const date24hBefore = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000)
-  const date7DaysBefore = new Date(currentDate.getTime() - 6 * 24 * 60 * 60 * 1000)
-  date7DaysBefore.setUTCHours(0, 0, 0, 0);
+export function getSummaryVariables(dateStr: string) {
+  const currentDate = new Date(getDateFromIsoString(dateStr))
+
+  const date24hBefore = addHoursToUtc(currentDate, -24)
+  const date7DaysBefore = getUtcStartOfDay(addDaysToUtc(currentDate, -6))
 
   return {
     last24HourDate: date24hBefore.toISOString(),
     last7DaysDate: date7DaysBefore.toISOString(),
-    currentDate: currentDate.toISOString(),
+    currentDate: getUtcEndOfDay(currentDate).toISOString(),
   }
 }
 
-export function getServicesVariables(currentDate: Date) {
+export function getServicesVariables(dateStr: string) {
+  const currentDate = getDateFromIsoString(dateStr)
+
   const last24hDate = addDaysToUtc(currentDate, -1)
   const last48hDate = addDaysToUtc(currentDate, -1)
 

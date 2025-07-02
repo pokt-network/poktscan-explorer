@@ -1,10 +1,7 @@
 'use client'
 import React, { useState } from 'react'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { setCookie } from '@/app/utils/cookies'
-import {
-  Time,
-} from '@/app/dashboards/services/constants'
+import { Time } from '@/app/utils/dates'
+import ComponentTimeSelector from '@/app/components/TimeSelector'
 
 interface SelectedTimeContextProps {
   selectedTime: Time;
@@ -41,54 +38,33 @@ function useSelectedTime() {
   return context
 }
 
-const labelByTime: Record<Time, string> = {
-  [Time.Last24h]: 'Last 24h',
-  [Time.Last7d]: 'Last 7d',
-  [Time.Last30d]: 'Last 30d',
-  [Time.Last90d]: 'Last 90d',
-}
-
 interface TimeSelectorProps {
   includeLabel?: boolean;
   options?: Time[];
   cookieKey?: string;
+  paramKey?: string;
+  enablePush?: boolean
 }
 
 function TimeSelector({
   cookieKey,
+  paramKey,
+  enablePush,
   includeLabel = true,
-  options = [Time.Last24h, Time.Last7d, Time.Last30d, Time.Last90d],
+  options = [Time.Last24h, Time.Last48h, Time.Last7d, Time.Last30d,],
 }: TimeSelectorProps) {
   const {selectedTime, setSelectedTime} = useSelectedTime()
 
   return (
-    <div className={'flex flex-row items-center gap-3 h-[30px]'}>
-      {includeLabel && (
-        <label className={'text-sm'}>
-          Time
-        </label>
-      )}
-      <Select
-        value={selectedTime}
-        onValueChange={(newValue) => {
-          setSelectedTime(newValue as Time)
-          if (cookieKey) {
-            setCookie(cookieKey, newValue)
-          }
-        }}
-      >
-        <SelectTrigger className={'w-[84px] px-2 sm:w-[90px] h-[26px] sm:h-[26px] text-xs bg-[color:--main-background]'}>
-          <SelectValue placeholder={'Time'} />
-        </SelectTrigger>
-        <SelectContent>
-          {options?.map(option => (
-            <SelectItem value={option} key={option}>
-              {labelByTime[option] || option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <ComponentTimeSelector
+      includeLabel={includeLabel}
+      cookie={cookieKey}
+      param={paramKey}
+      options={options}
+      selectedTime={selectedTime}
+      onChange={setSelectedTime}
+      enablePush={enablePush}
+    />
   )
 }
 

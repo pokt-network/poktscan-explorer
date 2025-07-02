@@ -19,7 +19,7 @@ interface DistributionChartProps {
 
 export default function DistributionChart({initialData, initialError, timeSelected}: DistributionChartProps) {
   const {setData} = useDataContext()
-  const variables = useCallback((_: number, currentTime: string) => getDistributionVariables(new Date(currentTime), timeSelected), [timeSelected])
+  const variables = useCallback((_: number, currentTime: string) => getDistributionVariables(currentTime, timeSelected), [timeSelected])
 
   const { data, error, refetch, isLoading } = useFetchOnBlock({
     query: distributionDocument,

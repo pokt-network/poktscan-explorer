@@ -6,25 +6,22 @@ import {
 } from '@/app/tools/RewardsByAddresses/operations'
 import { useChartType } from '@/app/Charts/ChartType'
 import { useDataContext } from '@/app/context/DataContext'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import useFetchOnBlock, { DocumentNodeData, ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { useSelectedAddresses } from '@/app/tools/SelectedAddresses'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import NoData from '@/app/components/NoData'
 import BaseLineBarChart from '@/app/Charts/BaseLineBarChart/BaseLineBarChart'
 import { convertUpoktToPokt, formatAmount, truncateAddress } from '@/app/utils/format'
-import { fillChartData, LineBarItem } from '@/app/Charts/utils'
+import { fillChartData, LineBarItem, normalizeIsoDate } from '@/app/Charts/utils'
 import { ContentLoader } from '@/app/tools/RewardsByAddresses/Loader'
 import isEqual from 'lodash/isEqual'
-import { TimeSelector, useSelectedTime } from '@/app/Charts/SelectedTime'
+import { useSelectedTime } from '@/app/Charts/SelectedTime'
 import orderBy from 'lodash/orderBy'
 import useDidMountEffect from '@/app/hooks/useDidMountEffect'
 import ItemsSelector from '@/app/Charts/ItemsSelector/ItemsSelector'
-import { Time } from '@/app/dashboards/services/constants'
-import { selectedTimeCookieKey } from '@/app/tools/RewardsByAddresses/constants'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
 import { clsx } from 'clsx'
+import { useMultipleOptionContext } from '@/app/context/MultipleOptionContext'
 
 export interface RewardItem extends LineBarItem {
   totalAmount: number
@@ -67,7 +64,7 @@ export default function RewardsByAddressChart({
     updateOnNewSession: true,
   })
 
-  const [groupAllAddresses, setGroupAllAddresses] = useState(false)
+  const { selectedValue: groupAllAddresses } = useMultipleOptionContext<boolean>()
 
   const processedData: Record<string, Array<RewardItem>> = useMemo(() => {
     const rawPoints: Array<{date_truncated: string, total_amount: string | number, address: string}> = rawData?.rewards || []
@@ -82,8 +79,8 @@ export default function RewardsByAddressChart({
 
       const dataNotFilled = Object.keys(amountByDate).map((date) => ({
         id: '',
-        point: date,
-        start_date: date,
+        point: normalizeIsoDate(date),
+        start_date: normalizeIsoDate(date),
         totalAmount: amountByDate[date]
       }))
 
@@ -106,8 +103,8 @@ export default function RewardsByAddressChart({
         ...(acc[item.address] || []),
         {
           id: item.address,
-          point: item.date_truncated,
-          start_date: item.date_truncated,
+          point: normalizeIsoDate(item.date_truncated),
+          start_date: normalizeIsoDate(item.date_truncated),
           totalAmount: Number(item.total_amount)
         },
       ]
@@ -218,35 +215,9 @@ export default function RewardsByAddressChart({
       </div>
     )
   } else {
-    const actions = (
-      <div className={'flex items-center self-start gap-2 h-[30px] -mt-2 ml-2'}>
-        <TimeSelector
-          includeLabel={true}
-          options={[
-            Time.Last24h,
-            Time.Last7d,
-            Time.Last30d,
-          ]}
-          cookieKey={selectedTimeCookieKey}
-        />
-
-        <div className={'flex items-center gap-2 text-xs'}>
-          <Switch
-            id={'group-all-addresses'}
-            checked={groupAllAddresses}
-            onCheckedChange={setGroupAllAddresses}
-          />
-          <Label htmlFor={'group-all-addresses'} className={'text-xs sm:text-sm font-medium'}>
-            Group Addresses
-          </Label>
-        </div>
-      </div>
-    )
-
     if (data.length === 0 && addressesWithRewards.every(i => i.value === 0)) {
       content = (
         <>
-          {actions}
           <div className={'mt-[-40px] flex w-full items-center justify-center'}>
             <NoData label={'No data available for the time and addresses selected.'} />
           </div>
@@ -255,14 +226,13 @@ export default function RewardsByAddressChart({
     } else {
       content = (
         <>
-          {actions}
           <div className={'flex flex-col md:flex-row w-full grow items-center gap-4'}>
             <div
               className={
                 clsx(
                   'order-2 md:order-1',
-                  groupAllAddresses && 'w-full h-full md:h-[294px]',
-                  !groupAllAddresses && 'w-full md:w-[calc(100%-260px-16px)] h-[294px]'
+                  groupAllAddresses && 'w-full h-full md:h-[328px]',
+                  !groupAllAddresses && 'w-full md:w-[calc(100%-260px-16px)] h-[320px] sm:h-[328px]'
                 )
               }
             >

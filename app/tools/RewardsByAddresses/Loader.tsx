@@ -12,7 +12,7 @@ interface ContentLoaderProps {
 export function ContentLoader({chartType, hideSelector}: ContentLoaderProps) {
   return (
     <>
-      <div className={'order-2 md:order-1 w-full md:w-[calc(100%-260px-16px)] h-full'}>
+      <div className={'order-2 md:order-1 w-full md:w-[calc(100%-260px-16px)] h-[320px] sm:h-[328px]'}>
         <BaseLineBarChart
           yAxisKey={'totalAmount'}
           yAxisLabel={'Rewards (POKT)'}
@@ -37,7 +37,7 @@ interface LoaderProps {
 export default function RewardsByAddressesLoader({chartType}: LoaderProps) {
   return (
     <RewardsByAddressCard
-      includeTimeSelector={false}
+      disabled={true}
     >
       <div className={'flex flex-col md:flex-row items-center px-4 pt-2 pb-4 h-[calc(100%-44px)] gap-4'}>
         <ContentLoader chartType={chartType} />

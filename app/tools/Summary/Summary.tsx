@@ -31,7 +31,7 @@ export default function Summary({isOwners, initialAddresses, initialData, initia
   const {addresses} = useSelectedAddresses()
 
   const variables = useCallback((_: number, currentTime: string) => {
-    return summaryVariables(isOwners, addresses || initialAddresses, new Date(currentTime))
+    return summaryVariables(isOwners, addresses || initialAddresses, currentTime)
   }, [isOwners, addresses, initialAddresses])
 
   const { data, error, refetch, isLoading } = useFetchOnBlock({

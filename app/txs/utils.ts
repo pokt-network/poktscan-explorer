@@ -1,8 +1,9 @@
 import { LabelByIndex } from '@/app/components/FourCards/utils'
+import { addHoursToUtc, getDateFromIsoString } from '@/app/Charts/utils'
 
 export function getSummaryVariables(date: string) {
-  const currentDate = new Date(date)
-  const startDate = new Date(currentDate.getTime() - (24 * 60 * 60 * 1000))
+  const currentDate = getDateFromIsoString(date)
+  const startDate = addHoursToUtc(currentDate, -24)
 
   return {
     startDate: startDate.toISOString(),

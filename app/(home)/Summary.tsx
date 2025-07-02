@@ -16,7 +16,7 @@ import DateCellText from '@/app/dates/DateCellText'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { ContentLoader } from '@/app/(home)/SummaryLoader'
 import { clsx } from 'clsx'
-import { fillChartData } from '@/app/Charts/utils'
+import { fillChartData, normalizeIsoDate } from '@/app/Charts/utils'
 
 
 function Title({title}: {title: string}) {
@@ -35,7 +35,7 @@ interface SummaryProps {
 
 export default function Summary({initialData, initialError, initialVariables}: SummaryProps) {
   const lastVariablesRef = useRef<ExtractVariables<typeof summaryDocument>>(initialVariables!)
-  const variables = useCallback((_: number, currentTime: string) => lastVariablesRef.current = getSummaryVariables(new Date(currentTime)), [])
+  const variables = useCallback((_: number, currentTime: string) => lastVariablesRef.current = getSummaryVariables(currentTime), [])
   const { data, error, isLoading, refetch } = useFetchOnBlock({
     query: summaryDocument,
     variables,
@@ -64,8 +64,8 @@ export default function Summary({initialData, initialError, initialVariables}: S
     const summary = data?.blocks?.aggregates?.sum
 
     const rawData = (data?.groupByDay || []).map(i => ({
-      point: i.date_truncated,
-      start_date: i.date_truncated,
+      point: normalizeIsoDate(i.date_truncated),
+      start_date: normalizeIsoDate(i.date_truncated),
       totalRelays: i.relays,
       totalComputedUnits: i.computed_units,
       totalPokt: i.claimed_amount,

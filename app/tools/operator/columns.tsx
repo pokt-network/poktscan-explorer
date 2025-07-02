@@ -4,16 +4,27 @@ import EntityLink from '@/app/components/EntityLink'
 export interface DataByDelegatorRow {
   delegatorAddress: string
   slashed: string
+  raw_slashed: string | number
 
   proofPokt: string
   proofRelays: string
   proofComputedUnits: string
   proofAmount: string
 
+  raw_proofPokt: string | number
+  raw_proofRelays: string | number
+  raw_proofComputedUnits: string | number
+  raw_proofAmount: string | number
+
   claimPokt: string
   claimRelays: string
   claimComputedUnits: string
   claimAmount: string
+
+  raw_claimPokt: string | number
+  raw_claimRelays: string | number
+  raw_claimComputedUnits: string | number
+  raw_claimAmount: string | number
 }
 
 const columns: Array<GridColDef> = [
