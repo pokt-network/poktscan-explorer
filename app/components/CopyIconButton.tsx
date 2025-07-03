@@ -21,9 +21,11 @@ export default function CopyIconButton({text, tooltip}: CopyIconButtonProps) {
     <Button
       variant={'ghost'}
       size={'icon'}
-      className={"text-[color:--secondary] hover:text-[color:--primary] dark:hover:text-blue-300 hover:dark:text-blue-300"}
+      className={"text-[color:--secondary] hover:text-[color:--primary] transition-colors  dark:hover:text-blue-300 hover:dark:text-blue-300"}
       onClick={(e) => {
         e.preventDefault()
+        if (isCopied) return
+
         navigator.clipboard.writeText(text).then(() => {
           setIsCopied(true)
           setTimeout(() => {

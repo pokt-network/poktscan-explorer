@@ -226,13 +226,13 @@ export default function Summary({initialData, initialError, initialVariables}: S
         </div>
 
         <div
-          className={'flex md:col-span-2 lg:col-span-1 flex-col border-t lg:pt-0 pt-5 lg:border-t-0 gap-y-2.5 lg:pl-5 lg:border-l border-[color:--divider]'}>
-          <div className={'flex grow'}>
+          className={'flex md:col-span-2 lg:col-span-1 flex-col border-t lg:pt-0 pt-5 lg:border-t-0 gap-y-0 lg:pl-5 lg:border-l border-[color:--divider] gap-1'}>
+          <div>
             <Title
               title={'Computed Units Last 7 Days'}
             />
           </div>
-          <div className={'h-[100px] w-[calc(100vw-90px)] md:w-full flex min-w-0'}>
+          <div className={'h-[136px] w-[calc(100vw-90px)] md:w-full flex min-w-0'}>
             <ComputeUnitsLineChart data={groupByDay} />
           </div>
         </div>
@@ -244,7 +244,7 @@ export default function Summary({initialData, initialError, initialVariables}: S
     <div
       className={
         clsx(
-          'gap-y-[20px] min-h-[180px] lg:h-[180px] z-10 relative p-5 bg-[color:--main-background] md:grid-cols-2 lg:grid-cols-3 base-shadow rounded-xl border border-[color:--divider]',
+          'gap-y-[20px] min-h-[180px] lg:h-[180px] z-10 relative px-5 pt-5 lg:pb-5 bg-[color:--main-background] md:grid-cols-2 lg:grid-cols-3 base-shadow rounded-xl border border-[color:--divider]',
           error && !isLoading ? 'flex' : 'grid',
         )
       }

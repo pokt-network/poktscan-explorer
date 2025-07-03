@@ -73,6 +73,12 @@ export default function ComputeUnitsLineChart({data}: ComputeUnitsLineChartProps
         ]
       }}
       options={{
+        layout: {
+          padding: {
+            top: 20,
+            bottom: 5
+          }
+        },
         maintainAspectRatio: false,
         responsive: true,
         parsing: {
@@ -141,7 +147,7 @@ export default function ComputeUnitsLineChart({data}: ComputeUnitsLineChartProps
             backgroundColor: isDark ? 'rgb(61,61,61)' : 'rgb(89,89,89)',
             intersect: false,
             displayColors: false,
-            bodySpacing: 5,
+            bodySpacing: 1,
             bodyFont: {
               weight: 'bold'
             },
