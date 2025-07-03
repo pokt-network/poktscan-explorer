@@ -1,38 +1,26 @@
-import AddressesInput from '@/app/tools/operator/AddressesInput'
 import React, { Suspense } from 'react'
 import { LoadingSummary } from '@/app/components/LoadingListView'
 import { labels } from '@/app/tools/Summary/constants'
 import ServerSummary from '@/app/tools/Summary/ServerSummary'
 import RewardsByAddressesLoader from '@/app/tools/RewardsByAddresses/Loader'
 import ServerRewardsByAddresses from '@/app/tools/RewardsByAddresses/ServerRewardsByAddresses'
-import { Time } from '@/app/dashboards/services/constants'
+import { Time } from '@/app/utils/dates'
 
 interface SummaryAndRewardsProps {
   validAddresses: Array<string>
   rewardsChartTime: Time
   chartType: string
-  inputHelperText: string
   isOwner: boolean
-  pushOnAddressChange?: boolean
 }
 
 export default function SummaryAndRewards({
   validAddresses,
   rewardsChartTime,
   chartType,
-  inputHelperText,
   isOwner,
-  pushOnAddressChange
 }: SummaryAndRewardsProps) {
   return (
     <>
-      <AddressesInput
-        defaultValue={validAddresses.length ? validAddresses.join(',') : ''}
-        inputHelperText={inputHelperText}
-        pushOnChange={pushOnAddressChange}
-      />
-
-      <hr className={'border-[color:--divider] my-2'} />
       <div className={'flex flex-col gap-4'}>
 
         <div className={'min-w-[260px]'}>

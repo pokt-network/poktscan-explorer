@@ -142,7 +142,7 @@ export function ContentLoader() {
             title={'Computed Units Last 7 Days'}
           />
         </div>
-        <div className={'h-[100px] w-[calc(100vw-90px)] md:w-full flex min-w-0'}>
+        <div className={'h-[116px] lg:h-[100px] w-[calc(100vw-90px)] md:w-full flex min-w-0'}>
           <LineChartLoader />
         </div>
       </div>

@@ -7,6 +7,7 @@ export default function Layout({children}: React.PropsWithChildren) {
       isOwner={true}
       pushOnAddressChange={true}
       title={'Owner Staking'}
+      description={'Dashboard intended for owners of suppliers, like customer of node runners.'}
     >
       {children}
     </SupplierLayout>

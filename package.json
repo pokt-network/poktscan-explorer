@@ -9,7 +9,7 @@
     "start": "next start -p 3001",
     "lint": "next lint",
     "codegen": "graphql-codegen --config codegen.ts",
-    "docker:build": "pnpm codegen && docker build -t registry.digitalocean.com/poktscan/shannon-web:mainnet ."
+    "docker:build": "pnpm codegen && docker build -t registry.digitalocean.com/poktscan/shannon-web:alpha ."
   },
   "dependencies": {
     "@apollo/client": "^3.11.8",
