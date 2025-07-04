@@ -2,13 +2,48 @@ import { getClient } from '@/app/config/apollo/rsc'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
-import { StakeStatus } from '@/app/config/gql/graphql'
-import { getStakeLabel } from '@/app/utils/stake'
+import { StakeStatus, SupplierFilter } from '@/app/config/gql/graphql'
+import { getStakeLabel, stakeFilters, StakeTableFilter } from '@/app/utils/stake'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import { ChipText } from '@/app/components/Chip'
 import { supplierListDocument, } from '@/app/suppliers/operations'
 import SuppliersSubscription from '@/app/components/SuppliersTable/SuppliersSubscription'
 import { RefreshPageError } from '@/app/components/ErrorBoundary'
+import { graphql } from '@/app/config/gql'
+
+const paramsForFiltersDocument = graphql(`
+  query paramsForSupplierFilters {
+    params(
+      orderBy: [BLOCK_ID_DESC]
+      distinct: [NAMESPACE, KEY]
+      filter:  {
+        or: [
+          {
+            namespace:  {
+              equalTo: "supplier"
+            }
+            key: {
+              equalTo: "min_stake"
+            }
+          },
+          {
+            namespace:  {
+              equalTo: "proof"
+            }
+            key:  {
+              equalTo: "proof_missing_penalty"
+            }
+          }
+        ]
+      }
+    ) {
+      nodes {
+        key
+        value
+      }
+    }
+  }
+`)
 
 export const columns: Array<GridColDef> = [
   {
@@ -69,6 +104,125 @@ export const columns: Array<GridColDef> = [
   }
 ]
 
+enum SupplierTableFilters {
+  LowStake = 'low_stake',
+  BelowMinStake = 'below_min_stake',
+}
+
+async function getSupplierGraphQlFilter({
+  filter,
+  service,
+  delegators,
+  owners
+}: {
+  filter?: string,
+  service?: string,
+  owners?: Array<string>,
+  delegators?: Array<string>
+}): Promise<SupplierFilter | undefined> {
+  if (!filter && !service && !owners?.length && !delegators?.length) {
+    return undefined
+  }
+
+  let graphQlFilter: SupplierFilter | undefined = undefined
+
+  if (filter && Object.values(StakeTableFilter).includes(filter as StakeTableFilter)) {
+    if (filter === StakeTableFilter.LowBalance) {
+      graphQlFilter = {
+        stakeStatus: {
+          equalTo: StakeStatus.Staked
+        },
+        operator: {
+          balances: {
+            some: {
+              denom: {
+                equalTo: 'upokt'
+              },
+              amount: {
+                lessThanOrEqualTo: (1e6 * 2).toString()
+              }
+            }
+          }
+        }
+      }
+    } else {
+      graphQlFilter = {
+        stakeStatus: {
+          equalTo: filter === StakeTableFilter.Staked ? StakeStatus.Staked :
+            filter === StakeTableFilter.Unstaking ? StakeStatus.Unstaking : StakeStatus.Unstaked
+        }
+      }
+    }
+  } else if (Object.values(SupplierTableFilters).includes(filter as SupplierTableFilters)) {
+    const {data} = await getClient().query({
+      query: paramsForFiltersDocument
+    })
+
+    const minStake = JSON.parse(data.params?.nodes?.find(param => param?.key === 'min_stake')?.value || '{}')?.amount || '0'
+    const proofMissingPenalty = JSON.parse(data.params?.nodes?.find(param => param?.key === 'proof_missing_penalty')?.value || '{}')?.amount || '0'
+
+    if (filter === SupplierTableFilters.LowStake) {
+      graphQlFilter = {
+        stakeStatus: {
+          equalTo: StakeStatus.Staked
+        },
+        stakeAmount: {
+          lessThanOrEqualTo: (Number(minStake) + (Number(proofMissingPenalty) * 5)).toString(),
+          greaterThanOrEqualTo: minStake
+        }
+      }
+    } else if (filter === SupplierTableFilters.BelowMinStake) {
+      graphQlFilter = {
+        stakeStatus: {
+          equalTo: StakeStatus.Staked
+        },
+        stakeAmount: {
+          lessThanOrEqualTo: minStake,
+        }
+      }
+    }
+  }
+
+  if (service) {
+    graphQlFilter = {
+      ...(graphQlFilter! || {}),
+      serviceConfigs: {
+        some: {
+          serviceId: {
+            equalTo: service
+          }
+        }
+      }
+    }
+  }
+
+  if (owners?.length) {
+    graphQlFilter = {
+      ...(graphQlFilter! || {}),
+      ownerId: {
+        in: owners
+      }
+    }
+  }
+
+  if (delegators?.length) {
+    graphQlFilter = {
+      ...(graphQlFilter! || {}),
+      serviceConfigs: {
+        some: {
+          or: delegators.map(address => ({
+            revShare: {
+              contains: [{ address }]
+            }
+          }))
+        }
+      }
+    }
+  }
+
+  return graphQlFilter
+}
+
 interface RowSupplier {
   id: string
   status: string
@@ -88,35 +242,19 @@ interface PageProps {
   service?: string
   owners?: Array<string>
   delegators?: Array<string>
+  activeFilter?: string
 }
 
-export default async function SuppliersTable({page, itemsPerPage, basePath, service, owners, delegators}: PageProps) {
+export default async function SuppliersTable({page, itemsPerPage, basePath, service, owners, delegators, activeFilter}: PageProps) {
   try {
     const client = getClient()
 
-    const filter = service ? {
-      serviceConfigs: {
-        some: {
-          serviceId: {
-            equalTo: service
-          }
-        }
-      }
-    } : owners ? {
-      ownerId: {
-        in: owners
-      }
-    } : delegators ? {
-      serviceConfigs: {
-        some: {
-          or: delegators.map(address => ({
-            revShare: {
-              contains: [{ address }]
-            }
-          }))
-        }
-      }
-    } : undefined
+    const filter = await getSupplierGraphQlFilter({
+      filter: activeFilter || StakeTableFilter.Staked,
+      service,
+      owners,
+      delegators
+    })
 
     // eslint-disable-next-line prefer-const
     let {data} = await client.query({
@@ -166,12 +304,13 @@ export default async function SuppliersTable({page, itemsPerPage, basePath, serv
         }),
         raw_stakeAmount: convertUpoktToPokt(supplier!.stakeAmount),
         balance: formatAmount(balance),
-        raw_balance: convertUpoktToPokt(balance?.amount),
+        raw_balance: convertUpoktToPokt(balance?.amount || 0),
         outputBalance: isCustodian ? '-' : formatAmount(outputBalance),
-        raw_outputBalance: isCustodian ? '' : formatAmount(outputBalance),
+        raw_outputBalance: isCustodian ? '0' : convertUpoktToPokt(outputBalance?.amount || 0),
         outputAddress: isCustodian ? '-' : supplier!.ownerId,
         amountOfServices: supplier!.supplierServices.totalCount,
         firstService: supplier!.supplierServices.nodes[0]?.serviceId,
+        services:  supplier!.supplierServices.totalCount
       }
     })
 
@@ -190,6 +329,18 @@ export default async function SuppliersTable({page, itemsPerPage, basePath, serv
           basePath,
         }}
         defaultMinWidth={70}
+        activeFilter={activeFilter || StakeTableFilter.Staked}
+        filters={[
+          ...stakeFilters,
+          {
+            label: 'Low Stake',
+            value: SupplierTableFilters.LowStake,
+          },
+          {
+            label: 'Below Min Stake',
+            value: SupplierTableFilters.BelowMinStake,
+          }
+        ]}
       />
     )
   } catch {

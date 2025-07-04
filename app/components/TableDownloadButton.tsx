@@ -59,7 +59,7 @@ export default function TableDownloadButton({rows, columns}: TableDownloadButton
           }
 
           if (amountFields.includes(key)) {
-            value = row[`raw_${key}`]
+            value = row[`raw_${key}`] || row[key] || 0
           }
 
           if (Array.isArray(value)) {

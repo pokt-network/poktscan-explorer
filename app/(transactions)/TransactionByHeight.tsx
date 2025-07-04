@@ -6,17 +6,14 @@ import { Transaction } from '@/app/config/gql/graphql'
 import LoadingListView from '@/app/components/LoadingListView'
 import { getTransactionsColumns } from '@/app/(transactions)/columns'
 import { RefreshPageError } from '@/app/components/ErrorBoundary'
+import { getTransactionGraphQlFilter, TransactionFilterValues } from '@/app/(transactions)/filters'
 
 const transactionsByHeightDocument = graphql(`
-  query transactionsByHeight($limit: Int!, $offset: Int!, $height: BigFloat!) {
+  query transactionsByHeight($limit: Int!, $offset: Int!, $filter: TransactionFilter) {
     transactions(
       first: $limit
       offset: $offset
-      filter: {
-        blockId: {
-          equalTo: $height
-        }
-      }
+      filter: $filter
       orderBy: BLOCK_ID_DESC
     ) {
       totalCount
@@ -43,16 +40,23 @@ interface TransactionTableProps {
   page: number
   itemsPerPage: number
   basePath: string
+  filter?: string
 }
 
-async function ServerTransactionByHeightTable({height, page, itemsPerPage, basePath}: TransactionTableProps) {
+async function ServerTransactionByHeightTable({height, page, itemsPerPage, basePath, filter: activeFilter}: TransactionTableProps) {
   try {
+    const filter = getTransactionGraphQlFilter(
+      activeFilter as TransactionFilterValues,
+      undefined,
+      height
+    )
+
     let { data } = await getClient().query({
       query: transactionsByHeightDocument,
       variables: {
         limit: itemsPerPage,
         offset: (page - 1) * itemsPerPage,
-        height: height.toString(),
+        filter: filter!,
       }
     })
 
@@ -66,7 +70,7 @@ async function ServerTransactionByHeightTable({height, page, itemsPerPage, baseP
         variables: {
           limit: itemsPerPage,
           offset: (page - 1) * itemsPerPage,
-          height: height.toString(),
+          filter: filter!,
         }
       })
 
@@ -85,6 +89,7 @@ async function ServerTransactionByHeightTable({height, page, itemsPerPage, baseP
         totalItems={data.transactions?.totalCount || 0}
         includeSigner={true}
         disableSubscription={true}
+        activeFilter={activeFilter}
       />
     )
   } catch {

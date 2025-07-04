@@ -173,6 +173,7 @@ export default function ManageAddresses({pushOnChange}: ManageAddressesProps) {
       setAddressesInput('')
 
       updateUrl(allAddresses)
+      setShowModal(false)
     }
   }
 

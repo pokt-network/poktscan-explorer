@@ -1,5 +1,5 @@
 import { getClient } from '@/app/config/apollo/rsc'
-import { getStakeLabel } from '@/app/utils/stake'
+import { getStakeLabel, stakeFilters, StakeTableFilter } from '@/app/utils/stake'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
@@ -8,6 +8,17 @@ import { ChipText } from '@/app/components/Chip'
 import { applicationListDocument } from '@/app/apps/operations'
 import AppsSubscription from '@/app/components/AppsTable/AppsSubscription'
 import { RefreshPageError } from '@/app/components/ErrorBoundary'
+import { ApplicationFilter, StakeStatus } from '@/app/config/gql/graphql'
+import { graphql } from '@/app/config/gql'
+
+const paramsForFiltersDocument = graphql(`
+  query paramsForAppsFilters {
+    param(id: "application-min_stake") {
+      key
+      value
+    }
+  }
+`)
 
 export const columns: Array<GridColDef> = [
   {
@@ -69,6 +80,97 @@ export const columns: Array<GridColDef> = [
   }
 ]
 
+enum AppTableFilters {
+  LowStake = 'Low Stake'
+}
+
+async function getApplicationGraphQlFilter({
+  filter,
+  service,
+  gateway
+}: {
+  filter?: string,
+  service?: string,
+  gateway?: string,
+}) {
+  if (!filter && !service && !gateway) {
+    return undefined
+  }
+
+  let graphQlFilter: ApplicationFilter | undefined = undefined
+
+  if (filter && Object.values(StakeTableFilter).includes(filter as StakeTableFilter)) {
+    if (filter === StakeTableFilter.LowBalance) {
+      graphQlFilter = {
+        stakeStatus: {
+          equalTo: StakeStatus.Staked
+        },
+        account: {
+          balances: {
+            some: {
+              denom: {
+                equalTo: 'upokt'
+              },
+              amount: {
+                lessThanOrEqualTo: (2 * 1e6).toString()
+              }
+            }
+          }
+        }
+      }
+    } else {
+      graphQlFilter = {
+        stakeStatus: {
+          equalTo: filter === StakeTableFilter.Staked ? StakeStatus.Staked :
+            filter === StakeTableFilter.Unstaking ? StakeStatus.Unstaking : StakeStatus.Unstaked
+        }
+      }
+    }
+  } else if (filter === AppTableFilters.LowStake) {
+    const {data} = await getClient().query({
+      query: paramsForFiltersDocument
+    })
+
+    const minStake = JSON.parse(data.param?.value || '{}')?.amount || '0'
+
+    graphQlFilter = {
+      stakeStatus: {
+        equalTo: StakeStatus.Staked
+      },
+      stakeAmount: {
+        lessThanOrEqualTo: (Number(minStake) + 5e6).toString()
+      }
+    }
+  }
+
+  if (service) {
+    graphQlFilter = {
+      ...(graphQlFilter! || {}),
+      applicationServices: {
+        some: {
+          serviceId: {
+            equalTo: service
+          }
+        }
+      }
+    }
+  }
+
+  if (gateway) {
+    graphQlFilter = {
+      ...(graphQlFilter! || {}),
+      applicationGateways: {
+        some: {
+          gatewayId: {
+            equalTo: gateway
+          }
+        }
+      }
+    }
+  }
+
+  return graphQlFilter
+}
 
 interface RowApp {
   id: string
@@ -87,37 +189,18 @@ interface PageProps {
   basePath: string
   service?: string
   gateway?: string
+  activeFilter?: string
 }
 
-export default async function AppsTable({page, itemsPerPage, basePath, service, gateway}: PageProps) {
+export default async function AppsTable({page, itemsPerPage, basePath, service, gateway, activeFilter}: PageProps) {
   try {
     const client = getClient()
 
-    let filter
-
-    if (service) {
-      filter = {
-        applicationServices: {
-          some: {
-            serviceId: {
-              equalTo: service
-            }
-          }
-        }
-      }
-    }
-
-    if (gateway) {
-      filter = {
-        applicationGateways: {
-          some: {
-            gatewayId: {
-              equalTo: gateway
-            }
-          }
-        }
-      }
-    }
+    const filter = await getApplicationGraphQlFilter({
+      service,
+      gateway,
+      filter: activeFilter || StakeTableFilter.Staked,
+    })
 
     // eslint-disable-next-line prefer-const
     let {data} = await client.query({
@@ -185,6 +268,14 @@ export default async function AppsTable({page, itemsPerPage, basePath, service, 
           itemsPerPage,
           basePath
         }}
+        activeFilter={activeFilter || StakeTableFilter.Staked}
+        filters={[
+          ...stakeFilters,
+          {
+            label: 'Low Stake',
+            value: AppTableFilters.LowStake
+          }
+        ]}
       />
     )
   } catch {

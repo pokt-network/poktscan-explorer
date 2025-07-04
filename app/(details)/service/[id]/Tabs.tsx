@@ -38,6 +38,7 @@ export default async function ServiceTabs({params, searchParams}: PageProps) {
     searchParams,
   ])
 
+  const activeFilter = typeof sParams.filter === 'string' ? sParams.filter : undefined
   let activeTab = sParams.tab || 'suppliers'
 
   if (!tabs.some(t => t.tab === activeTab)) {
@@ -56,6 +57,7 @@ export default async function ServiceTabs({params, searchParams}: PageProps) {
           page={page}
           itemsPerPage={itemsPerPage}
           basePath={basePath}
+          activeFilter={activeFilter}
         />
       )
       break
@@ -66,6 +68,7 @@ export default async function ServiceTabs({params, searchParams}: PageProps) {
           page={page}
           itemsPerPage={itemsPerPage}
           basePath={basePath}
+          activeFilter={activeFilter}
         />
       )
       break
@@ -84,6 +87,7 @@ export default async function ServiceTabs({params, searchParams}: PageProps) {
           page={page}
           itemsPerPage={itemsPerPage}
           basePath={basePath}
+          activeFilter={activeFilter}
         />
       )
       break

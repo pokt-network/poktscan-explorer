@@ -10,17 +10,20 @@ interface SelectItemsPerRowProps {
   value: number
   options: Array<number>
   basePath: string
+  activeFilter?: string
 }
 
-export default function SelectItemsPerRow({value, currentPage, basePath, options}: SelectItemsPerRowProps) {
+export default function SelectItemsPerRow({value, currentPage, basePath, options, activeFilter}: SelectItemsPerRowProps) {
   const router = useRouter()
 
   return (
     <Select value={value.toString()} onValueChange={(newValue) => {
       const newUrl = getNewPageHref({
-        newPage:currentPage,
+        newPage: currentPage,
         itemsPerPage: Number(newValue),
-        basePath
+        basePath,
+        filter: activeFilter,
+        resetPage: true
       })
 
       router.push(newUrl)

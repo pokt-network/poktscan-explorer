@@ -12,6 +12,7 @@ export default async function NodeRunningPage({searchParams}: PageProps) {
     getPageAndItems(searchParams)
   ])
 
+  const activeFilter = typeof searchParamsAwaited.filter === 'string' ? searchParamsAwaited.filter : undefined
   const validAddresses = getValidAddresses(searchParamsAwaited?.addresses as string)
 
   if (!validAddresses.length) {
@@ -42,6 +43,7 @@ export default async function NodeRunningPage({searchParams}: PageProps) {
           itemsPerPage={itemsPerPage}
           basePath={`/tools/staking?addresses=${validAddresses.join(',')}`}
           owners={validAddresses}
+          activeFilter={activeFilter}
         />
       </Suspense>
     </>

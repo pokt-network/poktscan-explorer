@@ -4,6 +4,7 @@ import SelectItemsPerRow from '@/app/components/SelectItemsPerRow'
 import { CircleAlert } from 'lucide-react';
 import BaseTable from '@/app/components/BaseTable'
 import TableDownloadButton from '@/app/components/TableDownloadButton'
+import clsx from 'clsx';
 
 export interface GridColDef {
   field: string
@@ -33,13 +34,27 @@ export interface TableProps {
     basePath: string
   }
   defaultMinWidth?: number
+  filters?: Array<{
+    label: string
+    value: string
+  }>
+  activeFilter?: string
 }
 
+export default function Table({pagination, rows, columns, header, defaultMinWidth = 100, filters, activeFilter}: TableProps) {
+  const paginationFilter = filters?.length ? filters.find((filter) => filter.value === activeFilter)?.value : undefined
 
-
-export default function Table({pagination, rows, columns, header, defaultMinWidth = 100}: TableProps) {
   return (
     <div className={"w-full h-full flex flex-col rounded-lg border border-[color:--divider] bg-[color:--main-background] base-shadow"}>
+      {filters && (
+        <Table.Filters
+          filters={filters}
+          activeFilter={activeFilter}
+          basePath={pagination.basePath}
+          itemsPerPage={pagination.itemsPerPage}
+          page={pagination.currentPage}
+        />
+      )}
       <Table.Header
         title={header.title}
         subtitle={header.subtitle}
@@ -50,6 +65,7 @@ export default function Table({pagination, rows, columns, header, defaultMinWidt
         hidePagination={rows.length === 0}
         columns={columns}
         rows={rows}
+        activeFilter={paginationFilter}
       />
       <BaseTable columns={columns} rows={rows} defaultMinWidth={defaultMinWidth} />
       {
@@ -59,6 +75,7 @@ export default function Table({pagination, rows, columns, header, defaultMinWidt
             totalPages={pagination.totalPages}
             itemsPerPage={pagination.itemsPerPage}
             basePath={pagination.basePath}
+            activeFilter={paginationFilter}
           />
         ): (
           <div className={"h-[400px] flex flex-col items-center justify-center"}>
@@ -83,23 +100,33 @@ function getSymbol(path: string) {
 export const getNewPageHref = ({
   itemsPerPage,
   newPage,
-  basePath
+  basePath,
+  filter,
+  resetPage = false,
 }: {
   itemsPerPage: number,
   newPage: number,
-  basePath: string
+  basePath: string,
+  filter?: string,
+  resetPage?: boolean,
 }) => {
 
-  let href: string
-
-  if (newPage === 1) {
-    href = basePath
-  } else {
-    href = `${basePath}${getSymbol(basePath)}p=${newPage}`
-  }
+  let href = basePath
 
   if (itemsPerPage !== 25) {
-    href += `${getSymbol(href)}ps=${itemsPerPage}`
+    href += `${getSymbol(basePath)}ps=${itemsPerPage}`
+  }
+
+  if (filter) {
+    href += `${getSymbol(href)}filter=${filter}`
+  }
+
+  if (resetPage) {
+    return href
+  }
+
+  if (newPage !== 1) {
+    href += `${getSymbol(href)}p=${newPage}`
   }
 
   return href
@@ -115,6 +142,7 @@ interface TableHeaderProps {
   hidePagination?: boolean
   rows: Array<any>
   columns: Array<GridColDef>
+  activeFilter?: string
 }
 
 type TablePaginationProps = {
@@ -122,9 +150,10 @@ type TablePaginationProps = {
   totalPages: number
   itemsPerPage: number
   basePath: string
+  activeFilter?: string
 }
 
-Table.Pagination = function TablePagination({currentPage, totalPages, itemsPerPage, basePath}: TablePaginationProps) {
+Table.Pagination = function TablePagination({currentPage, totalPages, itemsPerPage, basePath, activeFilter}: TablePaginationProps) {
   const commonClasses = "text-[13px] inline-block rounded-md border border-[color:--divider] m-w-8 px-2 py-1 text-center leading-[18px]"
   const pClasses = `${commonClasses} text-[color:--secondary]`
   const aClasses = `${commonClasses} text-[color:--primary] aria-disabled:text-neutral-400 aria-disabled:cursor-not-allowed`
@@ -135,7 +164,8 @@ Table.Pagination = function TablePagination({currentPage, totalPages, itemsPerPa
         href={getNewPageHref({
           itemsPerPage,
           newPage: 1,
-          basePath
+          basePath,
+          filter: activeFilter
         })}
         aria-disabled={currentPage === 1}
       >
@@ -146,7 +176,8 @@ Table.Pagination = function TablePagination({currentPage, totalPages, itemsPerPa
         href={getNewPageHref({
           itemsPerPage,
           newPage: currentPage - 1,
-          basePath
+          basePath,
+          filter: activeFilter
         })}
         aria-disabled={currentPage === 1}
       >
@@ -162,7 +193,8 @@ Table.Pagination = function TablePagination({currentPage, totalPages, itemsPerPa
         href={getNewPageHref({
           itemsPerPage,
           newPage: currentPage + 1,
-          basePath
+          basePath,
+          filter: activeFilter
         })}
         aria-disabled={currentPage === totalPages}
       >
@@ -173,7 +205,8 @@ Table.Pagination = function TablePagination({currentPage, totalPages, itemsPerPa
         href={getNewPageHref({
           itemsPerPage,
           newPage: totalPages,
-          basePath
+          basePath,
+          filter: activeFilter
         })}
         aria-disabled={currentPage === totalPages}
       >
@@ -183,7 +216,7 @@ Table.Pagination = function TablePagination({currentPage, totalPages, itemsPerPa
   )
 }
 
-Table.Header = function TableHeader({title, subtitle, hidePagination,currentPage, totalPages, itemsPerPage, basePath, rows, columns}: TableHeaderProps) {
+Table.Header = function TableHeader({title, subtitle, hidePagination,currentPage, totalPages, itemsPerPage, activeFilter, basePath, rows, columns}: TableHeaderProps) {
   return (
     <div className={"flex pt-4 px-3 md:px-4 pb-3 flex-row w-full min-h-[74px] flex-wrap items-center justify-between gap-3"}>
       <div>
@@ -207,6 +240,7 @@ Table.Header = function TableHeader({title, subtitle, hidePagination,currentPage
             totalPages={totalPages}
             itemsPerPage={itemsPerPage}
             basePath={basePath}
+            activeFilter={activeFilter}
           />
         )}
       </div>
@@ -219,11 +253,12 @@ interface TableFooterProps {
   itemsPerPage: number
   totalPages: number
   basePath: string
+  activeFilter?: string
 }
 
 const validItemsPerPage = [25, 50, 75, 100]
 
-Table.Footer = function TableFooter({currentPage, itemsPerPage, totalPages, basePath}: TableFooterProps) {
+Table.Footer = function TableFooter({currentPage, itemsPerPage, totalPages, basePath, activeFilter}: TableFooterProps) {
   const itemsPerPageOption = validItemsPerPage.includes(itemsPerPage) ? itemsPerPage : 25
 
   return (
@@ -232,10 +267,87 @@ Table.Footer = function TableFooter({currentPage, itemsPerPage, totalPages, base
         <p className={"xs:text-xs text-sm text-[color:--secondary] whitespace-nowrap"}>
           Show rows:
         </p>
-        <SelectItemsPerRow value={itemsPerPageOption} basePath={basePath} currentPage={currentPage} options={validItemsPerPage as Array<number>} />
+        <SelectItemsPerRow
+          value={itemsPerPageOption}
+          basePath={basePath}
+          currentPage={currentPage}
+          options={validItemsPerPage as Array<number>}
+          activeFilter={activeFilter}
+        />
       </div>
 
-      <Table.Pagination currentPage={currentPage} totalPages={totalPages} itemsPerPage={itemsPerPage} basePath={basePath} />
+      <Table.Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        itemsPerPage={itemsPerPage}
+        basePath={basePath}
+        activeFilter={activeFilter}
+      />
+    </div>
+  )
+}
+
+interface TableFilterProps {
+  activeFilter?: string
+  filters: Array<{
+    label: string
+    value: string
+  }>
+  basePath: string
+  page: number
+  itemsPerPage: number
+}
+
+Table.Filters = function TableFilters({
+  filters,
+  basePath,
+  page,
+  itemsPerPage,
+  activeFilter = 'all',
+}: TableFilterProps) {
+  const activeIsOneOfFilters = filters.some((filter) => filter.value === activeFilter)
+
+  return (
+    <div
+      className={
+        clsx(
+          "flex flex-row gap-4 mt-4 -mb-2 md:-mb-3 pl-4 flex-wrap",
+        )
+      }
+    >
+      {[{label: 'All', value: 'all'},...filters].map(({label, value}) => {
+        const isActive = activeIsOneOfFilters ? activeFilter === value : value === 'all'
+
+        if (isActive) {
+          return (
+            <span
+              key={value}
+              className={`min-w-[60px] text-center text-xs px-[10px] font-semibold leading-[36px] cursor-not-allowed select-none rounded-lg transition-transform duration-300 bg-[color:--primary-background] text-white`}
+            >
+              {label}
+            </span>
+          )
+        }
+
+        return (
+          <Link
+            className={`min-w-[60px] text-center text-xs px-[10px] font-semibold aria-disabled:cursor-not-allowed leading-[36px] rounded-lg transition-transform duration-300 bg-[color:rgba(141,141,141,0.12)]`}
+            href={
+              getNewPageHref({
+                itemsPerPage,
+                newPage: page,
+                basePath,
+                filter: value,
+                resetPage: true,
+              })
+            }
+            scroll={false}
+            key={value}
+          >
+            {label}
+          </Link>
+        )
+      })}
     </div>
   )
 }

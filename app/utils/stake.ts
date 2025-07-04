@@ -39,3 +39,29 @@ export function getEndpointLabel(type: number) {
       return 'Unknown'
   }
 }
+
+export enum StakeTableFilter {
+  Staked = 'staked',
+  Unstaking = 'unstaking',
+  Unstaked = 'unstaked',
+  LowBalance = 'low_balance',
+}
+
+export const stakeFilters: Array<{label: string, value: string}> = [
+  {
+    label: 'Staked',
+    value: StakeTableFilter.Staked
+  },
+  {
+    label: 'Unstaking',
+    value: StakeTableFilter.Unstaking
+  },
+  {
+    label: 'Unstaked',
+    value: StakeTableFilter.Unstaked
+  },
+  {
+    label: 'Low Balance',
+    value: StakeTableFilter.LowBalance
+  },
+]

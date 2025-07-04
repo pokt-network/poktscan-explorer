@@ -5,6 +5,7 @@ import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import { graphql } from '@/app/config/gql'
 import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 import { getTransactionsColumns } from '@/app/(transactions)/columns'
+import { transactionFilters } from '@/app/(transactions)/filters'
 
 export const transactionsSubscription = graphql(`
   subscription transactions {
@@ -44,9 +45,10 @@ interface TransactionTableProps {
   totalItems?: number
   subtitle?: React.ReactNode
   disableSubscription?: boolean
+  activeFilter?: string
 }
 
-export default function TransactionTable({rawRows, includeSigner = true, pagination, totalItems, subtitle, disableSubscription = false}: TransactionTableProps) {
+export default function TransactionTable({rawRows, includeSigner = true, pagination, totalItems, subtitle, disableSubscription = false, activeFilter}: TransactionTableProps) {
   const rows: Array<RowTransaction> = rawRows.map((transaction) => {
     const fee = transaction.fees!.at(0) || {
       amount: '0',
@@ -91,6 +93,8 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
         )
       }}
       pagination={pagination}
+      filters={transactionFilters}
+      activeFilter={activeFilter}
     />
   )
 }

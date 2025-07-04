@@ -41,10 +41,21 @@ interface PageProps {
 }
 
 async function ServerSuppliersTable({searchParams}: PageProps) {
-  const {page, itemsPerPage,} = await getPageAndItems(searchParams)
+  const [{page, itemsPerPage,}, sParams] = await Promise.all([
+    getPageAndItems(searchParams),
+    searchParams
+  ])
+
+  const activeFilter = typeof sParams.filter === 'string' ? sParams.filter : undefined
 
   return (
-    <SuppliersTable page={page} itemsPerPage={itemsPerPage} basePath={'/suppliers'} key={'suppliers'} />
+    <SuppliersTable
+      page={page}
+      itemsPerPage={itemsPerPage}
+      basePath={'/suppliers'}
+      key={'suppliers'}
+      activeFilter={activeFilter}
+    />
   )
 }
 

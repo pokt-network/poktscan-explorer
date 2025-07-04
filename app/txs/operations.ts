@@ -1,11 +1,12 @@
 import { graphql } from '@/app/config/gql'
 
 export const transactionsPageDocument = graphql(`
-  query transactionsList($limit: Int!, $offset: Int!) {
+  query transactionsList($limit: Int!, $offset: Int!, $filter: TransactionFilter) {
     transactions(
       first: $limit,
       offset: $offset,
       orderBy: BLOCK_ID_DESC
+      filter: $filter
     ) {
       totalCount
       nodes {
