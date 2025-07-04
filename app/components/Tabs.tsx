@@ -15,7 +15,7 @@ interface TabsProps {
 
 export default function Tabs({tabs, activeTab, basePath}: TabsProps) {
   return (
-    <div className={"flex flex-row gap-4"}>
+    <div className={"flex flex-row gap-4 flex-wrap"}>
       {tabs.map((tab) => {
         const isActive = activeTab === tab.tab
 

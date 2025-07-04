@@ -9,7 +9,12 @@ interface AppsDelegatedTabsProps {
 }
 
 async function ServerAppsDelegatedTabs({gateway, searchParams}: AppsDelegatedTabsProps) {
-  const pageInfo = await getPageAndItems(searchParams)
+  const [pageInfo, sParams] = await Promise.all([
+    getPageAndItems(searchParams),
+    searchParams
+  ])
+
+  const activeFilter = typeof sParams.filter === 'string' ? sParams.filter : undefined
 
   return (
     <AppsTable
@@ -17,6 +22,7 @@ async function ServerAppsDelegatedTabs({gateway, searchParams}: AppsDelegatedTab
       page={pageInfo.page}
       itemsPerPage={pageInfo.itemsPerPage}
       basePath={`/gateway/${gateway}?tab=apps_delegated`}
+      activeFilter={activeFilter}
     />
   )
 }

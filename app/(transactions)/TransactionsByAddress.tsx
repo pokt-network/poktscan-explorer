@@ -7,19 +7,14 @@ import NewTransactionsByAddress from '@/app/(transactions)/NewTransactionsByAddr
 import LoadingListView from '@/app/components/LoadingListView'
 import { getTransactionsColumns } from '@/app/(transactions)/columns'
 import { RefreshPageError } from '@/app/components/ErrorBoundary'
+import { getTransactionGraphQlFilter, TransactionFilterValues } from '@/app/(transactions)/filters'
 
 const transactionsByAddressDocument = graphql(`
-  query transactionsByAddress($limit: Int!, $offset: Int!, $address: String!) {
+  query transactionsByAddress($limit: Int!, $offset: Int!, $filter: TransactionFilter) {
     transactions(
       first: $limit
       offset: $offset
-      filter: {
-        or: [
-          {
-            signerAddress: { equalTo: $address },
-          }
-        ]
-      }
+      filter: $filter
       orderBy: BLOCK_ID_DESC
     ) {
       totalCount
@@ -46,16 +41,21 @@ interface TransactionTableProps {
   page: number
   itemsPerPage: number
   basePath: string
+  filter?: string
 }
 
-async function ServerTransactionByAddressTable({address, page, itemsPerPage, basePath}: TransactionTableProps) {
+async function ServerTransactionByAddressTable({address, page, itemsPerPage, basePath, filter: activeFilter}: TransactionTableProps) {
   try {
+    const filter = getTransactionGraphQlFilter(
+      activeFilter as TransactionFilterValues,
+      address,
+    )
     let { data } = await getClient().query({
       query: transactionsByAddressDocument,
       variables: {
         limit: itemsPerPage,
         offset: (page - 1) * itemsPerPage,
-        address,
+        filter: filter!,
       }
     })
 
@@ -69,7 +69,7 @@ async function ServerTransactionByAddressTable({address, page, itemsPerPage, bas
         variables: {
           limit: itemsPerPage,
           offset: (page - 1) * itemsPerPage,
-          address,
+          filter: filter!,
         }
       })
 
@@ -90,6 +90,7 @@ async function ServerTransactionByAddressTable({address, page, itemsPerPage, bas
         subtitle={(
           <NewTransactionsByAddress address={address} />
         )}
+        activeFilter={activeFilter}
       />
     )
   } catch {

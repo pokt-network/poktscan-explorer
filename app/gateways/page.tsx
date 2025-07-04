@@ -11,12 +11,19 @@ interface PageProps {
 }
 
 async function ServerGatewaysPage({searchParams}: PageProps) {
-  const {page, itemsPerPage,} = await getPageAndItems(searchParams)
+  const [{page, itemsPerPage,}, sParams] = await Promise.all([
+    getPageAndItems(searchParams),
+    searchParams
+  ])
+
+  const activeFilter = typeof sParams.filter === 'string' ? sParams.filter : undefined
+
   return (
     <GatewaysTable
       page={page}
       itemsPerPage={itemsPerPage}
-      basePath={'/apps'}
+      basePath={'/gateways'}
+      activeFilter={activeFilter}
     />
   )
 }

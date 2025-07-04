@@ -72,10 +72,21 @@ async function ServerDelegatedTo({searchParams, app}: DelegatedToTabProps) {
       </div>
     )
   } else {
-    const pageInfo = await getPageAndItems(searchParams)
+    const [pageInfo, sParams] = await Promise.all([
+      getPageAndItems(searchParams),
+      searchParams
+    ])
+
+    const activeFilter = typeof sParams.filter === 'string' ? sParams.filter : undefined
 
     return (
-      <GatewaysTable page={pageInfo.page} itemsPerPage={pageInfo.itemsPerPage} basePath={`/app/${app}?tab=delegated_to`} application={app} />
+      <GatewaysTable
+        page={pageInfo.page}
+        itemsPerPage={pageInfo.itemsPerPage}
+        basePath={`/app/${app}?tab=delegated_to`}
+        application={app}
+        activeFilter={activeFilter}
+      />
     )
   }
 }

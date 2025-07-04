@@ -10,6 +10,8 @@ import { LoadingSummary, LoadingTable } from '@/app/components/LoadingListView'
 import { getTransactionsColumns } from '@/app/(transactions)/columns'
 import { transactionsSummaryLabels } from '@/app/txs/utils'
 import { RefreshPageError } from '@/app/components/ErrorBoundary'
+import { getTransactionGraphQlFilter, TransactionFilterValues } from '@/app/(transactions)/filters'
+import { TransactionFilter } from '../config/gql/graphql'
 
 export const dynamic = "force-dynamic";
 
@@ -46,12 +48,22 @@ interface PageProps {
 
 async function ServerTransactionsPage({searchParams}: PageProps) {
   try {
-    const pageInfo = await getPageAndItems(searchParams)
+    const [pageInfo, awaitedSearchParams] = await Promise.all([
+      getPageAndItems(searchParams),
+      searchParams
+    ])
     let page = pageInfo.page
     const itemsPerPage = pageInfo.itemsPerPage
 
-
     const client = getClient()
+
+    const activeFilter = awaitedSearchParams?.['filter']
+
+    let filter: TransactionFilter | undefined = undefined
+
+    if (typeof activeFilter === 'string') {
+      filter = getTransactionGraphQlFilter(activeFilter as TransactionFilterValues) || undefined
+    }
 
     // eslint-disable-next-line prefer-const
     let { data } = await client.query({
@@ -59,6 +71,7 @@ async function ServerTransactionsPage({searchParams}: PageProps) {
       variables: {
         limit: itemsPerPage,
         offset: (page - 1) * itemsPerPage,
+        filter,
       }
     })
 
@@ -72,6 +85,7 @@ async function ServerTransactionsPage({searchParams}: PageProps) {
         variables: {
           limit: itemsPerPage,
           offset: (page - 1) * itemsPerPage,
+          filter,
         }
       })
 
@@ -88,6 +102,7 @@ async function ServerTransactionsPage({searchParams}: PageProps) {
           basePath: '/txs'
         }}
         totalItems={data.transactions?.totalCount}
+        activeFilter={typeof activeFilter === 'string' ? activeFilter : undefined}
       />
     )
   } catch {

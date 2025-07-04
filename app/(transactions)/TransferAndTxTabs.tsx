@@ -28,6 +28,7 @@ export default async function TransferAndTxTabs({params, searchParams, entity, s
   ])
 
   const activeTab = sParams.tab || defaultTab || 'txs'
+  const activeFilter = typeof sParams?.['filter'] === 'string' ? sParams?.['filter'] : undefined
 
   let element: React.ReactNode
 
@@ -39,6 +40,7 @@ export default async function TransferAndTxTabs({params, searchParams, entity, s
           page={page}
           itemsPerPage={itemsPerPage}
           basePath={`/${entity}/${idForUrl || id}?tab=txs`}
+          filter={activeFilter}
         />
       )
       break

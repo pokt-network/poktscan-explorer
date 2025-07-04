@@ -94,7 +94,12 @@ export default async function NodeRunningPage({searchParams}: PageProps) {
         </div>
       )
     } else {
-      const {page, itemsPerPage} = await getPageAndItems(searchParams)
+      const [{page, itemsPerPage}, sParams] = await Promise.all([
+        getPageAndItems(searchParams),
+        searchParams
+      ])
+
+      const activeFilter = typeof sParams.filter === 'string' ? sParams.filter : undefined
       const isSuppliers = activeTab === OperatorTabs.Suppliers
 
       const Table = isSuppliers ? SuppliersTable : SlashingTable
@@ -116,6 +121,7 @@ export default async function NodeRunningPage({searchParams}: PageProps) {
             delegators={validAddresses}
             itemsPerPage={itemsPerPage}
             basePath={`/tools/operator?addresses=${validAddresses.join(',')}&tab=${activeTab}`}
+            activeFilter={activeFilter}
           />
         </Suspense>
       )

@@ -3,11 +3,12 @@ import { getClient } from '@/app/config/apollo/rsc'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
-import { getStakeLabel } from '@/app/utils/stake'
+import { getStakeLabel, stakeFilters, StakeTableFilter } from '@/app/utils/stake'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import { ChipText } from '@/app/components/Chip'
 import { GatewaysSubscription } from '@/app/components/GatewaysTable/GatewaysSubscription'
 import { RefreshPageError } from '@/app/components/ErrorBoundary'
+import { GatewayFilter, StakeStatus } from '@/app/config/gql/graphql'
 
 export const columns: Array<GridColDef> = [
   {
@@ -48,7 +49,7 @@ export const columns: Array<GridColDef> = [
           className={'text-[10px] md:text-xs h-[20px] mt-[-4px]'}
         >
           <EntityLink
-            entity={'gateway'}
+            entity={'app'}
             entityId={cell.firstApplication!}
             copy={{
               enabled: false
@@ -103,6 +104,85 @@ const gatewayListDocument = graphql(`
   }
 `)
 
+function getGatewayGraphQlFilter({
+  filter,
+  application,
+  service
+}: {
+  filter?: string,
+  service?: string,
+  application?: string,
+}): GatewayFilter | undefined {
+  if (!filter && !application && !service) {
+    return undefined
+  }
+
+  let graphQlFilter: GatewayFilter | undefined = undefined
+
+  if (filter && Object.values(StakeTableFilter).includes(filter as StakeTableFilter)) {
+    if (filter === StakeTableFilter.LowBalance) {
+      graphQlFilter = {
+        stakeStatus: {
+          equalTo: StakeStatus.Staked
+        },
+        account: {
+          balances: {
+            some: {
+              denom: {
+                equalTo: 'upokt'
+              },
+              amount: {
+                lessThanOrEqualTo: (2 * 1e6).toString()
+              }
+            }
+          }
+        }
+      }
+    } else {
+      graphQlFilter = {
+        stakeStatus: {
+          equalTo: filter === StakeTableFilter.Staked ? StakeStatus.Staked :
+            filter === StakeTableFilter.Unstaking ? StakeStatus.Unstaking : StakeStatus.Unstaked
+        }
+      }
+    }
+  }
+
+  if (service) {
+    graphQlFilter = {
+      ...(graphQlFilter! || {}),
+      applicationGateways: {
+        some: {
+          application: {
+            applicationServices: {
+              some: {
+                serviceId: {
+                  equalTo: service
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (application) {
+    graphQlFilter = {
+      ...(graphQlFilter! || {}),
+      applicationGateways: {
+        some: {
+          applicationId: {
+            equalTo: application
+          }
+        }
+      }
+    }
+  }
+
+  return graphQlFilter
+}
+
 interface RowGateway {
   id: string
   status: string
@@ -118,41 +198,16 @@ interface PageProps {
   basePath: string
   service?: string
   application?: string
+  activeFilter?: string
 }
 
-export default async function GatewaysTable({page, itemsPerPage, basePath, service, application}: PageProps) {
+export default async function GatewaysTable({page, itemsPerPage, basePath, service, application, activeFilter}: PageProps) {
   try {
-    let filter = undefined
-
-    if (service) {
-      filter = {
-        applicationGateways: {
-          some: {
-            application: {
-              applicationServices: {
-                some: {
-                  serviceId: {
-                    equalTo: service
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    if (application) {
-      filter = {
-        applicationGateways: {
-          some: {
-            applicationId: {
-              equalTo: application
-            }
-          }
-        }
-      }
-    }
+    const filter = getGatewayGraphQlFilter({
+      application,
+      service,
+      filter: activeFilter || StakeTableFilter.Staked,
+    })
 
     let {data} = await getClient().query({
       query: gatewayListDocument,
@@ -218,6 +273,8 @@ export default async function GatewaysTable({page, itemsPerPage, basePath, servi
           basePath
         }}
         defaultMinWidth={70}
+        activeFilter={activeFilter || StakeTableFilter.Staked}
+        filters={stakeFilters}
       />
     )
   } catch {

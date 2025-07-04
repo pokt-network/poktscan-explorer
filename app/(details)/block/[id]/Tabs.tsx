@@ -21,6 +21,7 @@ export default async function BlockTabs({params, searchParams}: PageProps) {
 
   const tab = sParams.tab as string || 'metadata'
   const activeTab = validTabs.includes(tab) ? tab : 'metadata'
+  const activeFilter = typeof sParams.filter === 'string' ? sParams.filter : undefined
 
   let element: React.ReactNode
 
@@ -32,6 +33,7 @@ export default async function BlockTabs({params, searchParams}: PageProps) {
           page={page}
           itemsPerPage={itemsPerPage}
           basePath={`/block/${idForUrl || id}?tab=txs`}
+          filter={activeFilter}
         />
       )
       break
