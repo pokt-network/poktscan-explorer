@@ -1,10 +1,17 @@
 import { graphql } from '@/app/config/gql'
 
 export const summaryDocument = graphql(`
-  query summary($currentDate: Datetime!, $last24HourDate: Datetime!, $last7DaysDate: Datetime!) {
-    indexerStatus: _metadata {
-      targetHeight
-    }
+  query summary(
+    $currentDate: Datetime!,
+    $last24HourDate: Datetime!,
+    $last7DaysDate: Datetime!,
+    $startCurrentDate: Datetime!,
+    $endCurrentDate: Datetime!
+  ) {
+    supply: getTotalSupplyByDay(
+      startDate: $startCurrentDate,
+      endDate: $endCurrentDate,
+    )
     lastBlock: blocks(orderBy: ID_DESC, first: 1) {
       nodes {
         height: id
@@ -55,23 +62,15 @@ export const evolutionDocument = graphql(`
     $previous4Date: Datetime!
     $previous5Date: Datetime!
     $previous6Date: Datetime!
+    $supplyStartDate: Datetime!
+    $supplyEndDate: Datetime!
   ) {
+    supply: getTotalSupplyByDay(
+      startDate: $supplyStartDate,
+      endDate: $supplyEndDate,
+    )
     today: blocks(filter: {timestamp: {greaterThanOrEqualTo: $currentDate }}, orderBy: ID_DESC, first: 1) {
       nodes {
-        supplies(
-          filter: {
-            supply: {
-              denom: {equalTo: "upokt"}
-            }
-          }
-        ) {
-          nodes {
-            supply {
-              amount
-              denom
-            }
-          }
-        }
         stakedValidators
         stakedApps
         stakedSuppliers
@@ -79,20 +78,6 @@ export const evolutionDocument = graphql(`
     }
     yesterday: blocks(filter: {timestamp: {greaterThanOrEqualTo: $yesterdayDate, lessThan: $currentDate }}, orderBy: ID_DESC, first: 1) {
       nodes {
-        supplies(
-          filter: {
-            supply: {
-              denom: {equalTo: "upokt"}
-            }
-          }
-        ) {
-          nodes {
-            supply {
-              amount
-              denom
-            }
-          }
-        }
         stakedValidators
         stakedApps
         stakedSuppliers
@@ -100,20 +85,6 @@ export const evolutionDocument = graphql(`
     }
     last2: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous2Date, lessThan: $yesterdayDate}}, orderBy: ID_DESC, first: 1) {
       nodes {
-        supplies(
-          filter: {
-            supply: {
-              denom: {equalTo: "upokt"}
-            }
-          }
-        ) {
-          nodes {
-            supply {
-              amount
-              denom
-            }
-          }
-        }
         stakedValidators
         stakedApps
         stakedSuppliers
@@ -121,20 +92,6 @@ export const evolutionDocument = graphql(`
     }
     last3: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous3Date, lessThan: $previous2Date}}, orderBy: ID_DESC, first: 1) {
       nodes {
-        supplies(
-          filter: {
-            supply: {
-              denom: {equalTo: "upokt"}
-            }
-          }
-        ) {
-          nodes {
-            supply {
-              amount
-              denom
-            }
-          }
-        }
         stakedValidators
         stakedApps
         stakedSuppliers
@@ -142,20 +99,6 @@ export const evolutionDocument = graphql(`
     }
     last4: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous4Date, lessThan: $previous3Date}}, orderBy: ID_DESC, first: 1) {
       nodes {
-        supplies(
-          filter: {
-            supply: {
-              denom: {equalTo: "upokt"}
-            }
-          }
-        ) {
-          nodes {
-            supply {
-              amount
-              denom
-            }
-          }
-        }
         stakedValidators
         stakedApps
         stakedSuppliers
@@ -163,20 +106,6 @@ export const evolutionDocument = graphql(`
     }
     last5: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous5Date, lessThan: $previous4Date}}, orderBy: ID_DESC, first: 1) {
       nodes {
-        supplies(
-          filter: {
-            supply: {
-              denom: {equalTo: "upokt"}
-            }
-          }
-        ) {
-          nodes {
-            supply {
-              amount
-              denom
-            }
-          }
-        }
         stakedValidators
         stakedApps
         stakedSuppliers
@@ -184,20 +113,6 @@ export const evolutionDocument = graphql(`
     }
     last6: blocks(filter: {timestamp: {greaterThanOrEqualTo: $previous6Date, lessThan: $previous5Date}}, orderBy: ID_DESC, first: 1) {
       nodes {
-        supplies(
-          filter: {
-            supply: {
-              denom: {equalTo: "upokt"}
-            }
-          }
-        ) {
-          nodes {
-            supply {
-              amount
-              denom
-            }
-          }
-        }
         stakedValidators
         stakedApps
         stakedSuppliers

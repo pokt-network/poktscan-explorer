@@ -5,12 +5,11 @@ import useDebounce from '@/app/hooks/useDebounce'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { PopoverArrow } from '@radix-ui/react-popover'
 import { Check, X } from 'lucide-react'
-import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
-import { indexerMetadataDocument } from '@/app/operations/metadata'
 import SyncingIcon from './syncing_icon.svg'
 import { clsx } from 'clsx'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
+import { useHeightContext } from '@/app/context/height'
 
 export function StatusLoader() {
   return (
@@ -27,28 +26,13 @@ export function StatusLoader() {
   )
 }
 
-interface StatusPopoverProps {
-  initialData: DocumentNodeData<typeof indexerMetadataDocument>
-  initialError: boolean
-  pollInterval?: number
-}
-
-export default function StatusPopover({initialData, initialError, pollInterval}: StatusPopoverProps) {
-  const { data, error, refetch, isLoading } = useFetchOnBlock({
-    query: indexerMetadataDocument,
-    initialResult: initialData,
-    pollInterval,
-    initialError
-  })
+export default function StatusPopover() {
+  const {currentHeight, networkHeight, updateNetworkHeight} = useHeightContext()
 
   const [open, setOpen] = useState(false);
   const debouncedOpen = useDebounce(open, 200);
 
-  if (isLoading) {
-    return (
-      <StatusLoader />
-    )
-  } else if (error) {
+  if (networkHeight <= 0) {
     return (
       <Button
         className={
@@ -56,7 +40,7 @@ export default function StatusPopover({initialData, initialError, pollInterval}:
             'h-7 px-2 py-1 rounded-sm border-2 gap-1 bg-[color:#ffaaaa24] border-[color:--error-background] text-[color:--error] text-xs',
           )
         }
-        onClick={refetch}
+        onClick={updateNetworkHeight}
       >
         Status Error. Retry
       </Button>
@@ -73,13 +57,9 @@ export default function StatusPopover({initialData, initialError, pollInterval}:
 
   let icon: React.ReactNode, color: string, text: string
 
-  const diff = (data?._metadata?.targetHeight || 0) - (data?._metadata?.lastProcessedHeight || 0)
+  const diff = (networkHeight || 0) - (currentHeight || 0)
 
-  if (!data) {
-    color = 'bg-[color:--error]'
-    icon = <X className={'h-3 w-3 text-white'} strokeWidth={4}/>
-    text = 'Indexer Unreachable'
-  } else if (diff <= 5) {
+  if (diff <= 5) {
     color = 'bg-[color:--success]'
     icon = <Check className={'h-3 w-3 text-white'} strokeWidth={4}/>
     text = diff <= 2 ? 'Synced!' : 'Healthy!'
@@ -118,9 +98,9 @@ export default function StatusPopover({initialData, initialError, pollInterval}:
           className={
             clsx(
               'flex items-center justify-center px-2 py-1 rounded-sm border dark:border-2 gap-1',
-              data &&  diff <= 20 && 'border-[color:--success] dark:border-[color:--success-background]',
-              data && diff > 20 && diff <= 100 && 'border-[color:--warning] dark:border-[color:--warning-background]',
-              (diff > 100 || !data) && 'border-[color:--error] dark:border-[color:--error-background]',
+              diff <= 20 && 'border-[color:--success] dark:border-[color:--success-background]',
+              diff > 20 && diff <= 100 && 'border-[color:--warning] dark:border-[color:--warning-background]',
+              diff > 100 && 'border-[color:--error] dark:border-[color:--error-background]',
             )
           }
         >
@@ -128,9 +108,9 @@ export default function StatusPopover({initialData, initialError, pollInterval}:
             className={
               clsx(
                 'text-xs font-semibold whitespace-nowrap',
-                data && diff <= 20 && 'text-[color:--success]',
-                data && diff > 20 && diff <= 100 && 'text-[color:--warning]',
-                (diff > 100 || !data) && 'text-[color:--error]',
+                diff <= 20 && 'text-[color:--success]',
+                diff > 20 && diff <= 100 && 'text-[color:--warning]',
+                diff > 100 && 'text-[color:--error]',
               )
             }
           >
@@ -150,14 +130,14 @@ export default function StatusPopover({initialData, initialError, pollInterval}:
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {data ? (
+        {networkHeight ? (
           <>
             <div className={'min-w-[160px] flex flex-row items-center justify-between gap-2'}>
               <p className={'font-bold mb-1'}>
                 Indexer Height:
               </p>
               <p>
-                {data?._metadata?.lastProcessedHeight}
+                {currentHeight}
               </p>
             </div>
             <div className={'min-w-[160px] flex flex-row items-center justify-between gap-2'}>
@@ -165,7 +145,7 @@ export default function StatusPopover({initialData, initialError, pollInterval}:
                 Latest Height:
               </p>
               <p>
-                {data?._metadata?.targetHeight}
+                {networkHeight}
               </p>
             </div>
           </>

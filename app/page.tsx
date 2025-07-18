@@ -97,7 +97,7 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
         className='pt-7 relative md:pt-[56px] pb-[95px] px-4 md:px-5'
       >
         <h1 className='text-white text-lg font-bold leading-[24px] mb-3'>
-          The Pocket Network Shannon Explorer
+          The Pocket Network Explorer
         </h1>
         <div className={'absolute z-[-1] w-[100vw] left-[calc((50%-50vw))] top-0 right-0 h-full bg-[color:#081d35] dark:bg-[color:rgb(10,10,10)]'}
              style={{ backgroundImage: 'url(/waves-light.svg)' }}

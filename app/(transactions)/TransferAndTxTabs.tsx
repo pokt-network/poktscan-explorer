@@ -14,6 +14,7 @@ interface PageProps {
   entity: EntityLinkProps['entity']
   supportMigrationTab?: boolean
   moreTabs?: {
+    position?: 'start' | 'end' | 'beforeRaw'
     tabs: Array<{label: string, tab: string}>
     getContent: (tab: string) => React.ReactNode
   },
@@ -115,9 +116,22 @@ export default async function TransferAndTxTabs({params, searchParams, entity, s
   }
 
   if (moreTabs) {
-    tabs.unshift(
-      ...moreTabs.tabs
-    )
+    if (moreTabs.position === 'start' || !moreTabs.position) {
+      tabs.unshift(
+        ...moreTabs.tabs
+      )
+    } else if (moreTabs.position === 'end') {
+      tabs.push(
+        ...moreTabs.tabs
+      )
+    } else {
+      const rawTab = tabs.pop()
+
+      tabs.push(
+        ...moreTabs.tabs,
+        rawTab!
+      )
+    }
   }
 
   return (
