@@ -13,6 +13,7 @@ import { getLatestBlock, getNumBlocksPerSession } from '@/app/api/blocks'
 import ReactQueryProvider from '@/app/config/query'
 import getPrice from '@/app/api/price'
 import RegisterPlugins from '@/app/Charts/Plugins/RegisterPlugins'
+import getMetadata from '@/app/api/metadata'
 
 export const metadata: Metadata = {
   title: "POKTscan",
@@ -33,11 +34,18 @@ const roboto = Roboto({
 export default async function RootLayout({children}: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [cookiesAwaited, latestBlock, blocksPerSession, price] = await Promise.all([
+  const [
+    cookiesAwaited,
+    latestBlock,
+    blocksPerSession,
+    price,
+    metadata,
+  ] = await Promise.all([
     cookies(),
     getLatestBlock().catch(() => null),
     getNumBlocksPerSession().catch(() => 0),
-    getPrice()
+    getPrice(),
+    getMetadata().catch(() => null),
   ])
 
   return (
@@ -58,6 +66,7 @@ export default async function RootLayout({children}: Readonly<{
               >
                 <HeightContextProvider
                   firstHeight={latestBlock?.height}
+                  networkHeight={metadata?._metadata?.targetHeight || 0}
                   blocksPerSession={blocksPerSession}
                   // the timestamp is in UTC, so we need to add the Z to the end because the api doesn't include it
                   firstTime={latestBlock?.timestamp ? latestBlock.timestamp + 'Z' : ''}

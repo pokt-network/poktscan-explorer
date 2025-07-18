@@ -4,11 +4,11 @@ import Price from '@/app/components/Price'
 import SiteSettings from '@/app/appbar/SiteSettings'
 import SearchInput from '@/app/Search/Search'
 import ExplorerSelector from '@/app/appbar/ExplorerSelector'
-import Status from '@/app/appbar/Status/Status'
 import RoutesExpand from '@/app/appbar/Routes/RoutesExpand'
 import ExpandContextProvider from '@/app/appbar/Routes/ExpandContext'
 import RoutesAccordion from '@/app/appbar/Routes/RoutesAccordion'
 import RoutesList from '@/app/appbar/Routes/RoutesList'
+import StatusPopover from '@/app/appbar/Status/Popover'
 
 const rpcUrl = process.env.RPC_BASE_URL!
 
@@ -25,7 +25,7 @@ export default async function AppBar() {
           <div className={'max-w-[1360px] w-full flex lg:items-center pt-1 lg:pt-0 lg:justify-between gap-1 lg:gap-2 flex-col lg:flex-row'}>
             <div className={'flex items-center gap-2 justify-between'}>
               <div className={'flex items-center gap-2'}>
-                <Status />
+                <StatusPopover />
                 <div
                   className={'flex items-center justify-center px-2 py-1 rounded-sm border dark:border-2 gap-1 border-[color:--divider]'}
                 >

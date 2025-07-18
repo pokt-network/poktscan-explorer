@@ -17,6 +17,7 @@ import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { ContentLoader } from '@/app/(home)/SummaryLoader'
 import { clsx } from 'clsx'
 import { fillChartData, normalizeIsoDate } from '@/app/Charts/utils'
+import { useHeightContext } from '@/app/context/height'
 
 
 function Title({title}: {title: string}) {
@@ -36,11 +37,13 @@ interface SummaryProps {
 export default function Summary({initialData, initialError, initialVariables}: SummaryProps) {
   const lastVariablesRef = useRef<ExtractVariables<typeof summaryDocument>>(initialVariables!)
   const variables = useCallback((_: number, currentTime: string) => lastVariablesRef.current = getSummaryVariables(currentTime), [])
+  const {currentHeight, currentTime, networkHeight} = useHeightContext()
   const { data, error, isLoading, refetch } = useFetchOnBlock({
     query: summaryDocument,
     variables,
     initialResult: initialData,
-    initialError
+    initialError,
+    updateOnNewSession: true,
   })
 
   let content: React.ReactNode
@@ -59,7 +62,7 @@ export default function Summary({initialData, initialError, initialVariables}: S
   } else {
     const latestBlock = data?.lastBlock?.nodes?.at(0)
 
-    const currentSupply = latestBlock?.supplies?.nodes?.find((s) => s?.supply?.denom === 'upokt')?.supply
+    const currentSupply = data?.supply?.at(0)?.total_supply || latestBlock?.supplies?.nodes?.find((s) => s?.supply?.denom === 'upokt')?.supply?.amount
     const totalStaked = BigInt(latestBlock?.stakedSuppliersTokens || 0) + BigInt(latestBlock?.stakedAppsTokens || 0) + BigInt(latestBlock?.stakedGatewaysTokens || 0)
     const summary = data?.blocks?.aggregates?.sum
 
@@ -96,7 +99,7 @@ export default function Summary({initialData, initialError, initialVariables}: S
                   title={'Latest Block'}
                 />
                 <div className={'text-[14px!important]'}>
-                  <EntityLink entity={'block'} entityId={data?.indexerStatus?.targetHeight || latestBlock?.height || 0} copy={{enabled: false}} />
+                  <EntityLink entity={'block'} entityId={networkHeight || currentHeight || 0} copy={{enabled: false}} />
                 </div>
               </div>
             </div>
@@ -109,10 +112,10 @@ export default function Summary({initialData, initialError, initialVariables}: S
                   title={'Indexer Block'}
                 />
                 <div className={'text-[14px!important] text-left'}>
-                  <EntityLink entity={'block'} entityId={latestBlock?.height || 0} copy={{enabled: false}} />
+                  <EntityLink entity={'block'} entityId={currentHeight || 0} copy={{enabled: false}} />
                 </div>
                 <p className={'text-[11px] text-left -mt-1'}>
-                  <DateCellText value={latestBlock?.timestamp} forceAge={true} />
+                  <DateCellText value={currentTime} forceAge={true} />
                 </p>
               </div>
             </div>
@@ -202,9 +205,8 @@ export default function Summary({initialData, initialError, initialVariables}: S
                   title={'Total Supply'}
                 />
                 <p className={'text-[15px]'}>
-                  {formatAmount({
-                    amount: currentSupply?.amount,
-                    denom: currentSupply?.denom,
+                  {formatUpokt({
+                    amount: currentSupply,
                   })}
                 </p>
               </div>

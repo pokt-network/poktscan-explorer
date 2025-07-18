@@ -8,12 +8,14 @@ import { evolutionDocument } from '@/app/(home)/operations'
 import { useDateContext } from '@/app/dates/Context'
 import EvolutionChartsLoader from '@/app/(home)/EvolutionCharts/Loader'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
+import { getDateFromIsoString } from '@/app/Charts/utils'
 
 interface CardEvolutionChartProps {
   title: string
   data: CommonLineChartProps['data']
   dataLabel: string
   valuesAreUPokt?: boolean
+  applyMinAndMax?: boolean
 }
 
 function CardEvolutionChart({title, ...chartProps }: CardEvolutionChartProps) {
@@ -74,36 +76,10 @@ export default function EvolutionCharts({
     const previous5Date = dateFormatter.format(new Date(dates.previous5Date))
     const previous6Date = dateFormatter.format(new Date(dates.previous6Date))
 
-    const supplyData: CommonLineChartProps['data'] = [
-      {
-        label: currentDate,
-        value: data.today?.nodes?.at(0)?.supplies?.nodes?.at(0)?.supply?.amount || 0
-      },
-      {
-        label: yesterdayDate,
-        value: data.yesterday.nodes?.at(0)?.supplies?.nodes?.at(0)?.supply?.amount || 0
-      },
-      {
-        label: previous2Date,
-        value: data.last2.nodes?.at(0)?.supplies?.nodes?.at(0)?.supply?.amount || 0
-      },
-      {
-        label: previous3Date,
-        value: data.last3.nodes?.at(0)?.supplies?.nodes?.at(0)?.supply?.amount || 0
-      },
-      {
-        label: previous4Date,
-        value: data.last4.nodes?.at(0)?.supplies?.nodes?.at(0)?.supply?.amount || 0
-      },
-      {
-        label: previous5Date,
-        value: data.last5.nodes?.at(0)?.supplies?.nodes?.at(0)?.supply?.amount || 0
-      },
-      {
-        label: previous6Date,
-        value: data.last6.nodes?.at(0)?.supplies?.nodes?.at(0)?.supply?.amount || 0
-      },
-    ].reverse()
+    const supplyData: CommonLineChartProps['data'] = data?.supply?.map((supply) => ({
+      label: dateFormatter.format(getDateFromIsoString(supply.day)),
+      value: supply.total_supply || 0,
+    })) || []
 
     const validatorsData: CommonLineChartProps['data'] = [
       {
@@ -200,7 +176,13 @@ export default function EvolutionCharts({
 
     return (
       <div className="flex flex-col gap-y-4 w-full">
-        <CardEvolutionChart title={'Supply Evolution (POKT)'} data={supplyData} dataLabel={'Supply'} valuesAreUPokt={true} />
+        <CardEvolutionChart
+          title={'Supply Evolution (POKT)'}
+          data={supplyData}
+          dataLabel={'Supply'}
+          valuesAreUPokt={true}
+          applyMinAndMax={true}
+        />
         <CardEvolutionChart title={'Staked Validators Evolution'} data={validatorsData} dataLabel={'Staked Validators'} />
         <CardEvolutionChart title={'Staked Suppliers Evolution'} data={supplierData} dataLabel={'Staked Suppliers'} />
         <CardEvolutionChart title={'Staked Apps Evolution'} data={appsData} dataLabel={'Staked Apps'} />

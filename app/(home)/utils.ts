@@ -97,6 +97,8 @@ export function getEvolutionVariables(dateStr: string) {
     previous4Date: previous4Date.toISOString(),
     previous5Date: previous5Date.toISOString(),
     previous6Date: previous6Date.toISOString(),
+    supplyStartDate: getUtcStartOfDay(addDaysToUtc(currentDate, -6)).toISOString(),
+    supplyEndDate: getUtcEndOfDay(currentDate).toISOString(),
   }
 }
 
@@ -110,6 +112,8 @@ export function getSummaryVariables(dateStr: string) {
     last24HourDate: date24hBefore.toISOString(),
     last7DaysDate: date7DaysBefore.toISOString(),
     currentDate: getUtcEndOfDay(currentDate).toISOString(),
+    startCurrentDate: getUtcStartOfDay(currentDate).toISOString(),
+    endCurrentDate: getUtcEndOfDay(currentDate).toISOString(),
   }
 }
 

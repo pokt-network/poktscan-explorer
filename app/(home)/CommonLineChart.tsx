@@ -12,9 +12,15 @@ export interface CommonLineChartProps {
   data: Array<DataPoint>
   valuesAreUPokt?: boolean
   dataLabel?: string
+  applyMinAndMax?: boolean
 }
 
-export default function CommonLineChart({data, dataLabel, valuesAreUPokt = false}: CommonLineChartProps) {
+export default function CommonLineChart({
+  data,
+  dataLabel,
+  valuesAreUPokt = false,
+  applyMinAndMax = false
+}: CommonLineChartProps) {
   const {theme = 'dark'} = useTheme();
   const isDark = theme === 'dark'
 
@@ -24,6 +30,25 @@ export default function CommonLineChart({data, dataLabel, valuesAreUPokt = false
       size: 11,
     },
     color: isDark ? '#b9b9b9' : '#3f3f3f',
+  }
+
+  let min: number | undefined = undefined, max: number | undefined = undefined
+
+  if (applyMinAndMax) {
+    const {min: dataMin, max: dataMax} = data.reduce((acc, item) => {
+      if (item.value < acc.min) {
+        acc.min = item.value
+      }
+
+      if (item.value > acc.max) {
+        acc.max = item.value
+      }
+
+      return acc
+    }, {max: 0, min: Number.MAX_SAFE_INTEGER})
+
+    min = dataMin * 0.9
+    max = dataMax * 1.1
   }
 
   return (
@@ -70,6 +95,7 @@ export default function CommonLineChart({data, dataLabel, valuesAreUPokt = false
               ticks: {
                 ...commonTickOptions,
                 maxRotation: 0,
+                stepSize: min ? ((min + max!) / 2) - min : undefined,
                 callback: function (value) {
                   if (valuesAreUPokt) {
                     return formatAmount({
@@ -81,6 +107,8 @@ export default function CommonLineChart({data, dataLabel, valuesAreUPokt = false
                   return formatSimpleAmount(value)
                 },
               },
+              min,
+              max,
             },
             x: {
               border: {
@@ -131,9 +159,9 @@ export default function CommonLineChart({data, dataLabel, valuesAreUPokt = false
                   let amount = (tooltipItem.raw as DataPoint).value.toString()
 
                   if (valuesAreUPokt) {
-                    amount = formatAmount({amount, denom: 'upokt'})
+                    amount = formatAmount({amount, denom: 'upokt', abbreviateThreshold: Infinity, maxDecimals: 2})
                   } else {
-                    amount = formatSimpleAmount(amount)
+                    amount = formatAmount({ amount, abbreviateThreshold: Infinity, maxDecimals: 2 })
                   }
                   return `${dataLabel}: ${amount}`
                 }
