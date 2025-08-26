@@ -48,11 +48,16 @@ export default function HeightContextProvider({
     ignoreResults: true,
     onData: (data) => {
       const block = data?.data?.data?.blocks
-      if (block && Number(block.id) > currentHeight) {
+      const newBlockId = Number(block?.id)
+      if (block && newBlockId > currentHeight) {
         setState({
-          currentHeight: Number(block.id),
+          currentHeight: newBlockId,
           currentTime: block._entity?.timestamp || currentTime,
         })
+
+        if (newBlockId > networkHeight) {
+          setNetworkHeight(newBlockId)
+        }
       }
     }
   })

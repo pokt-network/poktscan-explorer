@@ -206,7 +206,6 @@ export function RouteSingle({label, href, onClick}: RouteSingleProps) {
 
   return (
     <Link
-      prefetch
       href={href}
       className={`hover:text-sky-500 h-[32px] font-normal ${isActive && 'text-sky-500'}`}
       onClick={onClick}
@@ -229,7 +228,6 @@ export function SingleRouteItem({href, label, onClick}: SingleRouteItemProps) {
 
   return (
     <Link
-      prefetch
       href={href}
       className={`text-xs block text-[color:--foreground] decoration-none rounded-md p-2 hover:bg-[color:--highlight-option] ${isActive && 'text-sky-500'}`}
       onClick={onClick}
