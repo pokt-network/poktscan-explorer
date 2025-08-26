@@ -69,6 +69,7 @@ export const Ed25519 = "/cosmos.crypto.ed25519.PubKey";
 export const MultisigLegacyAminoPubKey = "/cosmos.crypto.multisig.LegacyAminoPubKey";
 export const PREFIX = "pokt";
 export const VALIDATOR_PREFIX = "poktvaloper";
+export const CONSENSUS_PREFIX = "poktvalcons";
 
 export function isValidPoktAddress(address: string): boolean {
   try {

@@ -1,9 +1,16 @@
 import type { ApolloClient } from '@apollo/client'
-import { getUrl } from '@/app/components/RawEntity/utils'
+import Big from 'big.js'
+import { cache } from 'react'
+import {sha256} from "@cosmjs/crypto"
+import {pubkeyToAddress} from "@cosmjs/amino"
+import { fromBase64, fromBech32, toBech32, toHex } from '@cosmjs/encoding'
 import { validatorByIdDocument } from '@/app/(details)/validator/[id]/operations'
-import { getStakeLabel } from '@/app/utils/stake'
+import { formatSimpleAmount, formatUpokt } from '@/app/utils/format'
+import { CONSENSUS_PREFIX, PREFIX } from '@/app/utils/poktroll'
 import { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import { fetchDataFromRpcOrIndexer } from '@/app/utils/fetch'
+import { getUrl } from '@/app/components/RawEntity/utils'
+import { getStakeLabel } from '@/app/utils/stake'
 
 export type ValidatorResponseFromRpc = {
   validator: {
@@ -39,9 +46,32 @@ export type ValidatorResponseFromRpc = {
   }
 }
 
+export interface DelegationsFromRpc {
+  delegation_responses: Array<{
+    delegation: {
+      delegator_address: string
+      validator_address: string
+      shares: string
+    }
+    balance: {
+      denom: string
+      amount: string
+    }
+  }>
+  pagination: {
+    next_key: any
+    total: string
+  }
+}
+
+
 export interface Validator {
   status: string
   stakeAmount: string
+  selfStakeAmount: string
+  votingPower: string
+  commissionRewards: string
+  outstandingRewards: string
   signer: null | string
   balance: null | string
   minSelfDelegation: string
@@ -53,6 +83,13 @@ export interface Validator {
   securityContact: string
   details: string
   website: string
+  addresses: {
+    operator: string
+    account: string
+    hex: string
+    consensus: string
+    consensusPubkey: string
+  }
 }
 
 function atomicToDecimal(value: string, decimals: number = 18): string {
@@ -67,15 +104,68 @@ function atomicToDecimal(value: string, decimals: number = 18): string {
   return fraction ? `${whole}.${fraction}` : whole;
 }
 
-export async function getValidatorFromRpc(address: string, rpcUrl: string): Promise<Validator | null> {
-  const validator = await fetch(getUrl(rpcUrl, 'validator', address)).then(res => {
+export function getHexAddressFromConsensusPubkey(consensusPubkey: string): string {
+  return toHex(sha256(fromBase64(consensusPubkey)).slice(0, 20)).toUpperCase()
+}
+
+function getConsensusAddressFromPubKey(consensusPubkey: string): string {
+  return pubkeyToAddress({
+    type: "tendermint/PubKeyEd25519",
+    value: consensusPubkey,
+  }, CONSENSUS_PREFIX)
+}
+
+function getValidatorAccountAddress(valoperAddress: string) {
+  try {
+    const { data } = fromBech32(valoperAddress)
+    return toBech32(PREFIX, data)
+  } catch {
+    return ''
+  }
+}
+
+export const getRawValidatorFromRpc = cache(async (address: string, rpcUrl: string): Promise<ValidatorResponseFromRpc['validator']> => {
+  return await fetch(getUrl(rpcUrl, 'validator', address)).then(res => {
     if (res.status === 404) {
       return null
     } else {
       return res.json().then(res => res.validator)
     }
-  }) as ValidatorResponseFromRpc['validator']
+  })
+})
 
+export async function getValidatorFromRpc(address: string, rpcUrl: string): Promise<Validator | null> {
+  const account = getValidatorAccountAddress(address)
+
+  const [
+    validator,
+    selfStake,
+    bondedTokens,
+    commission,
+    outstandingRewards
+  ] = await Promise.all([
+    getRawValidatorFromRpc(address, rpcUrl),
+    fetch(`${rpcUrl}/cosmos/staking/v1beta1/delegations/${account}`)
+      .then(res => res.json())
+      .then(res => {
+        const data = res as DelegationsFromRpc
+
+        return data.delegation_responses.find(item => item.delegation.validator_address === address)?.balance?.amount || "0"
+      })
+      .catch(() => ''),
+    fetch(`${rpcUrl}/cosmos/staking/v1beta1/pool`)
+      .then(res => res.json())
+      .then((res) => res.pool.bonded_tokens)
+      .catch(() => ''),
+    fetch(`${rpcUrl}/cosmos/distribution/v1beta1/validators/${address}`)
+      .then(res => res.json())
+      .then((res) => res?.commission?.at(0)?.amount || '')
+      .catch(() => ''),
+    fetch(`${rpcUrl}/cosmos/distribution/v1beta1/validators/${address}/outstanding_rewards`)
+      .then(res => res.json())
+      .then((res) => res?.rewards?.rewards?.at(0)?.amount || '')
+      .catch(() => ''),
+  ])
 
   if (!validator) {
     return null
@@ -101,6 +191,16 @@ export async function getValidatorFromRpc(address: string, rpcUrl: string): Prom
   return {
     status,
     stakeAmount: validator.tokens,
+    selfStakeAmount: selfStake,
+    votingPower: bondedTokens ? formatSimpleAmount(new Big(validator.tokens).div(bondedTokens).mul(100).toFixed(2)) + '%' : '-',
+    commissionRewards: commission ? formatUpokt({
+      amount: commission,
+      maxDecimals: 6
+    }) : '',
+    outstandingRewards: outstandingRewards ? formatUpokt({
+      amount: outstandingRewards,
+      maxDecimals: 6
+    }) : '',
     signer: null,
     balance: null,
     minSelfDelegation: validator.min_self_delegation,
@@ -112,6 +212,13 @@ export async function getValidatorFromRpc(address: string, rpcUrl: string): Prom
     securityContact: validator.description.security_contact,
     details: validator.description.details,
     website: validator.description.website,
+    addresses: {
+      operator: address,
+      account,
+      hex: getHexAddressFromConsensusPubkey(validator.consensus_pubkey.key),
+      consensus: getConsensusAddressFromPubKey(validator.consensus_pubkey.key),
+      consensusPubkey: JSON.stringify(validator.consensus_pubkey),
+    }
   }
 }
 
@@ -123,6 +230,10 @@ export function parseValidatorFromIndexer(data: DocumentNodeData<typeof validato
   return {
     status: getStakeLabel(validator.stakeStatus),
     stakeAmount: validator.stakeAmount,
+    selfStakeAmount: '',
+    votingPower: '',
+    commissionRewards: '',
+    outstandingRewards: '',
     signer: validator.signerId,
     balance: validator.signer?.balances?.nodes?.find(balance => balance.denom === 'upokt')?.amount || '0',
     minSelfDelegation: validator.minSelfDelegation.toString(),
@@ -134,10 +245,19 @@ export function parseValidatorFromIndexer(data: DocumentNodeData<typeof validato
     securityContact: validator.description?.securityContact || '',
     details: validator.description?.details || '',
     website: validator.description?.website || '',
+    addresses: {
+      operator: validator.id,
+      account: '',
+      hex: '',
+      consensus: '',
+      consensusPubkey: '',
+    }
   }
 }
 
 async function getValidatorFromIndexer(address: string, apolloClient: ApolloClient<any>): Promise<Validator | null> {
+  throw new Error('Not implemented properly yet. Please use getValidatorFromRpc for now.');
+
   const {data} = await apolloClient.query({
     query: validatorByIdDocument,
     variables: {

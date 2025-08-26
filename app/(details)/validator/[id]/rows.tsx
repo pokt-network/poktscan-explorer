@@ -22,8 +22,34 @@ export default function getRows(validator: Validator | null, isLoading = false) 
       type: 'row',
       label: 'Stake Amount',
       value: skeleton || formatUpokt({
-        amount: validator!.stakeAmount
+        amount: validator!.stakeAmount,
+        maxDecimals: 6,
+        abbreviateThreshold: Infinity
       }),
+    },
+    {
+      type: 'row',
+      label: 'Self Stake',
+      value: skeleton || formatUpokt({
+        amount: validator!.selfStakeAmount,
+        maxDecimals: 6,
+        abbreviateThreshold: Infinity
+      }),
+    },
+    {
+      type: 'row',
+      label: 'Voting Power',
+      value: skeleton || validator!.votingPower,
+    },
+    {
+      type: 'row',
+      label: 'Commissions',
+      value: skeleton || validator!.commissionRewards,
+    },
+    {
+      type: 'row',
+      label: 'Outstanding Rewards',
+      value: skeleton || validator!.outstandingRewards,
     },
     {
       type: 'divider',
@@ -62,12 +88,40 @@ export default function getRows(validator: Validator | null, isLoading = false) 
   rows.push(
     {
       type: 'row',
-      label: 'Self Delegation',
+      label: 'Moniker',
+      value: skeleton || validator!.moniker,
+    },
+    {
+      type: 'row',
+      label: 'Identity',
+      value: skeleton || validator?.identity || '-',
+    },
+    {
+      type: 'row',
+      label: 'Security Contact',
+      value: skeleton || validator?.securityContact || '-',
+    },
+    {
+      type: 'row',
+      label: 'Details',
+      value: skeleton || validator?.details || '-',
+    },
+    {
+      type: 'row',
+      label: 'Website',
+      value: skeleton || validator?.website || '-',
+    },
+    {
+      type: 'divider'
+    },
+    {
+      type: 'row',
+      label: 'Min Self Delegation',
       value: skeleton || formatSimpleAmount(validator!.minSelfDelegation),
     },
     {
       type: 'row',
-      label: 'Commission',
+      label: 'Commission Rate',
       description: (
         <Link href="https://docs.cosmos.network/main/build/modules/distribution#rewards-to-delegators"
               target={'_blank'}
@@ -99,29 +153,43 @@ export default function getRows(validator: Validator | null, isLoading = false) 
     },
     {
       type: 'row',
-      label: 'Moniker',
-      value: skeleton || validator!.moniker,
+      label: 'Account Address',
+      value: skeleton || (
+        <div className={'text-sm'}>
+          <EntityLink
+            entity={'account'}
+            entityId={validator!.addresses.account}
+            copy={{
+              enabled: true,
+            }}
+          />
+        </div>
+      ),
     },
     {
       type: 'row',
-      label: 'Identity',
-      value: skeleton || validator?.identity || '-',
+      label: 'Operator Address',
+      value: skeleton || validator!.addresses.operator
     },
     {
       type: 'row',
-      label: 'Security Contact',
-      value: skeleton || validator?.securityContact || '-',
+      label: 'Hex Address',
+      value: skeleton || validator!.addresses.hex
     },
     {
       type: 'row',
-      label: 'Details',
-      value: skeleton || validator?.details || '-',
+      label: 'Signer Address',
+      value: skeleton || validator!.addresses.consensus
     },
     {
       type: 'row',
-      label: 'Website',
-      value: skeleton || validator?.website || '-',
-    }
+      label: 'Consensus Public Key',
+      value: skeleton || (
+        <p className={'text-xs break-all'}>
+          {validator!.addresses.consensusPubkey}
+        </p>
+      )
+    },
   )
 
   // @TODO: implement once the Validator lifecycle is handled properly on the indexer.

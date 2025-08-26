@@ -1,12 +1,16 @@
 import React, { Suspense } from 'react'
-import { isValidPoktAddress } from '@/app/utils/poktroll'
+import {
+  isValidPoktAddress,
+  VALIDATOR_PREFIX
+} from '@/app/utils/poktroll'
 import NotFound from '@/app/not-found'
+import { getClient } from '@/app/config/apollo/rsc'
 import TitleEntity from '@/app/components/TitleEntity'
 import EntityDetail from '@/app/components/EntityDetail'
 import getRows from '@/app/(details)/validator/[id]/rows'
-import getValidator from '@/app/(details)/validator/[id]/getValidator'
-import { getClient } from '@/app/config/apollo/rsc'
+import Uptime from '@/app/(details)/validator/[id]/Uptime/Uptime'
 import ValidatorDetail from '@/app/(details)/validator/[id]/Detail'
+import getValidator from '@/app/(details)/validator/[id]/getValidator'
 
 const rpcUrl = process.env.RPC_BASE_URL!
 
@@ -26,7 +30,7 @@ export default async function ValidatorLayout({children, params}: Readonly<{
 }>) {
   const {id} = await params
 
-  if (!isValidPoktAddress(id)) {
+  if (!isValidPoktAddress(id) || !id.startsWith(VALIDATOR_PREFIX)) {
     return <NotFound />
   }
 
@@ -43,6 +47,8 @@ export default async function ValidatorLayout({children, params}: Readonly<{
       >
         <ServerValidatorLayout id={id} />
       </Suspense>
+
+      <Uptime valoperAddress={id} />
       {children}
     </div>
   )
