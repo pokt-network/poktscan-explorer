@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { isValidPoktAddress } from '@/app/utils/poktroll'
 import { uniq } from 'lodash'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { setCookie } from '@/app/utils/cookies'
 
 function CopyAllButton() {
   const {addresses} = useSelectedAddresses()
@@ -137,9 +138,13 @@ function getInputStatus(addressesSelected: Array<string>, inputValue: string): I
 
 interface ManageAddressesProps {
   pushOnChange?: boolean
+  addressesCookieKey?: string
 }
 
-export default function ManageAddresses({pushOnChange}: ManageAddressesProps) {
+export default function ManageAddresses({
+  pushOnChange,
+  addressesCookieKey,
+}: ManageAddressesProps) {
   const [showModal, setShowModal] = useState(false)
   const [addressesInput, setAddressesInput] = useState('')
   const {addresses, setAddresses} = useSelectedAddresses()
@@ -173,6 +178,11 @@ export default function ManageAddresses({pushOnChange}: ManageAddressesProps) {
       setAddressesInput('')
 
       updateUrl(allAddresses)
+
+      if (addressesCookieKey) {
+        setCookie(addressesCookieKey, allAddresses.join(','), {})
+      }
+
       setShowModal(false)
     }
   }

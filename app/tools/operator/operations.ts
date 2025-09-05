@@ -107,3 +107,37 @@ export const rewardsByServicesDocument = graphql(`
     )
   }
 `)
+
+export const claimProofByAddressesAndTimesDocument = graphql(`
+  query claimProofData(
+    $addresses: [String!]!
+    $startDate: Datetime!
+    $endDate: Datetime!
+    $truncInterval: String!
+  ) {
+    data: getClaimProofsDataByDelegatorsAndTime(
+      addresses: $addresses,
+      startTs: $startDate,
+      endTs: $endDate,
+      truncInterval: $truncInterval
+    )
+  }
+`)
+
+export const claimProofByAddressesAndTimesVariables = (
+  addresses: Array<string>,
+  dateStr: string,
+  timeSelected: string
+): ExtractVariables<typeof claimProofByAddressesAndTimesDocument> => {
+  const { start, end, truncInterval } = getStartAndEndDateBasedOnTime(
+    dateStr,
+    timeSelected
+  )
+
+  return {
+    addresses,
+    startDate: start.toISOString(),
+    endDate: end.toISOString(),
+    truncInterval,
+  }
+}

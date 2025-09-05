@@ -1,19 +1,26 @@
 import { PageProps } from '@/app/types/pages'
 import { Suspense } from 'react'
+import { cookies } from 'next/headers'
 import { LoadingTable } from '@/app/components/LoadingListView'
 import SuppliersTable, { columns as supplierColumns } from '@/app/components/SuppliersTable/SuppliersTable'
+import { addressesCookieKey } from '@/app/tools/staking/constants'
 import { getPageAndItems } from '@/app/utils/pagination'
 import { getValidAddresses } from '@/app/tools/utils'
 import NoData from '@/app/components/NoData'
 
 export default async function NodeRunningPage({searchParams}: PageProps) {
-  const [searchParamsAwaited, {itemsPerPage, page}] = await Promise.all([
+  const [searchParamsAwaited, {itemsPerPage, page}, cookiesAwaited] = await Promise.all([
     searchParams,
-    getPageAndItems(searchParams)
+    getPageAndItems(searchParams),
+    cookies()
   ])
 
   const activeFilter = typeof searchParamsAwaited.filter === 'string' ? searchParamsAwaited.filter : undefined
-  const validAddresses = getValidAddresses(searchParamsAwaited?.addresses as string)
+  let validAddresses = getValidAddresses(searchParamsAwaited?.addresses as string)
+
+  if (!validAddresses.length) {
+    validAddresses = getValidAddresses(cookiesAwaited.get(addressesCookieKey)?.value || '')
+  }
 
   if (!validAddresses.length) {
     return (

@@ -16,6 +16,8 @@ export default function getRows(app: Application | null, isLoading = false) {
       label: 'Balance',
       value: skeleton || formatUpokt({
         amount: app?.balance || '0',
+        abbreviateThreshold: Infinity,
+        maxDecimals: 6
       })
     },
     {
@@ -31,6 +33,8 @@ export default function getRows(app: Application | null, isLoading = false) {
       label: 'Stake Amount',
       value: skeleton || formatUpokt({
         amount: app?.stake || '0',
+        abbreviateThreshold: Infinity,
+        maxDecimals: 6
       })
     },
     {

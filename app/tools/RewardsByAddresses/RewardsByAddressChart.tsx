@@ -263,6 +263,8 @@ export default function RewardsByAddressChart({
                     abbreviateThreshold: 1e6,
                   })
                 }
+                projectionIsUpokt={true}
+                addProjection={true}
               />
             </div>
             {!groupAllAddresses && (

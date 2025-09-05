@@ -13,8 +13,10 @@ import {
 import { useRef } from 'react'
 import millify from 'millify'
 import { useTheme } from 'next-themes'
-import { formatDate, LineBarItem } from '@/app/Charts/utils'
+import { formatDate, getUtcStartOfDay, LineBarItem } from '@/app/Charts/utils'
 import { convertUpoktToPokt, formatSimpleAmount } from '@/app/utils/format'
+import { useHeightContext } from '@/app/context/height'
+import { getProjection } from '@/app/utils/calculate'
 
 // Register the components
 ChartJS.register(
@@ -31,6 +33,7 @@ type Item = {
   totalRelays: number;
   totalComputedUnits: number;
   totalPokt: number;
+  original?: number
 } & LineBarItem
 
 export interface ComputeUnitsLineChartProps {
@@ -40,7 +43,27 @@ export interface ComputeUnitsLineChartProps {
 export default function ComputeUnitsLineChart({data}: ComputeUnitsLineChartProps) {
   const {theme = 'dark'} = useTheme();
   const isDark = theme === 'dark'
+  const {currentTime} = useHeightContext()
   const chartRef= useRef<ChartJS<'line'>>()
+
+  const latestPoint = data.at(-1)
+  const previousPoint = data.at(-2)
+
+  if (latestPoint && getUtcStartOfDay(currentTime || new Date()).toISOString() === latestPoint.point) {
+    const original: Item['original'] = Number(latestPoint.totalComputedUnits.toString())
+
+    data[data.length - 1] = {
+      ...latestPoint,
+      totalComputedUnits: getProjection({
+        startOfDay: latestPoint.point,
+        currentDate: currentTime || new Date(),
+        currentValue: latestPoint.totalComputedUnits,
+        previousValue: previousPoint?.totalComputedUnits || 0,
+        unit: 'days'
+      }).toNumber(),
+      original,
+    }
+  }
 
   const labels = data.map((item) => item.point);
   const allHaveTheSameValue = data.every((item) => item.totalComputedUnits === data[0].totalComputedUnits);
@@ -69,6 +92,13 @@ export default function ComputeUnitsLineChart({data}: ComputeUnitsLineChartProps
             pointBackgroundColor: 'transparent',
             pointBorderWidth: 0,
             borderWidth: 1.5,
+            segment: {
+              borderDash: (context) => {
+                // eslint-disable-next-line
+                // @ts-ignore
+                return context.p1.raw.original ? [10, 7] : undefined
+              },
+            }
           }
         ]
       }}
@@ -167,11 +197,22 @@ export default function ComputeUnitsLineChart({data}: ComputeUnitsLineChartProps
                 const data = context.dataset.data[context.dataIndex] as unknown as Item
 
                 return [
-                  `Computed Units: ${formatSimpleAmount(data?.totalComputedUnits || 0)}`,
+                  `Computed Units: ${formatSimpleAmount(data?.original || data?.totalComputedUnits || 0)}`,
                   `Relays: ${formatSimpleAmount(data?.totalRelays || 0)}`,
                   `POKT: ${formatSimpleAmount(convertUpoktToPokt(data?.totalPokt || 0))}`
                 ]
               },
+              footer(tooltipItems): string | string[] | void {
+                const data = tooltipItems.at(0)?.raw as unknown as Item
+
+                if (data && data.original) {
+                  return [
+                    '',
+                    'PROJECTED:',
+                    `Computed Units: ${formatSimpleAmount(data?.totalComputedUnits || 0)}`,
+                  ]
+                }
+              }
             }
           },
           legend: {

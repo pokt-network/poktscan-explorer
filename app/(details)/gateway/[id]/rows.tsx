@@ -13,7 +13,9 @@ export default function getRows(gateway, isLoading = false) {
       type: 'row',
       label: 'Balance',
       value: skeleton || formatUpokt({
-        amount: gateway.balance
+        amount: gateway.balance,
+        abbreviateThreshold: Infinity,
+        maxDecimals: 6
       })
     },
     {
@@ -28,7 +30,9 @@ export default function getRows(gateway, isLoading = false) {
       type: 'row',
       label: 'Stake Amount',
       value: skeleton || formatUpokt({
-        amount: gateway.stake
+        amount: gateway.stake,
+        abbreviateThreshold: Infinity,
+        maxDecimals: 6
       })
     },
   ]

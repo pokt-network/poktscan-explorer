@@ -77,7 +77,9 @@ export default function getRows(validator: Validator | null, isLoading = false) 
         type: 'row',
         label: 'Balance',
         value: skeleton || formatUpokt({
-          amount: validator!.balance
+          amount: validator!.balance || 0,
+          abbreviateThreshold: Infinity,
+          maxDecimals: 6
         }),
       },
       {

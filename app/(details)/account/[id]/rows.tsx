@@ -16,7 +16,9 @@ export default function getRows(account, isLoading = false) {
       type: 'row',
       label: 'Balance',
       value: skeleton || formatUpokt({
-        amount: account.amount
+        amount: account.amount,
+        abbreviateThreshold: Infinity,
+        maxDecimals: 6
       })
     },
   ]

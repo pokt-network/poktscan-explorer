@@ -1,18 +1,22 @@
 'use client'
+import type { Chart as ChartJs } from 'chart.js'
 import { Chart, ChartProps } from 'react-chartjs-2'
-import { formatSimpleAmount } from '@/app/utils/format'
+import { formatAmount, formatSimpleAmount } from '@/app/utils/format'
 import {
   ChartLoaderConfigProps,
   formatDate,
   getChartLoaderConfig,
   getCommonChartLoaderOptions,
+  getUtcStartOfDay,
   hashStringToColor,
   LineBarItem,
   UnitTimeGroup,
 } from '@/app/Charts/utils'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 import merge from 'lodash/merge'
+import { useHeightContext } from '@/app/context/height'
+import { getProjection } from '@/app/utils/calculate'
 
 interface BaseLineBarChartProps<T extends LineBarItem> {
   chartType?: 'line' | 'bar'
@@ -27,6 +31,10 @@ interface BaseLineBarChartProps<T extends LineBarItem> {
   customDataLoaderProps?: Partial<ChartLoaderConfigProps>
   formatValueAxisY?: (value: string | number) => string
   displayColorsInTooltip?: boolean
+  ref?: React.RefObject<ChartJs<'bar'> | null>
+  getCustomDatasetProps?: (id: string) => object
+  addProjection?: boolean
+  projectionIsUpokt?: boolean
 }
 
 export default function BaseLineBarChart<T extends LineBarItem>({
@@ -42,8 +50,13 @@ export default function BaseLineBarChart<T extends LineBarItem>({
   customDataLoaderProps,
   formatValueAxisY,
   displayColorsInTooltip = true,
+  ref,
+  getCustomDatasetProps,
+  addProjection = true,
+  projectionIsUpokt
 }: BaseLineBarChartProps<T>) {
   const {theme} = useTheme()
+  const {currentTime} = useHeightContext()
   const [colors, setColors] = useState({
     primary: '',
     skeleton: '',
@@ -66,6 +79,44 @@ export default function BaseLineBarChart<T extends LineBarItem>({
 
   const dataEntries = Object.entries(data)
 
+  const projectionDatasets = []
+
+  if (addProjection && chartType === 'bar') {
+    for (let i = 0; i < dataEntries.length; i++) {
+      const [id, items] = dataEntries[i]
+
+      const latestPoint = items.at(-1)
+      const previousPoint = items.at(-2)
+
+      if (latestPoint && getUtcStartOfDay(currentTime || new Date()).toISOString() === latestPoint.point) {
+        const original = Number(latestPoint[yAxisKey])
+
+        const projection = getProjection({
+          startOfDay: latestPoint.point,
+          currentDate: currentTime || new Date(),
+          currentValue: (latestPoint[yAxisKey] || 0).toString(),
+          previousValue: (previousPoint?.[yAxisKey] || 0).toString(),
+          unit: 'days'
+        }).toNumber() as T[typeof yAxisKey]
+
+        projectionDatasets.push({
+          type: chartType,
+          data: [{
+            ...latestPoint,
+            original,
+            [yAxisKey]: projection - original,
+          }],
+          categoryPercentage: 0.5,
+          borderWidth: 0,
+          barPercentage: 1,
+          backgroundColor: '#95EEB9',
+          order: i + 1,
+          stack: id,
+        })
+      }
+    }
+  }
+
   const chartData = isLoading
     ? getChartLoaderConfig({
         length: 7,
@@ -80,9 +131,32 @@ export default function BaseLineBarChart<T extends LineBarItem>({
     datasets: dataEntries.map(([id, items], index) => {
       const color = colorById?.[id] || hashStringToColor(id)
 
+      const chartData = [...items]
+
+      if (addProjection && chartType === 'line') {
+        const latestPoint = items.at(-1)
+        const previousPoint = items.at(-2)
+
+        if (latestPoint && getUtcStartOfDay(currentTime || new Date()).toISOString() === latestPoint.point) {
+          const original = Number(latestPoint[yAxisKey])
+
+          chartData[chartData.length - 1] = {
+            ...latestPoint,
+            [yAxisKey]: getProjection({
+              startOfDay: latestPoint.point,
+              currentDate: currentTime || new Date(),
+              currentValue: (latestPoint[yAxisKey] || 0).toString(),
+              previousValue: (previousPoint?.[yAxisKey] || 0).toString(),
+              unit: 'days'
+            }).toNumber() as T[typeof yAxisKey],
+            original,
+          }
+        }
+      }
+
       const baseProps = {
         type: chartType,
-        data: items,
+        data: chartData,
         categoryPercentage: 0.5,
         borderWidth: 0,
         barPercentage: 1,
@@ -99,6 +173,14 @@ export default function BaseLineBarChart<T extends LineBarItem>({
           pointHoverRadius: 4,
           pointHoverBorderWidth: 3,
           borderColor: color,
+          ...getCustomDatasetProps?.(id),
+          segment: {
+            borderDash: (context) => {
+              // eslint-disable-next-line
+              // @ts-ignore
+              return context.p1.raw.original ? [10, 7] : undefined
+            },
+          }
         }
       }
 
@@ -106,10 +188,13 @@ export default function BaseLineBarChart<T extends LineBarItem>({
         return {
           ...baseProps,
           barPercentage: 1,
+          ...(addProjection && {
+            stack: id
+          })
           // maxBarThickness: barThickness,
         }
       }
-    })
+    }).concat(projectionDatasets)
   }
 
   let options: object = {
@@ -226,11 +311,54 @@ export default function BaseLineBarChart<T extends LineBarItem>({
           label: function(context) {
             const data = context.dataset.data[context.dataIndex] as T
 
-            return getTooltipLabel ? getTooltipLabel(data) : context.label
+            if (data.original && chartType === 'bar') {
+              return [
+                'PROJECTED:',
+                formatAmount({
+                  amount: data.original + data[yAxisKey],
+                  denom: projectionIsUpokt ? 'upokt' : undefined,
+                  abbreviateThreshold: Infinity,
+                  maxDecimals: projectionIsUpokt ? 6 : 2
+                }),
+              ]
+            }
+
+            const labels = getTooltipLabel ? getTooltipLabel({
+              ...data,
+              [yAxisKey]: data.original || data[yAxisKey],
+            }) : context.label
+
+            if (!data.original) return labels
+
+            const labelsToAdd = [
+              '',
+              'PROJECTED:',
+              formatAmount({
+                amount: data[yAxisKey],
+                denom: projectionIsUpokt ? 'upokt' : undefined,
+                abbreviateThreshold: Infinity,
+                maxDecimals: projectionIsUpokt ? 6 : 2
+              }),
+            ]
+
+            if (typeof labels === 'string') {
+              return [
+                labels,
+                ...labelsToAdd,
+              ]
+            } else {
+              labels.push(
+                ...labelsToAdd
+              )
+
+              return labels
+            }
           },
         }
       },
     },
+    animations: undefined,
+    events: undefined,
   }
 
   if (isLoading) {
@@ -242,6 +370,15 @@ export default function BaseLineBarChart<T extends LineBarItem>({
         from: colors.skeleton
       })
     )
+  } else {
+    options = {
+      ...options,
+      animations: {
+        y: {
+          duration: 0
+        }
+      },
+    }
   }
 
   if (customOptions) {
@@ -250,6 +387,7 @@ export default function BaseLineBarChart<T extends LineBarItem>({
 
   return (
     <Chart
+      ref={ref}
       type={'bar'}
       data={chartData}
       redraw={false}

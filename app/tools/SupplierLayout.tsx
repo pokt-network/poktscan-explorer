@@ -6,7 +6,6 @@ import {
 import { getValidAddresses } from '@/app/tools/utils'
 import { SelectedAddressesProvider } from '@/app/tools/SelectedAddresses'
 import SummaryAndRewards from '@/app/tools/SummaryAndRewards'
-import { maxAddresses } from '@/app/tools/operator/constants'
 import React from 'react'
 import { SelectedTimeProvider, TimeSelector } from '@/app/Charts/SelectedTime'
 import { selectedTimeCookieKey, selectedTimeParamKey } from '@/app/tools/constants'
@@ -20,9 +19,17 @@ interface SupplierLayoutProps {
   pushOnAddressChange?: boolean
   title: string
   description: string
+  addressesCookieKey?: string
 }
 
-export default async function SupplierLayout({children, isOwner, pushOnAddressChange, title, description}: SupplierLayoutProps) {
+export default async function SupplierLayout({
+  children,
+  isOwner,
+  pushOnAddressChange,
+  title,
+  description,
+  addressesCookieKey,
+}: SupplierLayoutProps) {
   const [cookiesAwaited, awaitedHeaders] = await Promise.all([
     cookies(),
     headers()
@@ -32,7 +39,11 @@ export default async function SupplierLayout({children, isOwner, pushOnAddressCh
     awaitedHeaders.get('time') || ''
   )
 
-  const validAddresses = getValidAddresses(awaitedHeaders.get('addresses') as string)
+  let validAddresses = getValidAddresses(awaitedHeaders.get('addresses') as string)
+
+  if (!validAddresses.length && addressesCookieKey) {
+    validAddresses = getValidAddresses(cookiesAwaited.get(addressesCookieKey)?.value || '')
+  }
 
   const chartType = cookiesAwaited.get(chartTypeCookieKey)?.value || 'line'
 
@@ -51,7 +62,10 @@ export default async function SupplierLayout({children, isOwner, pushOnAddressCh
                 )}
                 content={description}
               />
-              <ManageAddresses pushOnChange={pushOnAddressChange} />
+              <ManageAddresses
+                pushOnChange={pushOnAddressChange}
+                addressesCookieKey={addressesCookieKey}
+              />
 
             </div>
             <div className={'flex flex-row items-center gap-3'}>
@@ -71,8 +85,6 @@ export default async function SupplierLayout({children, isOwner, pushOnAddressCh
             rewardsChartTime={time}
             chartType={chartType}
             isOwner={isOwner}
-            pushOnAddressChange={pushOnAddressChange}
-            inputHelperText={`Enter a comma-separated list of ${isOwner ? 'Owner' : 'Delegator'} addresses to search for. Max addresses allowed: ${maxAddresses}.`}
           />
 
           {children}
