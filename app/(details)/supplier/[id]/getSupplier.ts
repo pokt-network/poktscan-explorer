@@ -88,9 +88,17 @@ export async function getSupplierFromRpc(id: string, rpcUrl: string): Promise<Su
   return {
     status: isStaked ? "Staked" : "Unstaking",
     stakeType: isStaked ? supplier.operator_address !== supplier.owner_address ? "Non-Custodian" : 'Custodian' : '-',
-    stakeAmount: formatAmount(supplier.stake),
+    stakeAmount: formatAmount({
+      ...supplier.stake,
+      abbreviateThreshold: Infinity,
+      maxDecimals: 6
+    }),
     operatorAddress: supplier.operator_address,
-    balance: formatAmount(balance),
+    balance: formatAmount({
+      ...balance,
+      abbreviateThreshold: Infinity,
+      maxDecimals: 6
+    }),
     ownerAddress: supplier.owner_address,
     ownerBalance: null,
     unstakingBeginAt: null,
@@ -124,17 +132,27 @@ export function parseSupplierFromIndexer(data: DocumentNodeData<typeof supplierB
     stakeType: getStakeType(supplierFromIndexer!.stakeStatus, supplierFromIndexer!.id, supplierFromIndexer!.owner?.id),
     stakeAmount: formatAmount({
       amount: supplierFromIndexer!.stakeAmount,
-      denom: supplierFromIndexer!.stakeDenom
+      denom: supplierFromIndexer!.stakeDenom,
+      abbreviateThreshold: Infinity,
+      maxDecimals: 6
     }),
     operatorAddress: supplierFromIndexer.id,
-    balance: formatAmount(supplierFromIndexer.operator?.balances?.nodes?.find(c => c!.denom === 'upokt') || {
+    balance: formatAmount({
+      ...(supplierFromIndexer.operator?.balances?.nodes?.find(c => c!.denom === 'upokt') || {
       amount: '0',
-      denom: 'upokt'
+      denom: 'upokt',
+      }),
+      abbreviateThreshold: Infinity,
+      maxDecimals: 6
     }),
     ownerAddress: supplierFromIndexer.owner?.id || supplierFromIndexer.id,
-    ownerBalance: formatAmount(supplierFromIndexer.owner?.balances?.nodes?.find(c => c!.denom === 'upokt') || {
-      amount: '0',
-      denom: 'upokt'
+    ownerBalance: formatAmount({
+      ...(supplierFromIndexer.owner?.balances?.nodes?.find(c => c!.denom === 'upokt') || {
+        amount: '0',
+        denom: 'upokt',
+      }),
+      abbreviateThreshold: Infinity,
+      maxDecimals: 6
     }),
     unstakingBeginAt: supplierFromIndexer.unstakingBeginBlock?.height || null,
     unstakingEndAt: supplierFromIndexer.unstakingEndHeight,

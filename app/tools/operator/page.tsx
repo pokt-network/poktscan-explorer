@@ -1,5 +1,5 @@
 import { PageProps } from '@/app/types/pages'
-import { OperatorTabs, selectedTimeCookieKey, selectedTimeParamKey } from './constants'
+import { addressesCookieKey, OperatorTabs, selectedTimeCookieKey, selectedTimeParamKey } from './constants'
 import { cookies } from 'next/headers'
 import React, { Suspense } from 'react'
 import { getValidAddresses } from '@/app/tools/utils'
@@ -14,6 +14,7 @@ import NoData from '@/app/components/NoData'
 import { getValidTime, Time } from '@/app/utils/dates'
 import RewardsByServiceTable from '@/app/tools/operator/ServicesTab/Table'
 import RewardsByServiceLoader from '@/app/tools/operator/ServicesTab/Loader'
+import ComparisonChart from '@/app/tools/operator/ComparisonChart'
 
 const tabs = [
   {
@@ -52,7 +53,11 @@ export default async function NodeRunningPage({searchParams}: PageProps) {
     selectedTime = selectedTimeFromSearchParams as Time
   }
 
-  const validAddresses = getValidAddresses(searchParamsAwaited?.addresses as string)
+  let validAddresses = getValidAddresses(searchParamsAwaited?.addresses as string)
+
+  if (!validAddresses.length) {
+    validAddresses = getValidAddresses(cookiesAwaited.get(addressesCookieKey)?.value || '')
+  }
 
   let activeTab = OperatorTabs.ClaimProof
 
@@ -64,16 +69,19 @@ export default async function NodeRunningPage({searchParams}: PageProps) {
 
   if (activeTab === OperatorTabs.ClaimProof) {
     content = (
-      <Suspense
-        key={validAddresses.join(',') + selectedTime}
-        fallback={(
-          <>
-            <LastClaimingWindowTableLoader />
-          </>
-        )}
-      >
-        <ServerLastClaimingWindowTable addresses={validAddresses} time={selectedTime} />
-      </Suspense>
+      <>
+        <ComparisonChart />
+        <Suspense
+          key={validAddresses.join(',') + selectedTime}
+          fallback={(
+            <>
+              <LastClaimingWindowTableLoader />
+            </>
+          )}
+        >
+          <ServerLastClaimingWindowTable addresses={validAddresses} time={selectedTime} />
+        </Suspense>
+      </>
     )
   } else if (activeTab === OperatorTabs.RewardsByService) {
     content = (

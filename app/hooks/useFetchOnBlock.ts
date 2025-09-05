@@ -142,6 +142,13 @@ export default function useFetchOnBlock<
     // eslint-disable-next-line
   }, [currentHeight, query, variables])
 
+  useEffect(() => {
+    if (!initialResult && !initialError) {
+      fetchDataFunction()
+    }
+    // eslint-disable-next-line
+  }, [])
+
   const data = parsedData || lastValueRef.current
 
   return {

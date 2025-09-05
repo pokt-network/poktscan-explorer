@@ -23,6 +23,7 @@ interface RouteItem {
   type: 'route'
   label: string
   href: string
+  disabled?: boolean
 }
 
 interface RoutesMenuProps {
@@ -98,6 +99,7 @@ export default function RoutesMenu({label, items}: RoutesMenuProps) {
                 label={item.label}
                 href={item.href}
                 key={item.href}
+                disabled={item.disabled}
                 onClick={() => {
                   if (!isSmOrLess.current) {
                     setOpen(false);
@@ -122,6 +124,7 @@ interface SingleRoute {
   label: string
   href: string
   type: 'single'
+  disabled?: boolean
 }
 
 export interface RoutesAccordionProps {
@@ -142,6 +145,7 @@ export function RoutesAccordion({routeGroups}: RoutesAccordionProps) {
               href={item.href}
               label={item.label}
               onClick={collapse}
+              disabled={item.disabled}
             />
           )
         } else {
@@ -167,6 +171,7 @@ export function RoutesAccordion({routeGroups}: RoutesAccordionProps) {
                       href={item.href}
                       label={item.label}
                       onClick={collapse}
+                      disabled={item.disabled}
                     />
                   )
                 })}
@@ -182,10 +187,11 @@ export function RoutesAccordion({routeGroups}: RoutesAccordionProps) {
 interface RouteSingleProps {
   label: string
   href: string
+  disabled?: boolean
   onClick?: () => void
 }
 
-export function RouteSingle({label, href, onClick}: RouteSingleProps) {
+export function RouteSingle({label, href, disabled, onClick}: RouteSingleProps) {
   const pathname = usePathname()
   const isActive = getLabelOfRouteIsActive({label, pathname, href})
 
@@ -201,6 +207,16 @@ export function RouteSingle({label, href, onClick}: RouteSingleProps) {
           {label}
         </Button>
       </a>
+    )
+  }
+
+  if (disabled) {
+    return (
+      <span
+        className={`text-xs block text-gray-400 decoration-none rounded-md p-2 hover:bg-[color:--highlight-option]`}
+      >
+      {label}
+      </span>
     )
   }
 
@@ -222,9 +238,35 @@ interface SingleRouteItemProps extends Omit<SingleRoute, 'type'> {
   onClick?: () => void
 }
 
-export function SingleRouteItem({href, label, onClick}: SingleRouteItemProps) {
+export function SingleRouteItem(props: SingleRouteItemProps) {
+  const {label, href, disabled, onClick} = props
   const pathname = usePathname()
   const isActive = getLabelOfRouteIsActive({label, pathname, href})
+
+  if (href.startsWith('http')) {
+    return (
+      <a
+        href={href}
+        target={'_blank'}
+        className={`block hover:text-sky-500 h-[32px] font-normal ${isActive && 'text-sky-500'}`}
+        onClick={onClick}
+      >
+        <Button variant={'ghost'} className={'px-0 text-xs font-normal lg:px-4'}>
+          {label}
+        </Button>
+      </a>
+    )
+  }
+
+  if (disabled) {
+    return (
+      <span
+        className={`text-xs block text-gray-400 decoration-none rounded-md p-2 hover:bg-[color:--highlight-option]`}
+      >
+      {label}
+      </span>
+    )
+  }
 
   return (
     <Link

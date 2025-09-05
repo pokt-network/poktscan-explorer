@@ -102,11 +102,6 @@ export const slashedColumns: Array<GridColDef> = [
       </div>
     )
   },
-  {
-    field: 'sessionId',
-    headerName: 'Session Id',
-    description: 'Id of the session where the slashing happened.'
-  },
 ]
 
 interface SlashingTableProps {

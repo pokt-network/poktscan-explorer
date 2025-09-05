@@ -19,11 +19,13 @@ const routes: RoutesAccordionProps['routeGroups'] = [
         type: 'route',
         label: 'Gateways And Apps',
         href: '/dashboards/gateways-apps',
+        disabled: true,
       },
       {
         type: 'route',
         label: 'Tokenomics',
         href: '/dashboards/tokenomics',
+        disabled: true,
       },
       {
         type: 'route',
@@ -34,6 +36,7 @@ const routes: RoutesAccordionProps['routeGroups'] = [
         type: 'route',
         label: 'Governance',
         href: '/dashboards/governance',
+        disabled: true,
       }
     ]
   },
@@ -44,7 +47,8 @@ const routes: RoutesAccordionProps['routeGroups'] = [
       {
         type: 'route',
         label: 'Gateways and Apps',
-        href: '/tools/apps-gateways'
+        href: '/tools/apps-gateways',
+        disabled: true,
       },
       {
         type: 'route',
@@ -120,16 +124,34 @@ const routes: RoutesAccordionProps['routeGroups'] = [
     items: [
       {
         type: 'route',
-        label: 'Top Statistics',
-        href: '/resources/top-statistics'
+        label: 'Official Docs',
+        href: 'https://docs.pokt.network/'
+      },
+      {
+        type: 'route',
+        label: 'Developer Docs',
+        href: 'https://dev.poktroll.com/'
       },
       {
         type: 'divider',
       },
       {
         type: 'route',
-        label: 'Knowledge Base',
-        href: '/resources/knowledge-base'
+        label: 'Soothe Vault',
+        href: 'https://trustsoothe.io/'
+      },
+      {
+        type: 'route',
+        label: 'Keplr Wallet',
+        href: 'https://www.keplr.app/get'
+      },
+      {
+        type: 'divider',
+      },
+      {
+        type: 'route',
+        label: 'POKT Money',
+        href: 'https://pokt.money/'
       },
     ]
   }

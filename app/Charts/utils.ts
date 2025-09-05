@@ -479,6 +479,7 @@ export const getCommonChartLoaderOptions = ({
 export type LineBarItem = {
   id: string
   point: string
+  original?: number
 }
 
 interface FillChartDataOptions<T extends LineBarItem> {

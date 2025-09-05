@@ -19,10 +19,9 @@ export default function ExplorerSelector() {
     }
   }, [])
 
-  const isAlphaSelected = origin.includes('alpha')
   const isBetaSelected = origin.includes('beta')
 
-  const isMainNetSelected = origin.includes('poktscan.com') && !isAlphaSelected && !isBetaSelected
+  const isMainNetSelected = origin.includes('poktscan.com') && !isBetaSelected
 
   const check = (
     <Check className={'h-4 w-4 text-[color:--secondary] dark:text-white'} />
@@ -36,7 +35,7 @@ export default function ExplorerSelector() {
           ) : (
           <>
             <p className={'text-[13px] font-medium dark:text-white'}>
-              {isAlphaSelected ? 'Alpha' : isBetaSelected ? 'Beta' : 'MainNet'}
+              {isBetaSelected ? 'Beta' : 'MainNet'}
             </p>
             <ChevronDown className={'h-4 w-4 text-[color:--secondary]'} />
           </>
@@ -55,19 +54,6 @@ export default function ExplorerSelector() {
             MainNet
           </a>
           {isMainNetSelected && check}
-        </DropdownMenuLabel>
-        <DropdownMenuLabel
-          aria-disabled={isAlphaSelected}
-          className={`flex flex-row font-medium justify-between items-center gap-2`}
-        >
-          <a
-            className={'cursor-pointer w-full'}
-            href={'https://alpha.poktscan.com'}
-            target={'_blank'}
-          >
-            Alpha
-          </a>
-          {isAlphaSelected && check}
         </DropdownMenuLabel>
         <DropdownMenuLabel
           aria-disabled={isBetaSelected}
