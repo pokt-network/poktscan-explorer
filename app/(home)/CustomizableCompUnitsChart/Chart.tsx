@@ -135,7 +135,8 @@ export default function CustomizableCompUnitsChart() {
               abbreviateThreshold: Infinity,
             })}`,
             `POKT: ${formatAmount({
-              amount: data?.totalComputedUnits || 0,
+              amount: data?.totalPokt || 0,
+              denom: 'upokt',
               maxDecimals: 6,
               abbreviateThreshold: Infinity,
             })}`
