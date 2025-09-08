@@ -141,6 +141,19 @@ export default function CustomizableCompUnitsChart() {
             })}`
           ]
         }}
+        getCustomDatasetProps={() => {
+          return {
+            tension: 0.5,
+            pointRadius: 8,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            pointHoverRadius: 8,
+            pointBorderColor: 'transparent',
+            pointBackgroundColor: 'transparent',
+            pointBorderWidth: 0,
+            borderWidth: 1.5,
+          }
+        }}
       />
     </div>
   )
