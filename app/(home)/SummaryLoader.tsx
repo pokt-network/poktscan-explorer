@@ -4,7 +4,6 @@ import Price from '@/app/components/Price'
 import MarketCap from '@/app/(home)/MarketCap'
 import BoxLabel from '@/app/components/BoxLabel'
 import { Skeleton } from '@/components/ui/skeleton'
-import LineChartLoader from '@/app/(home)/LineChartLoader'
 import React from 'react'
 
 function Title({title}: {title: string}) {
@@ -134,18 +133,6 @@ export function ContentLoader() {
           </div>
         </div>
       </div>
-
-      <div
-        className={'flex md:col-span-2 lg:col-span-1 flex-col border-t lg:pt-0 pt-5 lg:border-t-0 gap-y-2.5 lg:pl-5 lg:border-l border-[color:--divider]'}>
-        <div className={'flex grow'}>
-          <Title
-            title={'Computed Units Last 7 Days'}
-          />
-        </div>
-        <div className={'h-[116px] lg:h-[100px] w-[calc(100vw-90px)] md:w-full flex min-w-0'}>
-          <LineChartLoader />
-        </div>
-      </div>
     </>
   )
 }
@@ -153,7 +140,7 @@ export function ContentLoader() {
 export default function SummaryLoader() {
   return (
     <div
-      className={'bg-[color:--main-background] gap-y-[20px] p-5 min-h-[180px] lg:h-[180px] rounded-xl border border-[color:--divider] grid md:grid-cols-2 lg:grid-cols-3 base-shadow z-10 relative'}
+      className={'bg-[color:--main-background] gap-y-[20px] p-5 min-h-[180px] lg:h-[180px] rounded-xl border border-[color:--divider] grid md:grid-cols-2 base-shadow z-10 relative'}
     >
       <ContentLoader />
     </div>

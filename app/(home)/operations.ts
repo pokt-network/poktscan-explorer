@@ -4,7 +4,6 @@ export const summaryDocument = graphql(`
   query summary(
     $currentDate: Datetime!,
     $last24HourDate: Datetime!,
-    $last7DaysDate: Datetime!,
     $startCurrentDate: Datetime!,
     $endCurrentDate: Datetime!
   ) {
@@ -45,11 +44,6 @@ export const summaryDocument = graphql(`
         }
       }
     }
-    groupByDay: getRewardsByDate(
-      startDate: $last7DaysDate,
-      endDate: $currentDate,
-      truncInterval: "day"
-    )
   }
 `)
 

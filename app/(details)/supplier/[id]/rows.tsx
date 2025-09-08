@@ -70,28 +70,28 @@ export default function getRows(values: Supplier | null,
         )
       }
     )
+  }
 
-    if (values.unstakedAt) {
-      rows.push({
-        type: 'row',
-        label: 'Unstaked At',
-        value: (
-          <div className={"text-sm"}>
-            <EntityLink entity={'block'} entityId={values.unstakedAt} copy={{enabled: true}}/>
-          </div>
-        )
-      })
-    } else if (values.unstakingEndAt) {
-      rows.push({
-        type: 'row',
-        label: 'Unstaking Ends At',
-        value: (
-          <div className={"text-sm"}>
-            <EntityLink entity={'block'} entityId={values.unstakingEndAt} copy={{enabled: true}}/>
-          </div>
-        )
-      })
-    }
+  if (!isLoading && values && values.unstakedAt) {
+    rows.push({
+      type: 'row',
+      label: 'Unstaked At',
+      value: (
+        <div className={"text-sm"}>
+          <EntityLink entity={'block'} entityId={values.unstakedAt} copy={{enabled: true}}/>
+        </div>
+      )
+    })
+  } else if (!isLoading && values && values.unstakingEndAt) {
+    rows.push({
+      type: 'row',
+      label: 'Unstaking Ends At',
+      value: (
+        <div className={"text-sm"}>
+          <EntityLink entity={'block'} entityId={values.unstakingEndAt} copy={{enabled: true}}/>
+        </div>
+      )
+    })
   }
 
   return rows

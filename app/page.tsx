@@ -7,6 +7,7 @@ import ServicesCard from '@/app/(home)/Services/ServicesCard'
 import { getLatestBlock } from '@/app/api/blocks'
 // import SponsoredLabel from '@/app/components/SponsoredLabel'
 import { evolutionDocument, servicesDocument, summaryDocument } from '@/app/(home)/operations'
+import CustomizableCompUnits from '@/app/(home)/CustomizableCompUnitsChart'
 import Summary from '@/app/(home)/Summary'
 import SummaryLoader from '@/app/(home)/SummaryLoader'
 import { Suspense } from 'react'
@@ -115,6 +116,10 @@ export default async function Home({searchParams}: {searchParams: Promise<Record
         >
           <ServerSummary />
         </Suspense>
+      </div>
+
+      <div className={'px-4 md:px-5 pb-4'}>
+        <CustomizableCompUnits />
       </div>
 
       <div className={'px-4 md:px-5 pb-10 flex lg:flex-row flex-col gap-4'}>

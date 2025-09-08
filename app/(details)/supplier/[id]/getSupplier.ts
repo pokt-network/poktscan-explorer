@@ -102,7 +102,7 @@ export async function getSupplierFromRpc(id: string, rpcUrl: string): Promise<Su
     ownerAddress: supplier.owner_address,
     ownerBalance: null,
     unstakingBeginAt: null,
-    unstakingEndAt: null,
+    unstakingEndAt: isStaked ? null : supplier.unstake_session_end_height,
     unstakedAt: null,
   }
 }

@@ -110,9 +110,10 @@ export default function ClaimProofExpiredChart({
       <div className={'h-[calc(100%-60px-48px)] px-4'}>
         <BaseLineBarChart
           data={{
-            ...data,
-            ...(hideExpired && {
-              expired: undefined
+            claims: data?.claims || [],
+            proofs: data?.proofs || [],
+            ...(!hideExpired && {
+              expired: data?.expired || [],
             })
           }}
           ref={chartRef}

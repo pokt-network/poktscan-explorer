@@ -9,16 +9,13 @@ import Price from '@/app/components/Price'
 import { Blend, Box, Globe, Landmark, RefreshCcw } from 'lucide-react'
 import { formatAmount, formatUpokt } from '@/app/utils/format'
 import BoxLabel from '@/app/components/BoxLabel'
-import ComputeUnitsLineChart, { ComputeUnitsLineChartProps } from '@/app/(home)/ComputeUnitsLineChart'
 import MarketCap from '@/app/(home)/MarketCap'
 import EntityLink from '@/app/components/EntityLink'
 import DateCellText from '@/app/dates/DateCellText'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { ContentLoader } from '@/app/(home)/SummaryLoader'
 import { clsx } from 'clsx'
-import { fillChartData, normalizeIsoDate } from '@/app/Charts/utils'
 import { useHeightContext } from '@/app/context/height'
-
 
 function Title({title}: {title: string}) {
   return (
@@ -65,26 +62,6 @@ export default function Summary({initialData, initialError, initialVariables}: S
     const currentSupply = data?.supply?.at(0)?.total_supply || latestBlock?.supplies?.nodes?.find((s) => s?.supply?.denom === 'upokt')?.supply?.amount
     const totalStaked = BigInt(latestBlock?.stakedSuppliersTokens || 0) + BigInt(latestBlock?.stakedAppsTokens || 0) + BigInt(latestBlock?.stakedGatewaysTokens || 0)
     const summary = data?.blocks?.aggregates?.sum
-
-    const rawData = (data?.groupByDay || []).map(i => ({
-      point: normalizeIsoDate(i.date_truncated),
-      start_date: normalizeIsoDate(i.date_truncated),
-      totalRelays: i.relays,
-      totalComputedUnits: i.computed_units,
-      totalPokt: i.claimed_amount,
-    }))
-
-    const groupByDay = fillChartData<ComputeUnitsLineChartProps['data'][number]>({
-      data: rawData,
-      defaultProps: {
-        totalComputedUnits: 0,
-        totalPokt: 0,
-        totalRelays: 0
-      },
-      startDate: lastVariablesRef?.current?.last7DaysDate,
-      endDate: lastVariablesRef?.current?.currentDate,
-      unitToFormatDate: 'day'
-    })
 
     content = (
       <>
@@ -226,18 +203,6 @@ export default function Summary({initialData, initialError, initialVariables}: S
             </div>
           </div>
         </div>
-
-        <div
-          className={'flex md:col-span-2 lg:col-span-1 flex-col border-t lg:pt-0 pt-5 lg:border-t-0 gap-y-0 lg:pl-5 lg:border-l border-[color:--divider] gap-1'}>
-          <div>
-            <Title
-              title={'Computed Units Last 7 Days'}
-            />
-          </div>
-          <div className={'h-[136px] w-[calc(100vw-90px)] md:w-full flex min-w-0'}>
-            <ComputeUnitsLineChart data={groupByDay} />
-          </div>
-        </div>
       </>
     )
   }
@@ -246,7 +211,7 @@ export default function Summary({initialData, initialError, initialVariables}: S
     <div
       className={
         clsx(
-          'gap-y-[20px] min-h-[180px] lg:h-[180px] z-10 relative px-5 pt-5 lg:pb-5 bg-[color:--main-background] md:grid-cols-2 lg:grid-cols-3 base-shadow rounded-xl border border-[color:--divider]',
+          'gap-y-[20px] min-h-[180px] lg:h-[180px] z-10 relative px-5 pt-5 lg:pb-5 bg-[color:--main-background] md:grid-cols-2 base-shadow rounded-xl border border-[color:--divider]',
           error && !isLoading ? 'flex' : 'grid',
         )
       }
