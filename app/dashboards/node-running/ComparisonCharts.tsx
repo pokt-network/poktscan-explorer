@@ -109,6 +109,7 @@ function NetworkClaimProofExpiredChart({ selectedTime, rawData, ...chartProps }:
       </div>
 
       <ClaimProofExpiredChart
+        onlyShowAmountInTooltip={false}
         {...chartProps}
       />
     </div>

@@ -106,11 +106,9 @@ export function getSummaryVariables(dateStr: string) {
   const currentDate = new Date(getDateFromIsoString(dateStr))
 
   const date24hBefore = addHoursToUtc(currentDate, -24)
-  const date7DaysBefore = getUtcStartOfDay(addDaysToUtc(currentDate, -6))
 
   return {
     last24HourDate: date24hBefore.toISOString(),
-    last7DaysDate: date7DaysBefore.toISOString(),
     currentDate: getUtcEndOfDay(currentDate).toISOString(),
     startCurrentDate: getUtcStartOfDay(currentDate).toISOString(),
     endCurrentDate: getUtcEndOfDay(currentDate).toISOString(),
