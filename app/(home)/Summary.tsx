@@ -40,7 +40,6 @@ export default function Summary({initialData, initialError, initialVariables}: S
     variables,
     initialResult: initialData,
     initialError,
-    updateOnNewSession: true,
   })
 
   let content: React.ReactNode

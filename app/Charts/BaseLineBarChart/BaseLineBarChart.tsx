@@ -8,6 +8,7 @@ import {
   getChartLoaderConfig,
   getCommonChartLoaderOptions,
   getUtcStartOfDay,
+  getUtcStartOfHour,
   hashStringToColor,
   LineBarItem,
   UnitTimeGroup,
@@ -81,6 +82,8 @@ export default function BaseLineBarChart<T extends LineBarItem>({
 
   const projectionDatasets = []
 
+  const getStartOfPoint = unitToFormatDate === 'hour' ? getUtcStartOfHour : getUtcStartOfDay
+
   if (addProjection && chartType === 'bar') {
     for (let i = 0; i < dataEntries.length; i++) {
       const [id, items] = dataEntries[i]
@@ -88,7 +91,7 @@ export default function BaseLineBarChart<T extends LineBarItem>({
       const latestPoint = items.at(-1)
       const previousPoint = items.at(-2)
 
-      if (latestPoint && getUtcStartOfDay(currentTime || new Date()).toISOString() === latestPoint.point) {
+      if (latestPoint && getStartOfPoint(currentTime || new Date()).toISOString() === latestPoint.point) {
         const original = Number(latestPoint[yAxisKey])
 
         const projection = getProjection({
@@ -137,7 +140,7 @@ export default function BaseLineBarChart<T extends LineBarItem>({
         const latestPoint = items.at(-1)
         const previousPoint = items.at(-2)
 
-        if (latestPoint && getUtcStartOfDay(currentTime || new Date()).toISOString() === latestPoint.point) {
+        if (latestPoint && getStartOfPoint(currentTime || new Date()).toISOString() === latestPoint.point) {
           const original = Number(latestPoint[yAxisKey])
 
           chartData[chartData.length - 1] = {
@@ -178,7 +181,48 @@ export default function BaseLineBarChart<T extends LineBarItem>({
             borderDash: (context) => {
               // eslint-disable-next-line
               // @ts-ignore
-              return context.p1.raw.original ? [10, 7] : undefined
+              if (typeof context.p1.raw.original === 'number') {
+                let segmentLength = Math.sqrt(
+                  Math.pow(context.p1.x - context.p0.x, 2) +
+                  Math.pow(context.p1.y - context.p0.y, 2)
+                );
+
+
+                const percent = (context.p1.raw.original / context.p1.raw[yAxisKey])
+                const segmentLengthPercent = segmentLength * percent;
+
+                const dashes = [segmentLengthPercent]
+                segmentLength -= segmentLengthPercent;
+
+                let transparent = true
+
+                let transparentDashLength = 5
+
+                if (percent > 0.7) {
+                  transparentDashLength = 2
+                } else if (percent > 0.5) {
+                  transparentDashLength = 3
+                }
+
+                while (segmentLength > 0) {
+                  let newDash = segmentLength
+
+                  if (transparent && newDash >= transparentDashLength) {
+                    transparent = false
+                    newDash = transparentDashLength
+                  } else if (!transparent && newDash >= 5) {
+                    transparent = true
+                    newDash = 5
+                  }
+
+                  segmentLength -= newDash
+
+                  dashes.push(newDash)
+                }
+
+                return dashes
+              }
+              return undefined;
             },
           }
         }
@@ -311,7 +355,7 @@ export default function BaseLineBarChart<T extends LineBarItem>({
           label: function(context) {
             const data = context.dataset.data[context.dataIndex] as T
 
-            if (data.original && chartType === 'bar') {
+            if (typeof data.original === 'number' && chartType === 'bar') {
               return [
                 'PROJECTED:',
                 formatAmount({
@@ -325,10 +369,10 @@ export default function BaseLineBarChart<T extends LineBarItem>({
 
             const labels = getTooltipLabel ? getTooltipLabel({
               ...data,
-              [yAxisKey]: data.original || data[yAxisKey],
+              [yAxisKey]: typeof data.original === 'number' ? data.original : data[yAxisKey],
             }) : context.label
 
-            if (!data.original) return labels
+            if (typeof data.original !== 'number') return labels
 
             const labelsToAdd = [
               '',

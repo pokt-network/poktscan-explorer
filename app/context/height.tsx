@@ -8,9 +8,10 @@ import { indexerMetadataDocument } from '@/app/operations/metadata'
 interface HeightContext {
   currentHeight: number
   networkHeight: number
+  // first height or the latest height with relays
+  sessionHeight: number
   updateNetworkHeight: () => void
   firstHeight: number
-  blocksPerSession: number
   currentTime: string
 }
 
@@ -18,7 +19,7 @@ const HeightContext = createContext<HeightContext>({
   currentHeight: 0,
   networkHeight: 0,
   firstHeight: 0,
-  blocksPerSession: 0,
+  sessionHeight: 0,
   currentTime: '',
   updateNetworkHeight: () => {}
 });
@@ -28,7 +29,6 @@ interface HeightContextProviderProps {
   firstHeight: number
   networkHeight: number
   firstTime: string
-  blocksPerSession: number
 }
 
 export default function HeightContextProvider({
@@ -36,9 +36,9 @@ export default function HeightContextProvider({
   networkHeight: initialNetworkHeight,
   firstHeight,
   firstTime,
-  blocksPerSession
 }: HeightContextProviderProps) {
   const [networkHeight, setNetworkHeight] = useState(initialNetworkHeight)
+  const [sessionHeight, setSessionHeight] = useState(Number(firstHeight))
   const [{currentHeight, currentTime}, setState] = useState({
     currentHeight: Number(firstHeight),
     currentTime: firstTime,
@@ -57,6 +57,10 @@ export default function HeightContextProvider({
 
         if (newBlockId > networkHeight) {
           setNetworkHeight(newBlockId)
+        }
+
+        if (Number(block?._entity?.totalRelays) > 0) {
+          setSessionHeight(newBlockId)
         }
       }
     }
@@ -92,7 +96,7 @@ export default function HeightContextProvider({
         currentTime,
         networkHeight,
         firstHeight,
-        blocksPerSession,
+        sessionHeight,
         updateNetworkHeight,
       }}
     >

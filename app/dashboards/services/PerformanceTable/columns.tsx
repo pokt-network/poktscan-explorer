@@ -5,13 +5,19 @@ export interface ServicePerformanceRow {
   serviceId: string
   serviceName: string
   stakedNodes: string
+  raw_stakedNodes: number
   stakedApps: string
+  raw_stakedApps: number
   network: number
   change: number
   computedUnits: string
+  raw_computedUnits: number
   relays: string
+  raw_relays: number
   earnAvg: string
+  raw_earnAvg: number
   totalEarn: string
+  raw_totalEarn: number
 }
 
 const columns: Array<GridColDef> = [

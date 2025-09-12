@@ -4,7 +4,7 @@ import ExportButton from '@/app/components/ExportButton'
 import { useDataContext } from '@/app/context/DataContext'
 import columns, { ServicePerformanceRow } from '@/app/dashboards/services/PerformanceTable/columns'
 import { CsvColumn } from '@/app/utils/exportToCsv'
-import { formatAmount, formatSimpleAmount } from '@/app/utils/format'
+import { convertUpoktToPokt } from '@/app/utils/format'
 
 const csvColumns: Array<CsvColumn> = columns.map((column) => ({
   field: column.field,
@@ -23,14 +23,12 @@ const formatterFunction = (field: keyof ServicePerformanceRow, row: ServicePerfo
     case 'computedUnits':
     case 'stakedApps':
     case 'stakedNodes':
-      return formatSimpleAmount(row[field])
+      return (row[`raw_${field}`] || 0).toString()
     case 'earnAvg':
-      return formatAmount({
-        amount: row[field],
-        denom: 'upokt'
-      }).split(' ')[0]
+    case 'totalEarn':
+      return convertUpoktToPokt(row[`raw_${field}`] || 0).toString()
     default:
-      return row[field]
+      return row[field].toString()
   }
 }
 

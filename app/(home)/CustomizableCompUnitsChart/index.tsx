@@ -20,7 +20,7 @@ export default async function CustomizableCompUnits() {
     <SelectedTimeProvider defaultTime={time}>
       <ChartTypeProvider defaultChartType={awaitedCookies.get(chartTypeCookieKey)?.value}>
         <DataProvider initialData={[]}>
-          <div id={containerId} className={"h-[450px] w-full flex flex-col rounded-lg border border-[color:--divider] bg-[color:--main-background] base-shadow"}>
+          <div id={containerId} className={"h-[350px] w-full flex flex-col rounded-lg border border-[color:--divider] bg-[color:--main-background] base-shadow"}>
             <div className={'flex flex-row px-4 pt-3 pb-1 items-start sm:items-center justify-between flex-wrap gap-2'}>
               <div className={'flex flex-col sm:flex-row sm:items-center gap-2 sm:h-7'}>
                 <div className={'flex flex-row items-center gap-2'}>

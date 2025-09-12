@@ -54,6 +54,7 @@ export const subscriptionQuery = graphql(`
         id
         height: id
         timestamp
+        totalRelays
       }
     }
   }

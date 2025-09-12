@@ -137,6 +137,7 @@ export default function CustomizableCompUnitsChart() {
             `POKT: ${formatAmount({
               amount: data?.totalPokt || 0,
               denom: 'upokt',
+              includeSymbol: false,
               maxDecimals: 6,
               abbreviateThreshold: Infinity,
             })}`
