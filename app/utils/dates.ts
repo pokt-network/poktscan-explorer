@@ -13,6 +13,8 @@ export enum Time {
   Last48h = 'last48h',
   Last7d = 'last7d',
   Last30d = 'last30d',
+  Last60d = 'last60d',
+  Last90d = 'last90d',
 }
 
 const hoursTime = [Time.Last24h, Time.Last48h]
@@ -49,6 +51,14 @@ export function getStartAndEndDateBasedOnTime(dateStr: string, timeStr: string, 
     }
     case Time.Last30d: {
       start = addDaysToUtc(end, -29)
+      break
+    }
+    case Time.Last60d: {
+      start = addDaysToUtc(end, -59)
+      break
+    }
+    case Time.Last90d: {
+      start = addDaysToUtc(end, -89)
       break
     }
   }
@@ -98,6 +108,16 @@ export function getStartMiddleAndEndDateBasedOnTime(
       start = addDaysToUtc(middle, -29)
       break
     }
+    case Time.Last60d: {
+      middle = addDaysToUtc(end, -59)
+      start = addDaysToUtc(middle, -59)
+      break
+    }
+    case Time.Last90d: {
+      middle = addDaysToUtc(end, -89)
+      start = addDaysToUtc(middle, -89)
+      break
+    }
   }
 
   if (endAndStartOfUnit) {
@@ -134,6 +154,12 @@ export function getTimeBoxLabel(time: string) {
     }
     case Time.Last30d: {
       return '30D'
+    }
+    case Time.Last60d: {
+      return '60D'
+    }
+    case Time.Last90d: {
+      return '90D'
     }
   }
 }

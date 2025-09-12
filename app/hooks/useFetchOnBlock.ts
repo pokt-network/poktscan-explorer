@@ -58,10 +58,12 @@ export default function useFetchOnBlock<
   const [parsedData, setParsedData] = useState<R | null>(initialResult || null)
   const [error, setError] = useState(initialError)
   const [isLoading, setIsLoading] = useState(false)
-  const {currentHeight, currentTime, firstHeight, blocksPerSession} = useHeightContext()
+  const {currentHeight, currentTime, firstHeight, sessionHeight} = useHeightContext()
   const firstRenderRef = useRef(true)
   const lastVariablesRef = useRef<FetchOnBlockOptions<T, R>['variables']>(variables)
   const forceLoadingRef = useRef(false)
+
+  const abortRef = useRef<AbortController | null>(null)
 
   const [fetchData] = useLazyQuery(query, {
     fetchPolicy: 'network-only',
@@ -74,9 +76,19 @@ export default function useFetchOnBlock<
     const variablesToUse = typeof variables === 'function' ? variables(currentHeight, currentTime) : variables
 
     const fetchDataFn = () => {
+      if (abortRef.current) {
+        abortRef.current.abort()
+      }
+      abortRef.current = new AbortController()
+
       setIsLoading(true)
       fetchData({
         variables: variablesToUse,
+        context: {
+          fetchOptions: {
+            signal: abortRef.current.signal,
+          }
+        }
       }).then(async ({data, error}) => {
         if (data) {
           if (resultParser) {
@@ -120,14 +132,7 @@ export default function useFetchOnBlock<
     if (skip) return
 
     if (
-      (currentHeight !== firstHeight &&
-        (
-          !updateOnNewSession ||
-          !blocksPerSession ||
-          ((currentHeight - 1) % blocksPerSession === 0)
-        )
-      ) ||
-      lastVariablesRef.current !== variables
+      currentHeight !== firstHeight || lastVariablesRef.current !== variables
     ) {
       forceLoadingRef.current = lastVariablesRef.current !== variables
       lastVariablesRef.current = variables
@@ -136,15 +141,23 @@ export default function useFetchOnBlock<
       return () => {
         if (intervalRef.current) {
           clearInterval(intervalRef.current)
+          intervalRef.current = null
         }
       }
     }
     // eslint-disable-next-line
-  }, [currentHeight, query, variables])
+  }, [updateOnNewSession ? sessionHeight : currentHeight, query, variables])
 
   useEffect(() => {
     if (!initialResult && !initialError) {
       fetchDataFunction()
+    }
+
+    return () => {
+      if (abortRef.current) {
+        abortRef.current.abort()
+        abortRef.current = null
+      }
     }
     // eslint-disable-next-line
   }, [])

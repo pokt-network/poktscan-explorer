@@ -51,7 +51,7 @@ function TimeSelector({
   paramKey,
   enablePush,
   includeLabel = true,
-  options = [Time.Last24h, Time.Last48h, Time.Last7d, Time.Last30d,],
+  options = Object.values(Time),
 }: TimeSelectorProps) {
   const {selectedTime, setSelectedTime} = useSelectedTime()
 

@@ -52,21 +52,28 @@ export default function PerformanceTable({initialData, initialError, timeSelecte
     return  data.performance?.map((item) => {
       const avgData = avgDataByServiceId[item.service_id]
 
+      const rawEarnAvg = !avgData ? 0 : new Big(item.claimed_upokt).div(avgData.suppliersStaked).mul(avgData.blocks).toNumber()
+
       return {
         id: item.service_id,
         serviceId: item.service_id,
         serviceName: item.service_name,
         change: item.change * 100,
-        earnAvg: !avgData ? '0 POKT' :
-          formatAmount({
-            amount: new Big(item.claimed_upokt).div(avgData.suppliersStaked).mul(avgData.blocks).toString(),
-            denom: 'upokt'
-          }),
+        earnAvg: formatAmount({
+          amount: rawEarnAvg,
+          denom: 'upokt'
+        }),
+        raw_earnAvg: rawEarnAvg,
         relays: formatSimpleAmount(item.relays),
+        raw_relays: item.relays,
         computedUnits: formatSimpleAmount(item.computed_units),
+        raw_computedUnits: item.computed_units,
         stakedApps: formatSimpleAmount(item.apps_staked),
+        raw_stakedApps: item.apps_staked,
         stakedNodes: formatSimpleAmount(item.suppliers_staked),
+        raw_stakedNodes: item.suppliers_staked,
         totalEarn: formatAmount({ amount: item.claimed_upokt, denom: 'upokt' }),
+        raw_totalEarn: item.claimed_upokt,
         network: calculatePercentage(
           new Big(item.computed_units),
           totalComputedUnits

@@ -83,7 +83,7 @@ export default function ClaimProofExpiredChart({
   )
 
 
-  if (error) {
+  if (error && !isLoading) {
     return (
       <BaseRetryError
         onRetry={refetch}

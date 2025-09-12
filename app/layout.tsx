@@ -9,7 +9,7 @@ import DatesProvider from '@/app/dates/Context'
 import { cookies } from 'next/headers'
 import { dateTimeColumnField, dateTimeZoneField, formatTextField } from '@/app/dates/constants'
 import HeightContextProvider from '@/app/context/height'
-import { getLatestBlock, getNumBlocksPerSession } from '@/app/api/blocks'
+import { getLatestBlock } from '@/app/api/blocks'
 import ReactQueryProvider from '@/app/config/query'
 import getPrice from '@/app/api/price'
 import RegisterPlugins from '@/app/Charts/Plugins/RegisterPlugins'
@@ -37,13 +37,11 @@ export default async function RootLayout({children}: Readonly<{
   const [
     cookiesAwaited,
     latestBlock,
-    blocksPerSession,
     price,
     metadata,
   ] = await Promise.all([
     cookies(),
     getLatestBlock().catch(() => null),
-    getNumBlocksPerSession().catch(() => 0),
     getPrice(),
     getMetadata().catch(() => null),
   ])
@@ -67,7 +65,6 @@ export default async function RootLayout({children}: Readonly<{
                 <HeightContextProvider
                   firstHeight={latestBlock?.height}
                   networkHeight={metadata?._metadata?.targetHeight || 0}
-                  blocksPerSession={blocksPerSession}
                   // the timestamp is in UTC, so we need to add the Z to the end because the api doesn't include it
                   firstTime={latestBlock?.timestamp ? latestBlock.timestamp + 'Z' : ''}
                 >

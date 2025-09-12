@@ -9,6 +9,8 @@ const labelByTime: Record<Time, string> = {
   [Time.Last48h]: 'Last 48h',
   [Time.Last7d]: 'Last 7d',
   [Time.Last30d]: 'Last 30d',
+  [Time.Last60d]: 'Last 60d',
+  [Time.Last90d]: 'Last 90d',
 }
 
 interface TimeSelectorProps {
@@ -28,7 +30,7 @@ export default function TimeSelector({
   onChange,
   enablePush = !!param,
   includeLabel = true,
-  options = [Time.Last24h, Time.Last48h, Time.Last7d, Time.Last30d],
+  options = Object.values(Time),
 }: TimeSelectorProps) {
   const router = useRouter()
   const pathname = usePathname()
