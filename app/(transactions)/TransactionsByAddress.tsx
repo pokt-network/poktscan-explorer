@@ -91,6 +91,7 @@ async function ServerTransactionByAddressTable({address, page, itemsPerPage, bas
           <NewTransactionsByAddress address={address} />
         )}
         activeFilter={activeFilter}
+        csvEndpoint={`/api/export/txs?address=${address}`}
       />
     )
   } catch {

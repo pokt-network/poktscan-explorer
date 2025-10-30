@@ -6,7 +6,7 @@ import { StakeStatus, SupplierFilter } from '@/app/config/gql/graphql'
 import { getStakeLabel, stakeFilters, StakeTableFilter } from '@/app/utils/stake'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import { ChipText } from '@/app/components/Chip'
-import { supplierListDocument, } from '@/app/suppliers/operations'
+import { supplierListDocument, } from '@/app/(lists)/suppliers/operations'
 import SuppliersSubscription from '@/app/components/SuppliersTable/SuppliersSubscription'
 import { RefreshPageError } from '@/app/components/ErrorBoundary'
 import { graphql } from '@/app/config/gql'
@@ -314,6 +314,12 @@ export default async function SuppliersTable({page, itemsPerPage, basePath, serv
       }
     })
 
+    // Build entity filters for CSV export
+    const entityFilters: Record<string, string | string[]> = {}
+    if (service) entityFilters.service = service
+    if (owners?.length) entityFilters.owners = owners
+    if (delegators?.length) entityFilters.delegators = delegators
+
     return (
       <Table
         columns={columns}
@@ -341,6 +347,8 @@ export default async function SuppliersTable({page, itemsPerPage, basePath, serv
             value: SupplierTableFilters.BelowMinStake,
           }
         ]}
+        csvEndpoint="/api/export/suppliers"
+        entityFilters={Object.keys(entityFilters).length > 0 ? entityFilters : undefined}
       />
     )
   } catch {

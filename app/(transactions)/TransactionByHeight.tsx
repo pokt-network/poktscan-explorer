@@ -90,6 +90,7 @@ async function ServerTransactionByHeightTable({height, page, itemsPerPage, baseP
         includeSigner={true}
         disableSubscription={true}
         activeFilter={activeFilter}
+        csvEndpoint={`/api/export/txs?height=${height}`}
       />
     )
   } catch {

@@ -4,14 +4,14 @@ import React, { Suspense } from 'react'
 import TransactionTable from '@/app/(transactions)/TransactionTable'
 import { getLatestBlock } from '@/app/api/blocks'
 import ListTitle from '@/app/components/ListTitle'
-import { transactionsPageDocument, transactionsSummaryDocument } from '@/app/txs/operations'
-import Summary from '@/app/txs/Summary'
+import { transactionsPageDocument, transactionsSummaryDocument } from '@/app/(lists)/txs/operations'
+import Summary from '@/app/(lists)/txs/Summary'
 import { LoadingSummary, LoadingTable } from '@/app/components/LoadingListView'
 import { getTransactionsColumns } from '@/app/(transactions)/columns'
-import { transactionsSummaryLabels } from '@/app/txs/utils'
+import { transactionsSummaryLabels } from '@/app/(lists)/txs/utils'
 import { RefreshPageError } from '@/app/components/ErrorBoundary'
 import { getTransactionGraphQlFilter, TransactionFilterValues } from '@/app/(transactions)/filters'
-import { TransactionFilter } from '../config/gql/graphql'
+import { TransactionFilter } from '../../config/gql/graphql'
 
 export const dynamic = "force-dynamic";
 
@@ -103,6 +103,7 @@ async function ServerTransactionsPage({searchParams}: PageProps) {
         }}
         totalItems={data.transactions?.totalCount}
         activeFilter={typeof activeFilter === 'string' ? activeFilter : undefined}
+        csvEndpoint="/api/export/txs"
       />
     )
   } catch {

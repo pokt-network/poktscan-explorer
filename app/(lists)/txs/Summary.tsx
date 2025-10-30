@@ -1,10 +1,10 @@
 'use client'
 
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
-import { transactionsSummaryDocument } from '@/app/txs/operations'
+import { transactionsSummaryDocument } from '@/app/(lists)/txs/operations'
 import FourCard from '@/app/components/FourCard'
 import React, { useCallback } from 'react'
-import { getSummaryVariables, transactionsSummaryLabels } from '@/app/txs/utils'
+import { getSummaryVariables, transactionsSummaryLabels } from '@/app/(lists)/txs/utils'
 import { combineByIndex } from '@/app/components/FourCards/utils'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { LoadingSummary } from '@/app/components/LoadingListView'

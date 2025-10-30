@@ -241,6 +241,7 @@ async function ServerTransferTable({address, page, itemsPerPage, basePath}: Tran
           itemsPerPage,
           basePath
         }}
+        csvEndpoint={`/api/export/transfers?address=${address}`}
       />
     )
   } catch {

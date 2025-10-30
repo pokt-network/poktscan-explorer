@@ -5,7 +5,7 @@ import EntityLink from '@/app/components/EntityLink'
 import ListTitle from '@/app/components/ListTitle'
 import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 import React, { Suspense } from 'react'
-import { serviceListDocument, servicesSubscription } from '@/app/services/operations'
+import { serviceListDocument, servicesSubscription } from '@/app/(lists)/services/operations'
 import { formatSimpleAmount } from '@/app/utils/format'
 import LoadingListView from '@/app/components/LoadingListView'
 import { RefreshPageError } from '@/app/components/ErrorBoundary'
@@ -126,6 +126,7 @@ async function ServerServicesPage({searchParams}: PageProps) {
           basePath: '/services'
         }}
         defaultMinWidth={70}
+        csvEndpoint="/api/export/services"
       />
     )
   } catch {

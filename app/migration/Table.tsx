@@ -230,6 +230,7 @@ export default async function MorseClaimableAccountTable({searchParams, address,
             itemsPerPage,
             basePath,
           }}
+          csvEndpoint={address ? `/api/export/migration?address=${address}` : '/api/export/migration'}
         />
       </>
     )

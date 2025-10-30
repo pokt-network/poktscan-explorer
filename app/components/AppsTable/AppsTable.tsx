@@ -5,7 +5,7 @@ import EntityLink from '@/app/components/EntityLink'
 import React from 'react'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import { ChipText } from '@/app/components/Chip'
-import { applicationListDocument } from '@/app/apps/operations'
+import { applicationListDocument } from '@/app/(lists)/apps/operations'
 import AppsSubscription from '@/app/components/AppsTable/AppsSubscription'
 import { RefreshPageError } from '@/app/components/ErrorBoundary'
 import { ApplicationFilter, StakeStatus } from '@/app/config/gql/graphql'
@@ -252,6 +252,11 @@ export default async function AppsTable({page, itemsPerPage, basePath, service, 
       }
     })
 
+    // Build entity filters for CSV export
+    const entityFilters: Record<string, string> = {}
+    if (service) entityFilters.service = service
+    if (gateway) entityFilters.gateway = gateway
+
     return (
       <Table
         columns={columns}
@@ -276,6 +281,8 @@ export default async function AppsTable({page, itemsPerPage, basePath, service, 
             value: AppTableFilters.LowStake
           }
         ]}
+        csvEndpoint="/api/export/apps"
+        entityFilters={Object.keys(entityFilters).length > 0 ? entityFilters : undefined}
       />
     )
   } catch {
