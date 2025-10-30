@@ -1,23 +1,23 @@
 'use client'
 
-import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
-import { supplierSummaryDocument } from '@/app/suppliers/operations'
-import { formatAmount } from '@/app/utils/format'
 import FourCard from '@/app/components/FourCard'
+import { formatAmount } from '@/app/utils/format'
 import React from 'react'
+import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
+import { applicationSummaryDocument } from '@/app/(lists)/apps/operations'
 import { combineByIndex, LabelByIndex } from '@/app/components/FourCards/utils'
 import { LoadingSummary } from '@/app/components/LoadingListView'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 
 interface SummaryProps {
-  initialData: DocumentNodeData<typeof supplierSummaryDocument>
+  initialData: DocumentNodeData<typeof applicationSummaryDocument>
   initialError: boolean
   labels: LabelByIndex
 }
 
 export default function Summary({initialData, initialError, labels}: SummaryProps) {
-  const { data, error, refetch, isLoading } = useFetchOnBlock({
-    query: supplierSummaryDocument,
+  const { data, error, isLoading, refetch } = useFetchOnBlock({
+    query: applicationSummaryDocument,
     initialResult: initialData,
     initialError,
   })
@@ -45,15 +45,15 @@ export default function Summary({initialData, initialError, labels}: SummaryProp
         combineByIndex(
           labels,
           {
-            1: data?.stakedSuppliers?.totalCount,
+            1: data.stakedApps?.totalCount,
             2: formatAmount({
               denom: 'upokt',
-              amount: data?.stakedSuppliers?.aggregates?.sum?.stakeAmount
+              amount: data.stakedApps?.aggregates?.sum?.stakeAmount
             }),
-            3: data?.unstakingSuppliers?.totalCount,
+            3: data.unstakingApps?.totalCount,
             4: formatAmount({
               denom: 'upokt',
-              amount: data?.unstakingSuppliers?.aggregates?.sum?.stakeAmount
+              amount: data.unstakingApps?.aggregates?.sum?.stakeAmount
             })
           }
         )

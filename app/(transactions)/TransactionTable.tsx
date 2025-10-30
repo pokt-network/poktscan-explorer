@@ -46,9 +46,10 @@ interface TransactionTableProps {
   subtitle?: React.ReactNode
   disableSubscription?: boolean
   activeFilter?: string
+  csvEndpoint?: string
 }
 
-export default function TransactionTable({rawRows, includeSigner = true, pagination, totalItems, subtitle, disableSubscription = false, activeFilter}: TransactionTableProps) {
+export default function TransactionTable({rawRows, includeSigner = true, pagination, totalItems, subtitle, disableSubscription = false, activeFilter, csvEndpoint}: TransactionTableProps) {
   const rows: Array<RowTransaction> = rawRows.map((transaction) => {
     const fee = transaction.fees!.at(0) || {
       amount: '0',
@@ -95,6 +96,7 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       pagination={pagination}
       filters={transactionFilters}
       activeFilter={activeFilter}
+      csvEndpoint={csvEndpoint}
     />
   )
 }

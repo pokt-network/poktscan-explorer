@@ -8,9 +8,9 @@ import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import ListTitle from '@/app/components/ListTitle'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
-import { accountListDocument, accountSummaryDocument } from '@/app/accounts/operations'
-import { getSummaryVariables } from '@/app/accounts/utils'
-import Summary from '@/app/accounts/Summary'
+import { accountListDocument, accountSummaryDocument } from '@/app/(lists)/accounts/operations'
+import { getSummaryVariables } from '@/app/(lists)/accounts/utils'
+import Summary from '@/app/(lists)/accounts/Summary'
 import { graphql } from '@/app/config/gql'
 import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 import { LabelByIndex } from '@/app/components/FourCards/utils'
@@ -175,6 +175,7 @@ async function AccountsTable({searchParams}: PageProps) {
           itemsPerPage,
           basePath: '/accounts'
         }}
+        csvEndpoint="/api/export/accounts"
       />
     )
   } catch {

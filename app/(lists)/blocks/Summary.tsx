@@ -1,8 +1,8 @@
 'use client'
 
-import useFetchOnBlock, { DocumentNodeData } from "../hooks/useFetchOnBlock"
+import useFetchOnBlock, { DocumentNodeData } from "../../hooks/useFetchOnBlock"
 import { blockSummaryDocument } from "./operations"
-import { getSummaryVariables } from '@/app/blocks/utils'
+import { getSummaryVariables } from '@/app/(lists)/blocks/utils'
 import React, { useCallback } from 'react'
 import FourCard from '@/app/components/FourCard'
 import EntityLink from '@/app/components/EntityLink'

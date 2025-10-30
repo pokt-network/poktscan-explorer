@@ -9,13 +9,13 @@ import ListTitle from '@/app/components/ListTitle'
 import React, { Suspense } from 'react'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
-import { blockListDocument, blockSummaryDocument } from '@/app/blocks/operations'
-import { getSummaryVariables } from '@/app/blocks/utils'
-import Summary from '@/app/blocks/Summary'
+import { blockListDocument, blockSummaryDocument } from '@/app/(lists)/blocks/operations'
+import { getSummaryVariables } from '@/app/(lists)/blocks/utils'
+import Summary from '@/app/(lists)/blocks/Summary'
 import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 import { subscriptionQuery } from '@/app/operations/block'
 import { LabelByIndex } from '@/app/components/FourCards/utils'
-import { LoadingSummary, LoadingTable } from '../components/LoadingListView'
+import { LoadingSummary, LoadingTable } from '../../components/LoadingListView'
 import { RefreshPageError } from '@/app/components/ErrorBoundary'
 
 export const dynamic = "force-dynamic";
@@ -213,6 +213,7 @@ async function BlocksTable({searchParams}: PageProps) {
           basePath: '/blocks'
         }}
         defaultMinWidth={70}
+        csvEndpoint="/api/export/blocks"
       />
     )
   } catch {

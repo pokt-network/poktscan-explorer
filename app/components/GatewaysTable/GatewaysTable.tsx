@@ -256,6 +256,11 @@ export default async function GatewaysTable({page, itemsPerPage, basePath, servi
       }
     })
 
+    // Build entity filters for CSV export
+    const entityFilters: Record<string, string> = {}
+    if (service) entityFilters.service = service
+    if (application) entityFilters.app = application
+
     return (
       <Table
         columns={columns}
@@ -275,6 +280,8 @@ export default async function GatewaysTable({page, itemsPerPage, basePath, servi
         defaultMinWidth={70}
         activeFilter={activeFilter || StakeTableFilter.Staked}
         filters={stakeFilters}
+        csvEndpoint="/api/export/gateways"
+        entityFilters={Object.keys(entityFilters).length > 0 ? entityFilters : undefined}
       />
     )
   } catch {

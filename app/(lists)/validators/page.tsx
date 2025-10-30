@@ -207,6 +207,7 @@ async function ServerValidatorsPage({searchParams}: PageProps) {
           basePath: '/validators'
         }}
         defaultMinWidth={70}
+        csvEndpoint="/api/export/validators"
       />
     )
   } catch {

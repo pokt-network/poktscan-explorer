@@ -39,9 +39,11 @@ export interface TableProps {
     value: string
   }>
   activeFilter?: string
+  csvEndpoint?: string
+  entityFilters?: Record<string, string | string[]>
 }
 
-export default function Table({pagination, rows, columns, header, defaultMinWidth = 100, filters, activeFilter}: TableProps) {
+export default function Table({pagination, rows, columns, header, defaultMinWidth = 100, filters, activeFilter, csvEndpoint, entityFilters}: TableProps) {
   const paginationFilter = filters?.length ? filters.find((filter) => filter.value === activeFilter)?.value : undefined
 
   return (
@@ -66,6 +68,8 @@ export default function Table({pagination, rows, columns, header, defaultMinWidt
         columns={columns}
         rows={rows}
         activeFilter={paginationFilter}
+        csvEndpoint={csvEndpoint}
+        entityFilters={entityFilters}
       />
       <BaseTable columns={columns} rows={rows} defaultMinWidth={defaultMinWidth} />
       {
@@ -143,6 +147,8 @@ interface TableHeaderProps {
   rows: Array<any>
   columns: Array<GridColDef>
   activeFilter?: string
+  csvEndpoint?: string
+  entityFilters?: Record<string, string | string[]>
 }
 
 type TablePaginationProps = {
@@ -216,7 +222,7 @@ Table.Pagination = function TablePagination({currentPage, totalPages, itemsPerPa
   )
 }
 
-Table.Header = function TableHeader({title, subtitle, hidePagination,currentPage, totalPages, itemsPerPage, activeFilter, basePath, rows, columns}: TableHeaderProps) {
+Table.Header = function TableHeader({title, subtitle, hidePagination,currentPage, totalPages, itemsPerPage, activeFilter, basePath, rows, columns, csvEndpoint, entityFilters}: TableHeaderProps) {
   return (
     <div className={"flex pt-4 px-3 md:px-4 pb-3 flex-row w-full min-h-[74px] flex-wrap items-center justify-between gap-3"}>
       <div>
@@ -232,7 +238,13 @@ Table.Header = function TableHeader({title, subtitle, hidePagination,currentPage
 
       <div className={'flex flex-row items-center justify-between gap-2 flex-wrap'}>
         {rows.length > 0 && (
-          <TableDownloadButton rows={rows} columns={columns.map((col) => ({...col, renderCell: undefined}))} />
+          <TableDownloadButton
+            rows={rows}
+            columns={columns.map((col) => ({...col, renderCell: undefined}))}
+            csvEndpoint={csvEndpoint}
+            activeFilter={activeFilter}
+            entityFilters={entityFilters}
+          />
         )}
         {!hidePagination && (
           <Table.Pagination

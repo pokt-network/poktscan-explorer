@@ -1,31 +1,34 @@
 'use client'
 
-import FourCard from '@/app/components/FourCard'
-import { formatAmount } from '@/app/utils/format'
-import React from 'react'
+import { accountSummaryDocument } from '@/app/(lists)/accounts/operations'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
-import { applicationSummaryDocument } from '@/app/apps/operations'
+import React, { useCallback } from 'react'
+import { getSummaryVariables } from '@/app/(lists)/accounts/utils'
+import FourCard from '@/app/components/FourCard'
 import { combineByIndex, LabelByIndex } from '@/app/components/FourCards/utils'
 import { LoadingSummary } from '@/app/components/LoadingListView'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 
 interface SummaryProps {
-  initialData: DocumentNodeData<typeof applicationSummaryDocument>
-  initialError: boolean
+  initialData: DocumentNodeData<typeof accountSummaryDocument>
   labels: LabelByIndex
+  initialError: boolean
 }
 
 export default function Summary({initialData, initialError, labels}: SummaryProps) {
+  const variables = useCallback((_: number, currentTime: string) => getSummaryVariables(currentTime), [])
+
   const { data, error, isLoading, refetch } = useFetchOnBlock({
-    query: applicationSummaryDocument,
+    query: accountSummaryDocument,
     initialResult: initialData,
-    initialError,
+    variables,
+    initialError
   })
 
   if (isLoading) {
     return (
       <LoadingSummary
-        labels={labels}
+        labels= {labels}
       />
     )
   } else if (error) {
@@ -41,23 +44,15 @@ export default function Summary({initialData, initialError, labels}: SummaryProp
 
   return (
     <FourCard
-      items={
-        combineByIndex(
-          labels,
-          {
-            1: data.stakedApps?.totalCount,
-            2: formatAmount({
-              denom: 'upokt',
-              amount: data.stakedApps?.aggregates?.sum?.stakeAmount
-            }),
-            3: data.unstakingApps?.totalCount,
-            4: formatAmount({
-              denom: 'upokt',
-              amount: data.unstakingApps?.aggregates?.sum?.stakeAmount
-            })
-          }
-        )
-      }
+      items={combineByIndex(
+        labels,
+        {
+          1: data.accountsWithBalance?.totalCount,
+          2: data.todayAccounts?.totalCount,
+          3: data.monthAccounts?.totalCount,
+          4: data.last90DaysAccounts?.totalCount,
+        }
+      )}
     />
   )
 }
