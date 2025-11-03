@@ -36,24 +36,8 @@ export const SUPPORTED_ENTITIES: readonly SupportedEntity[] = [
  * Defaults to 'app_public' if not set
  */
 function getSchema(): string {
-  return process.env.DATABASE_SCHEMA || 'app_public';
+  return process.env.DB_SCHEMA || 'app_public';
 }
-
-/**
- * Entity to table name mapping (plural forms)
- */
-const ENTITY_TO_TABLE: Record<SupportedEntity, string> = {
-  accounts: 'balances', // accounts export from balance table
-  apps: 'applications',
-  blocks: 'blocks',
-  gateways: 'gateways',
-  migration: 'morse_claimable_accounts',
-  services: 'services',
-  suppliers: 'suppliers',
-  transfers: 'native_transfers',
-  txs: 'transactions',
-  validators: 'validators',
-};
 
 /**
  * Column definitions for CSV export
@@ -163,29 +147,6 @@ export interface EntityQueryOptions {
   delegators?: string[];
 }
 
-/**
- * Build WHERE clause for stake status filters
- */
-function getStakeStatusFilter(filter: string | undefined): string {
-  if (!filter) {
-    return `a.stake_status = 'Staked'`; // Default to staked
-  }
-
-  switch (filter) {
-    case 'all':
-      return `1=1`;
-    case 'staked':
-      return `a.stake_status = 'Staked'`;
-    case 'unstaking':
-      return `a.stake_status = 'Unstaking'`;
-    case 'unstaked':
-      return `a.stake_status = 'Unstaked'`;
-    case 'low_balance':
-      return `a.stake_status = 'Staked' AND COALESCE(b.amount, '0')::numeric <= ${2 * 1e6}`;
-    default:
-      return `a.stake_status = 'Staked'`;
-  }
-}
 
 /**
  * Build WHERE clause for application-specific filters
@@ -200,26 +161,26 @@ function getAppFilter(
 
   // Handle stake status filters
   if (!filter) {
-    conditions.push(`a.stake_status = 'Staked'`);
+    conditions.push(`a.stake_status = '${StakeStatus.Staked}'`);
   } else {
     switch (filter) {
       case 'all':
         conditions.push(`1=1`);
         break;
       case 'staked':
-        conditions.push(`a.stake_status = 'Staked'`);
+        conditions.push(`a.stake_status = '${StakeStatus.Staked}'`);
         break;
       case 'unstaking':
-        conditions.push(`a.stake_status = 'Unstaking'`);
+        conditions.push(`a.stake_status = '${StakeStatus.Unstaking}'`);
         break;
       case 'unstaked':
-        conditions.push(`a.stake_status = 'Unstaked'`);
+        conditions.push(`a.stake_status = '${StakeStatus.Unstaked}'`);
         break;
       case 'low_balance':
-        conditions.push(`a.stake_status = 'Staked' AND COALESCE(b.amount, '0')::numeric <= ${2 * 1e6}`);
+        conditions.push(`a.stake_status = '${StakeStatus.Staked}' AND COALESCE(b.amount, '0')::numeric <= ${2 * 1e6}`);
         break;
       default:
-        conditions.push(`a.stake_status = 'Staked'`);
+        conditions.push(`a.stake_status = '${StakeStatus.Staked}'`);
         break;
     }
   }
@@ -260,26 +221,26 @@ function getGatewayFilter(
 
   // Handle stake status filters
   if (!filter) {
-    conditions.push(`g.stake_status = 'Staked'`);
+    conditions.push(`g.stake_status = '${StakeStatus.Staked}'`);
   } else {
     switch (filter) {
       case 'all':
         conditions.push(`1=1`);
         break;
       case 'staked':
-        conditions.push(`g.stake_status = 'Staked'`);
+        conditions.push(`g.stake_status = '${StakeStatus.Staked}'`);
         break;
       case 'unstaking':
-        conditions.push(`g.stake_status = 'Unstaking'`);
+        conditions.push(`g.stake_status = '${StakeStatus.Unstaking}'`);
         break;
       case 'unstaked':
-        conditions.push(`g.stake_status = 'Unstaked'`);
+        conditions.push(`g.stake_status = '${StakeStatus.Unstaked}'`);
         break;
       case 'low_balance':
-        conditions.push(`g.stake_status = 'Staked' AND COALESCE(b.amount, '0')::numeric <= ${2 * 1e6}`);
+        conditions.push(`g.stake_status = '${StakeStatus.Staked}' AND COALESCE(b.amount, '0')::numeric <= ${2 * 1e6}`);
         break;
       default:
-        conditions.push(`g.stake_status = 'Staked'`);
+        conditions.push(`g.stake_status = '${StakeStatus.Staked}'`);
         break;
     }
   }
@@ -327,26 +288,26 @@ function getSupplierFilter(
   switch (filter) {
     case undefined:
     case 'staked':
-      conditions.push(`s.stake_status = 'Staked'`);
+      conditions.push(`s.stake_status = '${StakeStatus.Staked}'`);
       break;
     case 'all':
       conditions.push(`1=1`);
       break;
     case 'unstaking':
-      conditions.push(`s.stake_status = 'Unstaking'`);
+      conditions.push(`s.stake_status = '${StakeStatus.Unstaking}'`);
       break;
     case 'unstaked':
-      conditions.push(`s.stake_status = 'Unstaked'`);
+      conditions.push(`s.stake_status = '${StakeStatus.Unstaked}'`);
       break;
     case 'low_balance':
       conditions.push(`
-        s.stake_status = 'Staked'
+        s.stake_status = '${StakeStatus.Staked}'
         AND COALESCE(b_operator.amount, 0)::numeric <= ${1e6 * 2}
       `);
       break;
     case 'low_stake':
       conditions.push(`
-        s.stake_status = 'Staked'
+        s.stake_status = '${StakeStatus.Staked}'
         AND s.stake_amount::numeric > (
           SELECT (p_min.value::jsonb->>'amount')::numeric
           FROM ${schema}.params p_min
@@ -370,7 +331,7 @@ function getSupplierFilter(
       break;
     case 'below_min_stake':
       conditions.push(`
-        s.stake_status = 'Staked'
+        s.stake_status = '${StakeStatus.Staked}'
         AND s.stake_amount::numeric < (
           SELECT (value::jsonb->>'amount')::numeric
           FROM ${schema}.params
@@ -383,7 +344,7 @@ function getSupplierFilter(
       `);
       break;
     default:
-      conditions.push(`s.stake_status = 'Staked'`);
+      conditions.push(`s.stake_status = '${StakeStatus.Staked}'`);
       break;
   }
 
@@ -640,8 +601,8 @@ export function getEntityQuery(
           s.id,
           s.stake_status,
           CASE
-            WHEN s.stake_status = 'Staked' AND s.operator_id = s.owner_id THEN 'Custodian'
-            WHEN s.stake_status = 'Staked' THEN 'Non-Custodian'
+            WHEN s.stake_status = '${StakeStatus.Staked}' AND s.operator_id = s.owner_id THEN 'Custodian'
+            WHEN s.stake_status = '${StakeStatus.Staked}' THEN 'Non-Custodian'
             ELSE '-'
           END AS stake_type,
           (s.stake_amount / 1_000_000.0) AS stake_amount_pokt,

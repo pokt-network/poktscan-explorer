@@ -9,15 +9,35 @@ let pool: Pool | null = null;
  */
 export function getPool(): Pool {
   if (!pool) {
-    const databaseUri = process.env.DATABASE_URI;
-
-    if (!databaseUri) {
-      throw new Error('DATABASE_URI environment variable is not set');
+    if (!process.env.DB_USER) {
+      throw new Error('DB_USER environment variable is not set');
     }
+
+    if (!process.env.DB_PASS) {
+      throw new Error('DB_PASS environment variable is not set');
+    }
+
+    if (!process.env.DB_DATABASE) {
+      throw new Error('DB_DATABASE environment variable is not set');
+    }
+
+    if (!process.env.DB_HOST) {
+      throw new Error('DB_HOST environment variable is not set');
+    }
+
+    if (!process.env.DB_PORT) {
+      throw new Error('DB_PORT environment variable is not set');
+    }
+
+    const databaseUri = `postgres://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE}`;
+
+    const minConnections = Number.isInteger(parseInt(process.env.DB_MIN_CONNECTIONS || '')) ? parseInt(process.env.DB_MIN_CONNECTIONS!) : 1;
+    const maxConnections = Number.isInteger(parseInt(process.env.DB_MAX_CONNECTIONS || '')) ? parseInt(process.env.DB_MAX_CONNECTIONS!) : 10;
 
     pool = new Pool({
       connectionString: databaseUri,
-      max: 10,
+      max: maxConnections,
+      min: minConnections,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
     });
