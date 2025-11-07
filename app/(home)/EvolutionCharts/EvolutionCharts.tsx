@@ -32,7 +32,7 @@ function CardEvolutionChart({title, ...chartProps }: CardEvolutionChartProps) {
 }
 
 interface SupplierAndAppsEvolutionProps {
-  initialData: DocumentNodeData<typeof evolutionDocument>
+  initialData: DocumentNodeData<typeof evolutionDocument> | null
   initialError: boolean
 }
 
@@ -84,93 +84,93 @@ export default function EvolutionCharts({
     const validatorsData: CommonLineChartProps['data'] = [
       {
         label: currentDate,
-        value: data.today?.nodes?.at(0)?.stakedValidators || 0
+        value: data?.today?.nodes?.at(0)?.stakedValidators || 0
       },
       {
         label: yesterdayDate,
-        value: data.yesterday?.nodes?.at(0)?.stakedValidators || 0
+        value: data?.yesterday?.nodes?.at(0)?.stakedValidators || 0
       },
       {
         label: previous2Date,
-        value: data.last2?.nodes?.at(0)?.stakedValidators || 0
+        value: data?.last2?.nodes?.at(0)?.stakedValidators || 0
       },
       {
         label: previous3Date,
-        value: data.last3?.nodes?.at(0)?.stakedValidators || 0
+        value: data?.last3?.nodes?.at(0)?.stakedValidators || 0
       },
       {
         label: previous4Date,
-        value: data.last4?.nodes?.at(0)?.stakedValidators || 0
+        value: data?.last4?.nodes?.at(0)?.stakedValidators || 0
       },
       {
         label: previous5Date,
-        value: data.last5?.nodes?.at(0)?.stakedValidators || 0
+        value: data?.last5?.nodes?.at(0)?.stakedValidators || 0
       },
       {
         label: previous6Date,
-        value: data.last6?.nodes?.at(0)?.stakedValidators || 0
+        value: data?.last6?.nodes?.at(0)?.stakedValidators || 0
       },
     ].reverse()
 
     const supplierData: CommonLineChartProps['data'] = [
       {
         label: currentDate,
-        value: data.today?.nodes?.at(0)?.stakedSuppliers || 0
+        value: data?.today?.nodes?.at(0)?.stakedSuppliers || 0
       },
       {
         label: yesterdayDate,
-        value: data.yesterday?.nodes?.at(0)?.stakedSuppliers || 0
+        value: data?.yesterday?.nodes?.at(0)?.stakedSuppliers || 0
       },
       {
         label: previous2Date,
-        value: data.last2?.nodes?.at(0)?.stakedSuppliers || 0
+        value: data?.last2?.nodes?.at(0)?.stakedSuppliers || 0
       },
       {
         label: previous3Date,
-        value: data.last3?.nodes?.at(0)?.stakedSuppliers || 0
+        value: data?.last3?.nodes?.at(0)?.stakedSuppliers || 0
       },
       {
         label: previous4Date,
-        value: data.last4?.nodes?.at(0)?.stakedSuppliers || 0
+        value: data?.last4?.nodes?.at(0)?.stakedSuppliers || 0
       },
       {
         label: previous5Date,
-        value: data.last5?.nodes?.at(0)?.stakedSuppliers || 0
+        value: data?.last5?.nodes?.at(0)?.stakedSuppliers || 0
       },
       {
         label: previous6Date,
-        value: data.last6?.nodes?.at(0)?.stakedSuppliers || 0
+        value: data?.last6?.nodes?.at(0)?.stakedSuppliers || 0
       },
     ].reverse()
 
     const appsData: CommonLineChartProps['data'] = [
       {
         label: currentDate,
-        value: data.today?.nodes?.at(0)?.stakedApps || 0
+        value: data?.today?.nodes?.at(0)?.stakedApps || 0
       },
       {
         label: yesterdayDate,
-        value: data.yesterday?.nodes?.at(0)?.stakedApps || 0
+        value: data?.yesterday?.nodes?.at(0)?.stakedApps || 0
       },
       {
         label: previous2Date,
-        value: data.last2?.nodes?.at(0)?.stakedApps || 0
+        value: data?.last2?.nodes?.at(0)?.stakedApps || 0
       },
       {
         label: previous3Date,
-        value: data.last3?.nodes?.at(0)?.stakedApps || 0
+        value: data?.last3?.nodes?.at(0)?.stakedApps || 0
       },
       {
         label: previous4Date,
-        value: data.last4?.nodes?.at(0)?.stakedApps || 0
+        value: data?.last4?.nodes?.at(0)?.stakedApps || 0
       },
       {
         label: previous5Date,
-        value: data.last5?.nodes?.at(0)?.stakedApps || 0
+        value: data?.last5?.nodes?.at(0)?.stakedApps || 0
       },
       {
         label: previous6Date,
-        value: data.last6?.nodes?.at(0)?.stakedApps || 0
+        value: data?.last6?.nodes?.at(0)?.stakedApps || 0
       },
     ].reverse()
 

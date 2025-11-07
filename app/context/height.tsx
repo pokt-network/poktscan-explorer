@@ -46,6 +46,9 @@ export default function HeightContextProvider({
 
   useSubscription(subscriptionQuery, {
     ignoreResults: true,
+    onError: (error) => {
+      console.error('Block subscription error:', error);
+    },
     onData: (data) => {
       const block = data?.data?.data?.blocks
       const newBlockId = Number(block?.id)

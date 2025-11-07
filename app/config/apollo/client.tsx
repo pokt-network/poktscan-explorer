@@ -24,8 +24,20 @@ function makeClient(url: string) {
     // const { data } = useSuspenseQuery(MY_QUERY, { context: { fetchOptions: { cache: "force-cache" }}});
   });
 
+  const wsUrl = url.replace(/^https?/, (match) =>
+    match === 'https' ? 'wss' : 'ws'
+  );
+
+
   const wsLink = new GraphQLWsLink(createClient({
-    url,
+    url: wsUrl,
+    retryAttempts: 5,
+    shouldRetry: () => true,
+    retryWait: async (retries) => {
+      await new Promise(resolve =>
+        setTimeout(resolve, Math.min(1000 * 2 ** retries, 10000))
+      );
+    },
   }));
 
   const splitLink = split(
