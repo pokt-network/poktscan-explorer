@@ -101,7 +101,7 @@ export function calculateChanges(current: Item[], past: Item[]): AugmentedItem[]
 }
 
 interface ServicesCardProps {
-  initialData: DocumentNodeData<typeof servicesDocument>
+  initialData: DocumentNodeData<typeof servicesDocument> | null
   defaultType: string
   initialError: boolean
 }

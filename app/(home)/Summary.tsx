@@ -26,7 +26,7 @@ function Title({title}: {title: string}) {
 }
 
 interface SummaryProps {
-  initialData: DocumentNodeData<typeof summaryDocument>
+  initialData: DocumentNodeData<typeof summaryDocument> | null
   initialError: boolean
   initialVariables?: ExtractVariables<typeof summaryDocument>
 }

@@ -8,11 +8,6 @@ const nextConfig: NextConfig = {
     // TODO: FIX ASAP
     ignoreBuildErrors: true
   },
-  experimental: {
-    ppr: true, // Partial Prerendering
-    // reactCompiler: true,
-    // dynamicIO: true, // Enable dynamic IO for better streaming
-  },
   turbopack: {
     rules: {
       '*.svg': {
