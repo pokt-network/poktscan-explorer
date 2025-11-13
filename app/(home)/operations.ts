@@ -47,6 +47,19 @@ export const summaryDocument = graphql(`
   }
 `)
 
+export const newEvolutionDocument = graphql(`
+  query latestBlockByDay($startDate: Datetime!, $endDate: Datetime!) {
+    getLatestBlocksByDay(
+      startDate: $startDate,
+      endDate: $endDate,
+    )
+    supply: getTotalSupplyByDay(
+      startDate: $startDate,
+      endDate: $endDate,
+    )
+  }
+`)
+
 export const evolutionDocument = graphql(`
   query supplierAndAppsEvolution(
     $currentDate: Datetime!,
