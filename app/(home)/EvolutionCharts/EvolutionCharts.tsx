@@ -1,14 +1,12 @@
 'use client'
 import CommonLineChart, { CommonLineChartProps } from '@/app/(home)/CommonLineChart'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
-import { useHeightContext } from '@/app/context/height'
 import React, { useCallback, useMemo } from 'react'
 import { getEvolutionVariables } from '@/app/(home)/utils'
-import { evolutionDocument } from '@/app/(home)/operations'
-import { useDateContext } from '@/app/dates/Context'
+import { newEvolutionDocument } from '@/app/(home)/operations'
 import EvolutionChartsLoader from '@/app/(home)/EvolutionCharts/Loader'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
-import { getDateFromIsoString } from '@/app/Charts/utils'
+import { fillChartData, formatDate, LineBarItem, normalizeIsoDate } from '@/app/Charts/utils'
 
 interface CardEvolutionChartProps {
   title: string
@@ -16,6 +14,11 @@ interface CardEvolutionChartProps {
   dataLabel: string
   valuesAreUPokt?: boolean
   applyMinAndMax?: boolean
+}
+
+interface EvolutionData extends LineBarItem {
+  value: number
+  start_date: string
 }
 
 function CardEvolutionChart({title, ...chartProps }: CardEvolutionChartProps) {
@@ -32,7 +35,7 @@ function CardEvolutionChart({title, ...chartProps }: CardEvolutionChartProps) {
 }
 
 interface SupplierAndAppsEvolutionProps {
-  initialData: DocumentNodeData<typeof evolutionDocument> | null
+  initialData: DocumentNodeData<typeof newEvolutionDocument> | null
   initialError: boolean
 }
 
@@ -40,18 +43,17 @@ export default function EvolutionCharts({
   initialData,
   initialError
 }: SupplierAndAppsEvolutionProps) {
-  const {currentTime} = useHeightContext()
-
-  const variables = useCallback((_: number, currentTime: string) => getEvolutionVariables(currentTime), [])
+  const lastVariablesRef = React.useRef<ReturnType<typeof getEvolutionVariables>>()
+  const variables = useCallback((_: number, currentTime: string) => {
+    return lastVariablesRef.current = getEvolutionVariables(currentTime)
+  }, [])
 
   const { data, error, isLoading, refetch } = useFetchOnBlock({
-    query: evolutionDocument,
+    query: newEvolutionDocument,
     variables,
     initialResult: initialData,
     initialError,
   })
-
-  const {dateTimeZone} = useDateContext()
 
   const {
     validatorsData,
@@ -59,122 +61,91 @@ export default function EvolutionCharts({
     supplyData,
     appsData,
   } = useMemo(() => {
-    // Avoid creating DateTimeFormat on every render - memoize it externally if possible
-    const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "2-digit", timeZone: dateTimeZone === 'utc' ? 'UTC' : undefined });
+    const validatorsData: Array<EvolutionData> = [],
+      supplierData: Array<EvolutionData> = [],
+      supplyData: Array<EvolutionData> = [],
+      appsData: Array<EvolutionData> = []
 
-    const dates = getEvolutionVariables(currentTime)
+    if (data) {
+      for (const item of data.getLatestBlocksByDay) {
+        const date = normalizeIsoDate(item.date)
+        const point = formatDate(date, 'day', true)
 
-    // Batch date creation to reduce overhead
-    const dateObjects = [
-      dates.currentDate,
-      dates.yesterdayDate,
-      dates.previous2Date,
-      dates.previous3Date,
-      dates.previous4Date,
-      dates.previous5Date,
-      dates.previous6Date
-    ].map(d => new Date(d))
+        validatorsData.push({
+          id: 'validators',
+          value: Number(item.block.staked_validators),
+          point: point,
+          start_date: date,
+        })
 
-    const [currentDate, yesterdayDate, previous2Date, previous3Date, previous4Date, previous5Date, previous6Date] =
-      dateObjects.map(d => dateFormatter.format(d))
+        supplierData.push({
+          id: 'suppliers',
+          value: Number(item.block.staked_suppliers),
+          point: point,
+          start_date: date,
+        })
 
-    const supplyData: CommonLineChartProps['data'] = data?.supply?.map((supply) => ({
-      label: dateFormatter.format(getDateFromIsoString(supply.day)),
-      value: supply.total_supply || 0,
-    })) || []
+        appsData.push({
+          id: 'suppliers',
+          value: Number(item.block.staked_apps),
+          point: point,
+          start_date: date,
+        })
+      }
 
-    const validatorsData: CommonLineChartProps['data'] = [
-      {
-        label: currentDate,
-        value: data?.today?.nodes?.at(0)?.stakedValidators || 0,
-      },
-      {
-        label: yesterdayDate,
-        value: data?.yesterday?.nodes?.at(0)?.stakedValidators || 0,
-      },
-      {
-        label: previous2Date,
-        value: data?.last2?.nodes?.at(0)?.stakedValidators || 0,
-      },
-      {
-        label: previous3Date,
-        value: data?.last3?.nodes?.at(0)?.stakedValidators || 0,
-      },
-      {
-        label: previous4Date,
-        value: data?.last4?.nodes?.at(0)?.stakedValidators || 0,
-      },
-      {
-        label: previous5Date,
-        value: data?.last5?.nodes?.at(0)?.stakedValidators || 0,
-      },
-      {
-        label: previous6Date,
-        value: data?.last6?.nodes?.at(0)?.stakedValidators || 0,
-      },
-    ].reverse()
+      for (const item of data.supply) {
+        const date = normalizeIsoDate(item.day)
+        const point = formatDate(date, 'day', true)
 
-    const supplierData: CommonLineChartProps['data'] = [
-      {
-        label: currentDate,
-        value: data?.today?.nodes?.at(0)?.stakedSuppliers || 0
-      },
-      {
-        label: yesterdayDate,
-        value: data?.yesterday?.nodes?.at(0)?.stakedSuppliers || 0
-      },
-      {
-        label: previous2Date,
-        value: data?.last2?.nodes?.at(0)?.stakedSuppliers || 0
-      },
-      {
-        label: previous3Date,
-        value: data?.last3?.nodes?.at(0)?.stakedSuppliers || 0
-      },
-      {
-        label: previous4Date,
-        value: data?.last4?.nodes?.at(0)?.stakedSuppliers || 0
-      },
-      {
-        label: previous5Date,
-        value: data?.last5?.nodes?.at(0)?.stakedSuppliers || 0
-      },
-      {
-        label: previous6Date,
-        value: data?.last6?.nodes?.at(0)?.stakedSuppliers || 0
-      },
-    ].reverse()
+        supplyData.push({
+          id: 'supply',
+          value: Number(item.total_supply),
+          point: point,
+          start_date: date,
+        })
+      }
+    }
 
-    const appsData: CommonLineChartProps['data'] = [
-      {
-        label: currentDate,
-        value: data?.today?.nodes?.at(0)?.stakedApps || 0
-      },
-      {
-        label: yesterdayDate,
-        value: data?.yesterday?.nodes?.at(0)?.stakedApps || 0
-      },
-      {
-        label: previous2Date,
-        value: data?.last2?.nodes?.at(0)?.stakedApps || 0
-      },
-      {
-        label: previous3Date,
-        value: data?.last3?.nodes?.at(0)?.stakedApps || 0
-      },
-      {
-        label: previous4Date,
-        value: data?.last4?.nodes?.at(0)?.stakedApps || 0
-      },
-      {
-        label: previous5Date,
-        value: data?.last5?.nodes?.at(0)?.stakedApps || 0
-      },
-      {
-        label: previous6Date,
-        value: data?.last6?.nodes?.at(0)?.stakedApps || 0
-      },
-    ].reverse()
+    if (lastVariablesRef.current) {
+      return {
+        validatorsData: fillChartData({
+          data: validatorsData,
+          startDate: lastVariablesRef.current.startDate,
+          endDate: lastVariablesRef.current.endDate,
+          unitToFormatDate: 'day',
+          defaultProps: {
+            value: 0,
+          }
+        }),
+        supplierData: fillChartData({
+          data: supplierData,
+          startDate: lastVariablesRef.current.startDate,
+          endDate: lastVariablesRef.current.endDate,
+          unitToFormatDate: 'day',
+          defaultProps: {
+            value: 0,
+          }
+        }),
+        appsData: fillChartData({
+          data: appsData,
+          startDate: lastVariablesRef.current.startDate,
+          endDate: lastVariablesRef.current.endDate,
+          unitToFormatDate: 'day',
+          defaultProps: {
+            value: 0,
+          }
+        }),
+        supplyData: fillChartData({
+          data: supplyData,
+          startDate: lastVariablesRef.current.startDate,
+          endDate: lastVariablesRef.current.endDate,
+          unitToFormatDate: 'day',
+          defaultProps: {
+            value: 0,
+          }
+        }),
+      }
+    }
 
     return {
       validatorsData,
@@ -182,7 +153,7 @@ export default function EvolutionCharts({
       appsData,
       supplyData,
     }
-  }, [currentTime, data, dateTimeZone])
+  }, [data])
 
   if (isLoading) {
     return <EvolutionChartsLoader />

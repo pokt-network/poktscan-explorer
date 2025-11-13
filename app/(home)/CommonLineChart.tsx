@@ -2,9 +2,10 @@
 import {Line} from 'react-chartjs-2'
 import { useTheme } from 'next-themes'
 import { formatAmount, formatSimpleAmount } from '@/app/utils/format'
+import { formatDate } from '@/app/Charts/utils'
 
 interface DataPoint {
-  label: string
+  point: string
   value: number
 }
 
@@ -51,6 +52,8 @@ export default function CommonLineChart({
     max = dataMax * 1.1
   }
 
+  const labels = data.map(({point}) => formatDate(point, 'day', true))
+
   return (
     <div className={'h-[100px] px-3 py-2'}>
       <Line
@@ -61,7 +64,7 @@ export default function CommonLineChart({
           maxWidth: '100%',
         }}
         data={{
-          labels: data.map(({label}) => label),
+          labels: data.map((item) => item.point),
           datasets: [
             {
               label: dataLabel,
@@ -80,7 +83,7 @@ export default function CommonLineChart({
           responsive: true,
           maintainAspectRatio: false,
           parsing: {
-            xAxisKey: 'label',
+            xAxisKey: 'point',
             yAxisKey: 'value',
           },
           scales: {
@@ -118,6 +121,9 @@ export default function CommonLineChart({
                 ...commonTickOptions,
                 maxRotation: 0,
                 autoSkipPadding: 0.3,
+                callback: function (_, index) {
+                  return labels[index]
+                }
               },
               grid: {
                 tickLength: 15,
@@ -155,6 +161,9 @@ export default function CommonLineChart({
               },
               padding: 10,
               callbacks: {
+                title(tooltipItems) {
+                  return tooltipItems.map((item) => formatDate(item.label, 'day', true))
+                },
                 label: (tooltipItem) => {
                   let amount = (tooltipItem.raw as DataPoint).value.toString()
 
