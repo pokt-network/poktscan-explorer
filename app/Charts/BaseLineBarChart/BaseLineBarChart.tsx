@@ -21,6 +21,8 @@ import { getProjection } from '@/app/utils/calculate'
 
 interface BaseLineBarChartProps<T extends LineBarItem> {
   chartType?: 'line' | 'bar'
+  chartTypeProp?: 'line' | 'bar'
+  includeMonthOnXAxis?: boolean
   data: Record<string, Array<T>>
   yAxisKey: keyof T
   yAxisLabel: string
@@ -42,6 +44,7 @@ export default function BaseLineBarChart<T extends LineBarItem>({
   data,
   colorById,
   chartType = 'line',
+  chartTypeProp = 'bar',
   yAxisKey,
   yAxisLabel,
   unitToFormatDate = 'day',
@@ -54,7 +57,8 @@ export default function BaseLineBarChart<T extends LineBarItem>({
   ref,
   getCustomDatasetProps,
   addProjection = true,
-  projectionIsUpokt
+  projectionIsUpokt,
+  includeMonthOnXAxis
 }: BaseLineBarChartProps<T>) {
   const {theme} = useTheme()
   const {currentTime} = useHeightContext()
@@ -265,7 +269,7 @@ export default function BaseLineBarChart<T extends LineBarItem>({
               return chartData.labels[value]
             }
 
-            return formatDate(dataEntries[0][1][value]?.point, unitToFormatDate)
+            return formatDate(dataEntries[0][1][value]?.point, unitToFormatDate, includeMonthOnXAxis)
           }
         },
         grid: {
@@ -432,7 +436,7 @@ export default function BaseLineBarChart<T extends LineBarItem>({
   return (
     <Chart
       ref={ref}
-      type={'bar'}
+      type={chartTypeProp}
       data={chartData}
       redraw={false}
       options={options}

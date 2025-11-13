@@ -1,16 +1,18 @@
 'use client'
-import CommonLineChart, { CommonLineChartProps } from '@/app/(home)/CommonLineChart'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import React, { useCallback, useMemo } from 'react'
 import { getEvolutionVariables } from '@/app/(home)/utils'
 import { newEvolutionDocument } from '@/app/(home)/operations'
-import EvolutionChartsLoader from '@/app/(home)/EvolutionCharts/Loader'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
-import { fillChartData, formatDate, LineBarItem, normalizeIsoDate } from '@/app/Charts/utils'
+import { fillChartData, LineBarItem, normalizeIsoDate } from '@/app/Charts/utils'
+import BaseLineBarChart from '@/app/Charts/BaseLineBarChart/BaseLineBarChart'
+import { formatAmount, formatSimpleAmount } from '@/app/utils/format'
+import { useTheme } from 'next-themes'
 
 interface CardEvolutionChartProps {
   title: string
-  data: CommonLineChartProps['data']
+  isLoading?: boolean
+  data: Array<EvolutionData>
   dataLabel: string
   valuesAreUPokt?: boolean
   applyMinAndMax?: boolean
@@ -21,7 +23,36 @@ interface EvolutionData extends LineBarItem {
   start_date: string
 }
 
-function CardEvolutionChart({title, ...chartProps }: CardEvolutionChartProps) {
+function CardEvolutionChart({title, isLoading, ...chartProps }: CardEvolutionChartProps) {
+  const {theme = 'dark'} = useTheme();
+  const isDark = theme === 'dark'
+
+  const commonTickOptions = {
+    font: {
+      size: 11,
+    },
+    color: isDark ? '#b9b9b9' : '#3f3f3f',
+  }
+
+  let min: number | undefined = undefined, max: number | undefined = undefined
+
+  if (chartProps.applyMinAndMax) {
+    const {min: dataMin, max: dataMax} = chartProps.data.reduce((acc, item) => {
+      if (item.value < acc.min) {
+        acc.min = item.value
+      }
+
+      if (item.value > acc.max) {
+        acc.max = item.value
+      }
+
+      return acc
+    }, {max: 0, min: Number.MAX_SAFE_INTEGER})
+
+    min = dataMin * 0.9
+    max = dataMax * 1.1
+  }
+
   return (
     <div className={'bg-[color:--main-background] pb-2 border-[color:--divider] border rounded-lg base-shadow'}>
       <div className={'h-[41px] p-4 flex items-center border-b border-[color:--divider]'}>
@@ -29,7 +60,122 @@ function CardEvolutionChart({title, ...chartProps }: CardEvolutionChartProps) {
           {title}
         </p>
       </div>
-      <CommonLineChart {...chartProps} />
+      <div className={'h-[100px] pt-2 pr-3'}>
+        <BaseLineBarChart
+          chartTypeProp={'line'}
+          unitToFormatDate={'day'}
+          includeMonthOnXAxis={true}
+          data={{
+            '': chartProps.data
+          }}
+          colorById={{
+            '': isDark ? '#b9b9b9' : '#3f3f3f'
+          }}
+          isLoading={isLoading}
+          yAxisKey={'value'}
+          yAxisLabel={''}
+          chartType={'line'}
+          addProjection={false}
+          getCustomDatasetProps={() => {
+            return {
+              tension: 0.3,
+              pointRadius: 2,
+              borderWidth: 1.5,
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              pointHoverRadius: 8,
+              animation: {
+                duration: 100
+              },
+
+          }}}
+          customOptions={{
+            scales: {
+              y: {
+                grace: chartProps.applyMinAndMax ? '' : undefined,
+                border: {
+                  display: false,
+                },
+                grid: {
+                  display: false,
+                  tickLength: 20
+                },
+                ticks: {
+                  ...commonTickOptions,
+                  maxRotation: 0,
+                  stepSize: min ? ((min + max!) / 2) - min : undefined,
+                  callback: function (value) {
+                    if (chartProps.valuesAreUPokt) {
+                      return formatAmount({
+                        amount: value,
+                        denom: 'upokt',
+                      }).split(' ').at(0)
+                    }
+
+                    return formatSimpleAmount(value)
+                  },
+                },
+                min,
+                max,
+              },
+              x: {
+                border: {
+                  display: false,
+                },
+                ticks: {
+                  ...commonTickOptions,
+                  maxRotation: 0,
+                  autoSkipPadding: 0.3,
+                },
+                grid: {
+                  tickLength: 15,
+                  display: false,
+                },
+              },
+            },
+            borderColor: isDark ? 'rgb(147,147,147)' : '#808080',
+            hover: {
+              mode: 'nearest',
+              intersect: false,
+            },
+            hoverBackgroundColor: 'rgba(147,147,147, 0.4)',
+            datasets: {
+              line: {
+                tension: 0,
+                borderWidth: 2,
+              },
+            },
+            plugins: {
+              legend: {
+                display: false,
+              },
+              tooltip: {
+                enabled: true,
+                backgroundColor: isDark ? 'rgb(61,61,61)' : 'rgb(89,89,89)',
+                mode: 'nearest',
+                intersect: false,
+                displayColors: false,
+                bodyFont: {
+                  weight: 'bold'
+                },
+                titleFont: {
+                  weight: 'normal'
+                },
+                padding: 10,
+              },
+            },
+          }}
+          getTooltipLabel={(data) => `${chartProps.dataLabel}: ${
+            formatAmount({
+              includeSymbol: false,
+              amount: data.value,
+              maxDecimals: 2,
+              abbreviateThreshold: Infinity,
+              denom: chartProps.valuesAreUPokt ? 'upokt' : undefined
+            })
+          }`}
+        />
+      </div>
     </div>
   )
 }
@@ -69,38 +215,36 @@ export default function EvolutionCharts({
     if (data) {
       for (const item of data.getLatestBlocksByDay) {
         const date = normalizeIsoDate(item.date)
-        const point = formatDate(date, 'day', true)
 
         validatorsData.push({
           id: 'validators',
           value: Number(item.block.staked_validators),
-          point: point,
+          point: date,
           start_date: date,
         })
 
         supplierData.push({
           id: 'suppliers',
           value: Number(item.block.staked_suppliers),
-          point: point,
+          point: date,
           start_date: date,
         })
 
         appsData.push({
           id: 'suppliers',
           value: Number(item.block.staked_apps),
-          point: point,
+          point: date,
           start_date: date,
         })
       }
 
       for (const item of data.supply) {
         const date = normalizeIsoDate(item.day)
-        const point = formatDate(date, 'day', true)
 
         supplyData.push({
           id: 'supply',
           value: Number(item.total_supply),
-          point: point,
+          point: date,
           start_date: date,
         })
       }
@@ -155,9 +299,7 @@ export default function EvolutionCharts({
     }
   }, [data])
 
-  if (isLoading) {
-    return <EvolutionChartsLoader />
-  } else if (error) {
+  if (error && !isLoading) {
     return (
       <div className={'bg-[color:--main-background] grow flex rounded-lg border border-[color:--divider] base-shadow p-4'}>
         <BaseRetryError
@@ -167,18 +309,35 @@ export default function EvolutionCharts({
       </div>
     )
   } else {
+    const loading = isLoading || (!data && !error)
     return (
       <div className="flex flex-col gap-y-4 w-full">
         <CardEvolutionChart
           title={'Supply Evolution (POKT)'}
           data={supplyData}
           dataLabel={'Supply'}
-          valuesAreUPokt={true}
-          applyMinAndMax={true}
+          valuesAreUPokt={!loading}
+          applyMinAndMax={!loading}
+          isLoading={loading}
         />
-        <CardEvolutionChart title={'Staked Validators Evolution'} data={validatorsData} dataLabel={'Staked Validators'} />
-        <CardEvolutionChart title={'Staked Suppliers Evolution'} data={supplierData} dataLabel={'Staked Suppliers'} />
-        <CardEvolutionChart title={'Staked Apps Evolution'} data={appsData} dataLabel={'Staked Apps'} />
+        <CardEvolutionChart
+          title={'Staked Validators Evolution'}
+          data={validatorsData}
+          dataLabel={'Staked Validators'}
+          isLoading={loading}
+        />
+        <CardEvolutionChart
+          title={'Staked Suppliers Evolution'}
+          data={supplierData}
+          dataLabel={'Staked Suppliers'}
+          isLoading={loading}
+        />
+        <CardEvolutionChart
+          title={'Staked Apps Evolution'}
+          data={appsData}
+          dataLabel={'Staked Apps'}
+          isLoading={loading}
+        />
       </div>
     )
   }
