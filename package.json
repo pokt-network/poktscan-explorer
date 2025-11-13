@@ -39,7 +39,6 @@
     "date-fns": "^4.1.0",
     "graphql": "^16.9.0",
     "graphql-cli": "^4.1.0",
-    "graphql-ws": "^5.16.0",
     "html2canvas": "^1.4.1",
     "lodash": "^4.17.21",
     "lucide-react": "^0.454.0",

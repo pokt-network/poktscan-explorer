@@ -8,7 +8,6 @@ import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import FailedTransactionFeedback from '@/app/(transactions)/FailedTransactionFeedback'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
-import NewTransferByAddress from '@/app/(transactions)/NewTransferByAddress'
 import LoadingListView from '@/app/components/LoadingListView'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
@@ -241,9 +240,6 @@ export default function TransferTable({address, page, itemsPerPage, basePath}: T
       rows={rows}
       header={{
         title: `${data?.transfers?.totalCount || 0} transfers found`,
-        subtitle: (
-          <NewTransferByAddress address={address} />
-        )
       }}
       pagination={{
         currentPage: page,

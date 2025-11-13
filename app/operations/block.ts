@@ -1,5 +1,21 @@
 import { graphql } from '@/app/config/gql'
 
+export const statusQuery = graphql(`
+  query status {
+    blocks(orderBy: ID_DESC, first: 1) {
+      nodes {
+        id
+        timestamp
+        totalRelays
+      }
+    }
+    _metadata {
+      targetHeight
+      lastProcessedHeight
+    }
+  }
+`)
+
 export const latestBlockQuery = graphql(`
   query latestBlock {
     blocks(orderBy: ID_DESC, first: 1) {
@@ -40,21 +56,6 @@ export const latestBlockQuery = graphql(`
         stakedGatewaysTokens
         unstakedGateways
         unstakedGatewaysTokens
-      }
-    }
-  }
-`)
-
-export const subscriptionQuery = graphql(`
-  subscription blocks {
-    blocks {
-      id
-      mutation_type
-      _entity {
-        id
-        height: id
-        timestamp
-        totalRelays
       }
     }
   }

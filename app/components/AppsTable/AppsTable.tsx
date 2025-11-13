@@ -7,7 +7,6 @@ import React, { useCallback, useMemo } from 'react'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import { ChipText } from '@/app/components/Chip'
 import { applicationListDocument } from '@/app/(lists)/apps/operations'
-import AppsSubscription from '@/app/components/AppsTable/AppsSubscription'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { ApplicationFilter, StakeStatus } from '@/app/config/gql/graphql'
 import { graphql } from '@/app/config/gql'
@@ -277,9 +276,6 @@ export default function AppsTable({page, itemsPerPage, basePath, service, gatewa
       rows={rows}
       header={{
         title: `${data?.applications?.totalCount} applications found`,
-        subtitle: (
-          <AppsSubscription service={service} />
-        )
       }}
       pagination={{
         currentPage: page,
