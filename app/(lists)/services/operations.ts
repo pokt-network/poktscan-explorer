@@ -27,11 +27,3 @@ export const serviceListDocument = graphql(`
     }
   }
 `)
-
-export const servicesSubscription = graphql(`
-  subscription servicesSubscription {
-    services {
-      id
-    }
-  }
-`)

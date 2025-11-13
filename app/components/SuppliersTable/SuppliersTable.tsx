@@ -8,7 +8,6 @@ import { getStakeLabel, stakeFilters, StakeTableFilter } from '@/app/utils/stake
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import { ChipText } from '@/app/components/Chip'
 import { supplierListDocument, } from '@/app/(lists)/suppliers/operations'
-import SuppliersSubscription from '@/app/components/SuppliersTable/SuppliersSubscription'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { graphql } from '@/app/config/gql'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
@@ -345,7 +344,6 @@ export default function SuppliersTable({page, itemsPerPage, basePath, service, o
       rows={rows}
       header={{
         title: `${data?.suppliers?.totalCount} suppliers found`,
-        subtitle: <SuppliersSubscription service={service} owners={owners} delegators={delegators} />
       }}
       pagination={{
         currentPage: page,

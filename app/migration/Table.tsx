@@ -10,7 +10,6 @@ import CopyIconButton from '@/app/components/CopyIconButton'
 import { morseClaimableAccountsPageDocument } from '@/app/migration/operations'
 import { MorseClaimableAccountFilter } from '../config/gql/graphql'
 import { isValidMorseAddress, isValidPoktAddress } from '@/app/utils/poktroll'
-import NewEntitiesSubscription from '@/app/migration/NewEntitiesSubscription'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { useSearchParams } from 'next/navigation'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
@@ -253,9 +252,6 @@ export default function MorseClaimableAccountTable({basePath, address: addressFr
       <Table
         header={{
           title: `${formatSimpleAmount(data?.morseClaimableAccounts?.totalCount || 0)} Morse claimable accounts found`,
-          subtitle: (
-            <NewEntitiesSubscription address={address} />
-          )
         }}
         columns={columns}
         rows={rows}

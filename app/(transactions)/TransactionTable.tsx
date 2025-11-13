@@ -2,28 +2,8 @@ import { Transaction } from '@/app/config/gql/graphql'
 import Table, { TableProps } from '@/app/components/Table'
 import React from 'react'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
-import { graphql } from '@/app/config/gql'
-import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 import { getTransactionsColumns } from '@/app/(transactions)/columns'
 import { transactionFilters } from '@/app/(transactions)/filters'
-
-export const transactionsSubscription = graphql(`
-  subscription transactions {
-    transactions {
-      id
-      _entity {
-        id
-        signerAddress
-        #        todo: uncomment this when fixed
-        #        messages {
-        #          nodes {
-        #            json
-        #          }
-        #        }
-      }
-    }
-  }
-`)
 
 export interface RowTransaction {
   id: string
@@ -44,12 +24,11 @@ interface TransactionTableProps {
   pagination: TableProps['pagination']
   totalItems?: number
   subtitle?: React.ReactNode
-  disableSubscription?: boolean
   activeFilter?: string
   csvEndpoint?: string
 }
 
-export default function TransactionTable({rawRows, includeSigner = true, pagination, totalItems, subtitle, disableSubscription = false, activeFilter, csvEndpoint}: TransactionTableProps) {
+export default function TransactionTable({rawRows, includeSigner = true, pagination, totalItems, subtitle, activeFilter, csvEndpoint}: TransactionTableProps) {
   const rows: Array<RowTransaction> = rawRows.map((transaction) => {
     const fee = transaction.fees!.at(0) || {
       amount: '0',
@@ -85,13 +64,7 @@ export default function TransactionTable({rawRows, includeSigner = true, paginat
       rows={rows}
       header={{
         title: `${totalItems} transactions found`,
-        subtitle: subtitle ? subtitle : disableSubscription ? null : (
-          // @ts-expect-error tbd
-          <NewEntitiesFound<typeof transactionsSubscription>
-            entity={'transactions'}
-            subscription={transactionsSubscription}
-          />
-        )
+        subtitle: subtitle,
       }}
       pagination={pagination}
       filters={transactionFilters}

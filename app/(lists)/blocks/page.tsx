@@ -10,8 +10,6 @@ import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
 import { blockListDocument } from '@/app/(lists)/blocks/operations'
 import Summary from '@/app/(lists)/blocks/Summary'
-import NewEntitiesFound from '@/app/components/NewEntitiesFound'
-import { subscriptionQuery } from '@/app/operations/block'
 import { LabelByIndex } from '@/app/components/FourCards/utils'
 import { LoadingTable } from '../../components/LoadingListView'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
@@ -181,12 +179,6 @@ function BlocksTable() {
       rows={rows}
       header={{
         title: `${data?.blocks?.totalCount} blocks found`,
-        subtitle: (
-          <NewEntitiesFound<typeof subscriptionQuery>
-            subscription={subscriptionQuery}
-            entity={'blocks'}
-          />
-        )
       }}
       pagination={{
         currentPage: page,

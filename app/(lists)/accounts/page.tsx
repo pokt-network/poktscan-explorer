@@ -9,8 +9,6 @@ import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
 import { accountListDocument } from '@/app/(lists)/accounts/operations'
 import Summary from '@/app/(lists)/accounts/Summary'
-import { graphql } from '@/app/config/gql'
-import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 import { LoadingTable } from '@/app/components/LoadingListView'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { useSearchParams } from 'next/navigation'
@@ -58,14 +56,6 @@ const columns: Array<GridColDef> = [
     align: 'right',
   },
 ]
-
-const accountSubscription = graphql(`
-  subscription accounts {
-    accounts {
-      id
-    }
-  }
-`)
 
 interface RowAccount {
   id: string
@@ -135,12 +125,6 @@ function AccountsTable() {
       rows={rows}
       header={{
         title: `${data?.balances?.totalCount} accounts found`,
-        subtitle: (
-          <NewEntitiesFound<typeof accountSubscription>
-            subscription={accountSubscription}
-            entity={'accounts'}
-          />
-        )
       }}
       pagination={{
         currentPage: page,

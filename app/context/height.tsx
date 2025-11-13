@@ -1,9 +1,8 @@
 'use client'
 
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { useLazyQuery, useSubscription } from '@apollo/client'
-import { subscriptionQuery } from '@/app/operations/block'
-import { indexerMetadataDocument } from '@/app/operations/metadata'
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import { useQuery } from '@apollo/client'
+import { statusQuery } from '@/app/operations/block'
 
 interface HeightContext {
   currentHeight: number
@@ -44,53 +43,41 @@ export default function HeightContextProvider({
     currentTime: firstTime,
   })
 
-  useSubscription(subscriptionQuery, {
-    ignoreResults: true,
-    onError: (error) => {
-      console.error('Block subscription error:', error);
-    },
-    onData: (data) => {
-      const block = data?.data?.data?.blocks
-      const newBlockId = Number(block?.id)
-      if (block && newBlockId > currentHeight) {
-        setState({
-          currentHeight: newBlockId,
-          currentTime: block._entity?.timestamp || currentTime,
-        })
-
-        if (newBlockId > networkHeight) {
-          setNetworkHeight(newBlockId)
-        }
-
-        if (Number(block?._entity?.totalRelays) > 0) {
-          setSessionHeight(newBlockId)
-        }
-      }
+  const {data, refetch} = useQuery(
+    statusQuery,
+    {
+      fetchPolicy: 'network-only',
+      nextFetchPolicy: 'network-only',
+      pollInterval: 15 * 1000,
     }
-  })
+  )
 
-  const [fetchIndexerMetadata] = useLazyQuery(indexerMetadataDocument, {
-    fetchPolicy: 'network-only',
-    nextFetchPolicy: 'network-only',
-    pollInterval: 5 * 1000,
-  })
+  useEffect(() => {
+    const block = data?.blocks?.nodes[0]
 
-  const updateNetworkHeight = useCallback(() => {
-    fetchIndexerMetadata().then((res) => {
-      const targetHeight = res?.data?._metadata?.targetHeight
+    const newBlockId = Number(block?.id)
+    if (block && newBlockId > currentHeight) {
+      setState({
+        currentHeight: newBlockId,
+        currentTime: block.timestamp || currentTime,
+      })
+
+      if (newBlockId > networkHeight) {
+        setNetworkHeight(newBlockId)
+      }
+
+      if (Number(block.totalRelays) > 0) {
+        setSessionHeight(newBlockId)
+      }
+
+      const targetHeight = data?._metadata?.targetHeight
 
       if (targetHeight) {
         setNetworkHeight(Number(targetHeight))
       }
-    })
-  }, [fetchIndexerMetadata])
-
-
-  useEffect(() => {
-    const interval = setInterval(updateNetworkHeight, 5 * 1000)
-
-    return () => clearInterval(interval)
-  }, [currentHeight, updateNetworkHeight])
+    }
+    // eslint-disable-next-line
+  }, [data])
 
   return (
     <HeightContext.Provider
@@ -100,7 +87,7 @@ export default function HeightContextProvider({
         networkHeight,
         firstHeight,
         sessionHeight,
-        updateNetworkHeight,
+        updateNetworkHeight: refetch,
       }}
     >
       {children}

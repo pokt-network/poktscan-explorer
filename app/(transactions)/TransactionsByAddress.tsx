@@ -4,7 +4,6 @@ import { graphql } from '@/app/config/gql'
 import React, { useCallback } from 'react'
 import TransactionTable from '@/app/(transactions)/TransactionTable'
 import { Transaction } from '@/app/config/gql/graphql'
-import NewTransactionsByAddress from '@/app/(transactions)/NewTransactionsByAddress'
 import LoadingListView from '@/app/components/LoadingListView'
 import { getTransactionsColumns } from '@/app/(transactions)/columns'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
@@ -100,9 +99,6 @@ export default function TransactionByAddressTable({address, page, itemsPerPage, 
       }}
       totalItems={data?.transactions?.totalCount || 0}
       includeSigner={true}
-      subtitle={(
-        <NewTransactionsByAddress address={address} />
-      )}
       activeFilter={activeFilter}
       csvEndpoint={`/api/export/txs?address=${address}`}
     />

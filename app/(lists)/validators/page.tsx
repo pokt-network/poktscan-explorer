@@ -7,7 +7,6 @@ import React, { useCallback } from 'react'
 import { getStakeLabel } from '@/app/utils/stake'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import ListTitle from '@/app/components/ListTitle'
-import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 import { RowTransaction } from '@/app/(transactions)/TransactionTable'
 import { LoadingTable } from '@/app/components/LoadingListView'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
@@ -93,14 +92,6 @@ const columns: Array<GridColDef> = [
     ),
   },
 ]
-
-const validatorsSubscription = graphql(`
-  subscription validators {
-    validators {
-      id
-    }
-  }
-`)
 
 const validatorsListDocument = graphql(`
   query validatorsList($limit: Int!, $offset: Int!) {
@@ -202,12 +193,6 @@ function ValidatorsTable() {
       rows={rows}
       header={{
         title: `${data?.validators?.totalCount} validators found`,
-        subtitle: (
-          <NewEntitiesFound<typeof validatorsSubscription>
-            subscription={validatorsSubscription}
-            entity={'validators'}
-          />
-        )
       }}
       pagination={{
         currentPage: page,

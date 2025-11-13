@@ -89,9 +89,6 @@ importers:
       graphql-cli:
         specifier: ^4.1.0
         version: 4.1.0(@types/node@20.17.6)(graphql@16.9.0)
-      graphql-ws:
-        specifier: ^5.16.0
-        version: 5.16.0(graphql@16.9.0)
       html2canvas:
         specifier: ^1.4.1
         version: 1.4.1

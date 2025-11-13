@@ -100,7 +100,6 @@ export default function TransactionByHeightTable({height, page, itemsPerPage, ba
       }}
       totalItems={data?.transactions?.totalCount || 0}
       includeSigner={true}
-      disableSubscription={true}
       activeFilter={activeFilter}
       csvEndpoint={`/api/export/txs?height=${height}`}
     />

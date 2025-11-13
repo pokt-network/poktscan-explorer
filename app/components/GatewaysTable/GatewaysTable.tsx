@@ -7,7 +7,6 @@ import React, { useCallback, useMemo } from 'react'
 import { getStakeLabel, stakeFilters, StakeTableFilter } from '@/app/utils/stake'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import { ChipText } from '@/app/components/Chip'
-import { GatewaysSubscription } from '@/app/components/GatewaysTable/GatewaysSubscription'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { GatewayFilter, StakeStatus } from '@/app/config/gql/graphql'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
@@ -282,9 +281,6 @@ export default function GatewaysTable({page, itemsPerPage, basePath, service, ap
       rows={rows}
       header={{
         title: `${data?.gateways?.totalCount} gateways found`,
-        subtitle: (
-          <GatewaysSubscription service={service} />
-        )
       }}
       pagination={{
         currentPage: page,

@@ -1,15 +1,12 @@
 "use client";
 
-import { HttpLink, split } from '@apollo/client'
+import { HttpLink } from '@apollo/client'
 import {
   ApolloNextAppProvider,
   ApolloClient,
   InMemoryCache,
 } from "@apollo/experimental-nextjs-app-support";
 import React from 'react'
-import { getMainDefinition } from '@apollo/client/utilities'
-import { createClient } from 'graphql-ws'
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
 
 function makeClient(url: string) {
   const httpLink = new HttpLink({
@@ -24,39 +21,11 @@ function makeClient(url: string) {
     // const { data } = useSuspenseQuery(MY_QUERY, { context: { fetchOptions: { cache: "force-cache" }}});
   });
 
-  const wsUrl = url.replace(/^https?/, (match) =>
-    match === 'https' ? 'wss' : 'ws'
-  );
-
-
-  const wsLink = new GraphQLWsLink(createClient({
-    url: wsUrl,
-    retryAttempts: 5,
-    shouldRetry: () => true,
-    retryWait: async (retries) => {
-      await new Promise(resolve =>
-        setTimeout(resolve, Math.min(1000 * 2 ** retries, 10000))
-      );
-    },
-  }));
-
-  const splitLink = split(
-    ({ query }) => {
-      const definition = getMainDefinition(query);
-      return (
-        definition.kind === 'OperationDefinition' &&
-        definition.operation === 'subscription'
-      );
-    },
-    wsLink,
-    httpLink,
-  );
-
   // use the `ApolloClient` from "@apollo/experimental-nextjs-app-support"
   return new ApolloClient({
     // use the `InMemoryCache` from "@apollo/experimental-nextjs-app-support"
     cache: new InMemoryCache(),
-    link: splitLink,
+    link: httpLink,
   });
 }
 

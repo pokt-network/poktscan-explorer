@@ -3,9 +3,8 @@
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import ListTitle from '@/app/components/ListTitle'
-import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 import React, { useCallback } from 'react'
-import { serviceListDocument, servicesSubscription } from '@/app/(lists)/services/operations'
+import { serviceListDocument } from '@/app/(lists)/services/operations'
 import { formatSimpleAmount } from '@/app/utils/format'
 import { LoadingTable } from '@/app/components/LoadingListView'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
@@ -121,12 +120,6 @@ function ServicesTable() {
       rows={rows}
       header={{
         title: `${data?.services?.totalCount} services found`,
-        subtitle: (
-          <NewEntitiesFound<typeof servicesSubscription>
-            subscription={servicesSubscription}
-            entity={'services'}
-          />
-        )
       }}
       pagination={{
         currentPage: page,
