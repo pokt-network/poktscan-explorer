@@ -202,7 +202,7 @@ export default function RewardsByAddressChart({
         <NoData label={'Select addresses to see the rewards by time chart.'} />
       </div>
     )
-  } else if (isLoading) {
+  } else if (isLoading || (!error && !rawData)) {
     content = (
       <ContentLoader chartType={chartType} hideSelector={groupAllAddresses} />
     )
@@ -287,7 +287,7 @@ export default function RewardsByAddressChart({
       className={
         clsx(
           !isLoading && 'flex flex-col items-center px-4 pt-2 pb-4 h-full gap-4',
-          isLoading && 'flex flex-col md:flex-row items-center px-4 pt-2 pb-4 h-[calc(100%-44px)] gap-4'
+          (isLoading || (!rawData && !error)) && 'flex flex-col md:flex-row items-center px-4 pt-2 pb-4 h-[calc(100%-44px)] gap-4'
         )
       }
     >

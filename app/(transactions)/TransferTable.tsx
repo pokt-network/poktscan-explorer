@@ -1,15 +1,17 @@
+'use client'
+
 import { graphql } from '@/app/config/gql'
-import { getClient } from '@/app/config/apollo/rsc'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
-import React, { Suspense } from 'react'
+import React, { useCallback } from 'react'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import FailedTransactionFeedback from '@/app/(transactions)/FailedTransactionFeedback'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
 import NewTransferByAddress from '@/app/(transactions)/NewTransferByAddress'
 import LoadingListView from '@/app/components/LoadingListView'
-import { RefreshPageError } from '@/app/components/ErrorBoundary'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
+import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 
 const transfersByAddressDocument = graphql(`
   query transfersList($limit: Int!, $offset: Int!, $address: String!) {
@@ -173,96 +175,83 @@ interface TransferTableProps {
   basePath: string
 }
 
-async function ServerTransferTable({address, page, itemsPerPage, basePath}: TransferTableProps) {
-  try {
-    let { data } = await getClient().query({
-      query: transfersByAddressDocument,
-      variables: {
-        limit: itemsPerPage,
-        offset: (page - 1) * itemsPerPage,
-        address,
-      }
-    })
+export default function TransferTable({address, page, itemsPerPage, basePath}: TransferTableProps) {
+  const variables = useCallback(() => ({
+    limit: itemsPerPage,
+    offset: (page - 1) * itemsPerPage,
+    address,
+  }), [page, itemsPerPage, address])
 
-    const totalPages = Math.ceil((data.transfers?.totalCount || 0) / itemsPerPage)
+  const { data, error, isLoading, refetch } = useFetchOnBlock({
+    query: transfersByAddressDocument,
+    variables,
+    initialResult: null as unknown as DocumentNodeData<typeof transfersByAddressDocument>,
+    initialError: false
+  })
 
-    if (page > totalPages && totalPages > 0) {
-      page = 1
-
-      const result = await getClient().query({
-        query: transfersByAddressDocument,
-        variables: {
-          limit: itemsPerPage,
-          offset: (page - 1) * itemsPerPage,
-          address,
-        }
-      })
-
-      data = result.data
-    }
-
-    const rows = data?.transfers?.nodes?.map((transfer) => {
-      const amount = transfer?.amounts?.at(0)
-      const fee = transfer?.transaction?.fees?.at(0) || {
-        amount: '0',
-        denom: 'upokt'
-      }
-
-      return {
-        id: transfer?.transaction?.id,
-        result: transfer?.transaction?.code,
-        codespace: transfer?.transaction?.codespace,
-        height: transfer?.block?.height,
-        timestamp: transfer?.block?.timestamp,
-        // TODO: senderId and recipientId is incorrectly mapped in the indexer
-        from: transfer?.recipientId,
-        flow: transfer?.recipientId === address ? 'OUT' : 'IN',
-        to: transfer?.senderId,
-        amount: formatAmount(amount),
-        raw_amount: convertUpoktToPokt(amount?.amount),
-        fee: formatAmount(fee),
-        raw_fee: convertUpoktToPokt(fee?.amount),
-      }
-    }) || []
-
+  if (isLoading) {
     return (
-      <Table
+      <LoadingListView
         columns={columns}
-        rows={rows}
-        header={{
-          title: `${data.transfers?.totalCount} transfers found`,
-          subtitle: (
-            <NewTransferByAddress address={address} />
-          )
-        }}
-        pagination={{
-          currentPage: page,
-          totalPages,
-          itemsPerPage,
-          basePath
-        }}
-        csvEndpoint={`/api/export/transfers?address=${address}`}
+        rowsAmount={itemsPerPage}
       />
     )
-  } catch {
+  }
+
+  if (error) {
     return (
-      <RefreshPageError />
+      <div className={"bg-[color:--main-background] pt-3 pb-1 gap-1 rounded-lg border border-[color:--divider] base-shadow"}>
+        <BaseRetryError
+          onRetry={refetch}
+          errorMessage={'Oops. There was an error loading the transfers data.'}
+        />
+      </div>
     )
   }
-}
 
-export default async function TransferTable(props: TransferTableProps) {
+  const rows = data?.transfers?.nodes?.map((transfer) => {
+    const amount = transfer?.amounts?.at(0)
+    const fee = transfer?.transaction?.fees?.at(0) || {
+      amount: '0',
+      denom: 'upokt'
+    }
+
+    return {
+      id: transfer?.transaction?.id,
+      result: transfer?.transaction?.code,
+      codespace: transfer?.transaction?.codespace,
+      height: transfer?.block?.height,
+      timestamp: transfer?.block?.timestamp,
+      // TODO: senderId and recipientId is incorrectly mapped in the indexer
+      from: transfer?.recipientId,
+      flow: transfer?.recipientId === address ? 'OUT' : 'IN',
+      to: transfer?.senderId,
+      amount: formatAmount(amount),
+      raw_amount: convertUpoktToPokt(amount?.amount),
+      fee: formatAmount(fee),
+      raw_fee: convertUpoktToPokt(fee?.amount),
+    }
+  }) || []
+
+  const totalPages = Math.ceil((data?.transfers?.totalCount || 0) / itemsPerPage)
+
   return (
-    <Suspense
-      key={new Date().toISOString()}
-      fallback={
-        <LoadingListView
-          columns={columns}
-          rowsAmount={props.itemsPerPage}
-        />
-      }
-    >
-      <ServerTransferTable {...props} />
-    </Suspense>
+    <Table
+      columns={columns}
+      rows={rows}
+      header={{
+        title: `${data?.transfers?.totalCount || 0} transfers found`,
+        subtitle: (
+          <NewTransferByAddress address={address} />
+        )
+      }}
+      pagination={{
+        currentPage: page,
+        totalPages,
+        itemsPerPage,
+        basePath
+      }}
+      csvEndpoint={`/api/export/transfers?address=${address}`}
+    />
   )
 }

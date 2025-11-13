@@ -1,13 +1,6 @@
-import { getClient } from '@/app/config/apollo/rsc'
-import {
-  getServicesPerformanceVariables,
-  servicesPerformanceDocument,
-} from '@/app/dashboards/services/operations'
 import PerformanceTable from '@/app/dashboards/services/PerformanceTable/Table'
-import React, { Suspense } from 'react'
-import { getLatestBlock } from '@/app/api/blocks'
+import React from 'react'
 import PerformanceTableCard from '@/app/dashboards/services/PerformanceTable/Card'
-import PerformanceTableLoader from './Loader'
 import DataProvider from '@/app/context/DataContext'
 import PerformanceCardActions from '@/app/dashboards/services/PerformanceTable/CardActions'
 
@@ -15,22 +8,7 @@ interface ServicesPerformanceTableProps {
   timeSelected: string
 }
 
-async function ServerServicesPerformanceTable({timeSelected}: ServicesPerformanceTableProps) {
-  let data, error = false
-
-  try {
-    const latestBlock = await getLatestBlock()
-
-    const response = await getClient().query({
-      query: servicesPerformanceDocument,
-      variables: getServicesPerformanceVariables(latestBlock.timestamp, timeSelected)
-    })
-
-    data = response.data
-  } catch {
-    error = true
-  }
-
+export default function ServicesPerformanceTable({timeSelected}: ServicesPerformanceTableProps) {
   return (
     <DataProvider initialData={[]}>
       <PerformanceTableCard
@@ -40,24 +18,11 @@ async function ServerServicesPerformanceTable({timeSelected}: ServicesPerformanc
         )}
       >
         <PerformanceTable
-          initialData={data}
-          initialError={error}
+          initialData={null}
+          initialError={false}
           timeSelected={timeSelected}
         />
       </PerformanceTableCard>
     </DataProvider>
-  )
-}
-
-export default function ServicesPerformanceTable({timeSelected}: ServicesPerformanceTableProps) {
-  return (
-    <Suspense
-      key={timeSelected}
-      fallback={
-        <PerformanceTableLoader timeSelected={timeSelected} />
-      }
-    >
-      <ServerServicesPerformanceTable timeSelected={timeSelected} />
-    </Suspense>
   )
 }

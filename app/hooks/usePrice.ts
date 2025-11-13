@@ -3,13 +3,12 @@
 import {useQuery} from '@tanstack/react-query'
 import { fetchPrice, Price } from '@/app/api/price'
 
-export default function usePrice(): Price {
-  const { data } = useQuery({
+export default function usePrice(): { data: Price, isLoading: boolean, isError: boolean } {
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["price"],
     queryFn: fetchPrice,
-    staleTime: Infinity, // Avoids initial refetch
     refetchInterval: 60000, // Fetch every minute
   });
 
-  return data! || {}
+  return { data: data! || {}, isError, isLoading }
 }

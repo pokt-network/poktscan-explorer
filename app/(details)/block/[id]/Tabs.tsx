@@ -1,27 +1,34 @@
-import { getPageAndItems } from '@/app/utils/pagination'
+'use client'
+
 import React from 'react'
 import TransactionByHeightTable from '@/app/(transactions)/TransactionByHeight'
 import Metadata from '@/app/(details)/block/[id]/Metadata'
 import RawEntity from '@/app/components/RawEntity/RawEntity'
 import Tabs from '@/app/components/Tabs'
+import { useParams, useSearchParams } from 'next/navigation'
 
 const validTabs = ['txs', 'metadata', 'raw']
 
-interface PageProps {
-  params: Promise<{id: string, idForUrl?: string}>
-  searchParams: Promise<Record<string, string | string[] | undefined>>
+interface BlockTabsProps {
+  rpcUrl?: string
 }
 
-export default async function BlockTabs({params, searchParams}: PageProps) {
-  const [{ id, idForUrl }, { page, itemsPerPage }, sParams] = await Promise.all([
-    params,
-    getPageAndItems(searchParams),
-    searchParams,
-  ])
+export default function BlockTabs({rpcUrl}: BlockTabsProps) {
+  const params = useParams()
+  const searchParams = useSearchParams()
 
-  const tab = sParams.tab as string || 'metadata'
+  const id = params.id as string
+  const idForUrl = params.idForUrl as string | undefined
+
+  const pageParam = searchParams.get('p')
+  const itemsParam = searchParams.get('ps')
+  const tabParam = searchParams.get('tab')
+  const activeFilter = searchParams.get('filter') || undefined
+
+  const page = pageParam ? parseInt(pageParam, 10) : 1
+  const itemsPerPage = itemsParam ? parseInt(itemsParam, 10) : 25
+  const tab = tabParam || 'metadata'
   const activeTab = validTabs.includes(tab) ? tab : 'metadata'
-  const activeFilter = typeof sParams.filter === 'string' ? sParams.filter : undefined
 
   let element: React.ReactNode
 
@@ -47,6 +54,7 @@ export default async function BlockTabs({params, searchParams}: PageProps) {
         <RawEntity
           entity={'block'}
           id={id!.toString()}
+          rpcUrl={rpcUrl}
         />
       )
       break

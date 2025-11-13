@@ -1,43 +1,29 @@
-import { Suspense } from 'react'
-import { LoadingTable } from '@/app/components/LoadingListView'
-import AppsTable, { columns } from '@/app/components/AppsTable/AppsTable'
-import { getPageAndItems } from '@/app/utils/pagination'
+'use client'
+
+import AppsTable from '@/app/components/AppsTable/AppsTable'
+import { useSearchParams } from 'next/navigation'
 
 interface AppsDelegatedTabsProps {
   gateway: string
-  searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-async function ServerAppsDelegatedTabs({gateway, searchParams}: AppsDelegatedTabsProps) {
-  const [pageInfo, sParams] = await Promise.all([
-    getPageAndItems(searchParams),
-    searchParams
-  ])
+export default function AppsDelegatedTabs({gateway}: AppsDelegatedTabsProps) {
+  const searchParams = useSearchParams()
 
-  const activeFilter = typeof sParams.filter === 'string' ? sParams.filter : undefined
+  const pageParam = searchParams.get('p')
+  const itemsParam = searchParams.get('ps')
+  const activeFilter = searchParams.get('filter') || undefined
+
+  const page = pageParam ? parseInt(pageParam, 10) : 1
+  const itemsPerPage = itemsParam ? parseInt(itemsParam, 10) : 25
 
   return (
     <AppsTable
       gateway={gateway}
-      page={pageInfo.page}
-      itemsPerPage={pageInfo.itemsPerPage}
+      page={page}
+      itemsPerPage={itemsPerPage}
       basePath={`/gateway/${gateway}?tab=apps_delegated`}
       activeFilter={activeFilter}
     />
-  )
-}
-
-export default async function AppsDelegatedTabs({gateway, searchParams}: AppsDelegatedTabsProps) {
-  const pageInfo = await getPageAndItems(searchParams)
-
-  return (
-    <Suspense
-      key={`${gateway}-${new Date().toISOString()}`}
-      fallback={
-        <LoadingTable columns={columns} rowsAmount={pageInfo.itemsPerPage} />
-      }
-    >
-      <ServerAppsDelegatedTabs gateway={gateway} searchParams={searchParams} />
-    </Suspense>
   )
 }

@@ -10,8 +10,8 @@ import {
   selectedTimeCookieKey,
   selectedTimeParamKey,
 } from '@/app/dashboards/services/constants'
-import ServicesProductivityLoader from '@/app/dashboards/services/Productivity/Loader/Loader'
 import { getValidTime, Time } from '@/app/utils/dates'
+import { selectedServicesCookieKey } from '@/app/dashboards/services/Productivity/constants'
 
 export default async function DashboardServicesPage({searchParams}: PageProps) {
   const [cookiesAwaited, searchParamsAwaited] = await Promise.all([
@@ -50,14 +50,13 @@ export default async function DashboardServicesPage({searchParams}: PageProps) {
         <Distribution timeSelected={selectedTime} />
       </div>
 
-      <ServicesProductivityLoader
+      <ServicesProductivity
         timeSelected={selectedTime}
         chartType={(cookiesAwaited.get(chartTypeCookieKey)?.value || 'line') as 'line' | 'bar'}
-      >
-        <ServicesProductivity
-          timeSelected={selectedTime}
-        />
-      </ServicesProductivityLoader>
+        selectedServices={
+          cookiesAwaited.get(selectedServicesCookieKey)?.value?.split(',') || []
+        }
+      />
     </div>
   )
 }

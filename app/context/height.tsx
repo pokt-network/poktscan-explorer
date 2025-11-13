@@ -40,7 +40,7 @@ export default function HeightContextProvider({
   const [networkHeight, setNetworkHeight] = useState(initialNetworkHeight)
   const [sessionHeight, setSessionHeight] = useState(Number(firstHeight))
   const [{currentHeight, currentTime}, setState] = useState({
-    currentHeight: Number(firstHeight),
+    currentHeight: Number(firstHeight || 0),
     currentTime: firstTime,
   })
 

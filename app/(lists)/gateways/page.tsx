@@ -1,50 +1,34 @@
-import React, { Suspense } from 'react'
+'use client'
+
+import React, { useMemo } from 'react'
 import ListTitle from '@/app/components/ListTitle'
-import GatewaysTable, { columns } from '@/app/components/GatewaysTable/GatewaysTable'
-import { getPageAndItems } from '@/app/utils/pagination'
-import LoadingListView from '@/app/components/LoadingListView'
+import GatewaysTable from '@/app/components/GatewaysTable/GatewaysTable'
+import { useSearchParams } from 'next/navigation'
 
-export const dynamic = "force-dynamic";
+export default function GatewaysPage() {
+  const searchParams = useSearchParams()
 
-interface PageProps {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
+  const { page, itemsPerPage, activeFilter } = useMemo(() => {
+    const pageParam = searchParams.get('p')
+    const itemsParam = searchParams.get('ps')
+    const filterParam = searchParams.get('filter')
 
-async function ServerGatewaysPage({searchParams}: PageProps) {
-  const [{page, itemsPerPage,}, sParams] = await Promise.all([
-    getPageAndItems(searchParams),
-    searchParams
-  ])
+    const page = pageParam ? parseInt(pageParam, 10) : 1
+    const itemsPerPage = itemsParam ? parseInt(itemsParam, 10) : 50
+    const activeFilter = typeof filterParam === 'string' ? filterParam : undefined
 
-  const activeFilter = typeof sParams.filter === 'string' ? sParams.filter : undefined
-
-  return (
-    <GatewaysTable
-      page={page}
-      itemsPerPage={itemsPerPage}
-      basePath={'/gateways'}
-      activeFilter={activeFilter}
-    />
-  )
-}
-
-export default async function GatewaysPage({searchParams}: PageProps) {
-  const pageInfo = await getPageAndItems(searchParams)
+    return { page, itemsPerPage, activeFilter }
+  }, [searchParams])
 
   return (
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <ListTitle title={'Gateways'} />
-      <Suspense
-        key={`gateways-page-${pageInfo.page}-${pageInfo.itemsPerPage}-${new Date().toISOString()}`}
-        fallback={
-          <LoadingListView
-            columns={columns}
-            rowsAmount={pageInfo.itemsPerPage}
-          />
-        }
-      >
-        <ServerGatewaysPage searchParams={searchParams} />
-      </Suspense>
+      <GatewaysTable
+        page={page}
+        itemsPerPage={itemsPerPage}
+        basePath={'/gateways'}
+        activeFilter={activeFilter}
+      />
     </div>
   )
 }

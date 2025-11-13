@@ -45,15 +45,15 @@ export default function Summary({initialData, initialError, labels}: SummaryProp
         combineByIndex(
           labels,
           {
-            1: data.stakedApps?.totalCount,
+            1: data?.stakedApps?.totalCount || 0,
             2: formatAmount({
               denom: 'upokt',
-              amount: data.stakedApps?.aggregates?.sum?.stakeAmount
+              amount: data?.stakedApps?.aggregates?.sum?.stakeAmount || 0
             }),
-            3: data.unstakingApps?.totalCount,
+            3: data?.unstakingApps?.totalCount || 0,
             4: formatAmount({
               denom: 'upokt',
-              amount: data.unstakingApps?.aggregates?.sum?.stakeAmount
+              amount: data?.unstakingApps?.aggregates?.sum?.stakeAmount || 0
             })
           }
         )

@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv4first');
 
 const nextConfig: NextConfig = {
+  reactStrictMode: false,
   output: 'standalone',
+  productionBrowserSourceMaps: true, // Enable source maps for debugging
   /* config options here */
   typescript: {
     // JUST TEMPORARY BECAUSE OF ERRORS FROM THE GRAPHQL CODEGEN DUE TO HOW SUBQUERY GENERATES THE SCHEMA

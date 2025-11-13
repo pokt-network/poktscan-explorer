@@ -149,7 +149,9 @@ export default function useFetchOnBlock<
   }, [updateOnNewSession ? sessionHeight : currentHeight, query, variables])
 
   useEffect(() => {
-    if (!initialResult && !initialError) {
+    // Skip initial fetch if HeightContext hasn't initialized yet (currentHeight = 0)
+    // This prevents premature fetching during hydration
+    if (!initialResult && !initialError && currentHeight > 0) {
       fetchDataFunction()
     }
 

@@ -1,30 +1,72 @@
-import React, { Suspense } from 'react'
+'use client'
+
+import React, { useEffect, useState } from 'react'
 import GatewaysTable, { columns } from '@/app/components/GatewaysTable/GatewaysTable'
-import { getPageAndItems } from '@/app/utils/pagination'
-import { PageProps } from '@/app/types/pages'
 import { LoadingTable } from '@/app/components/LoadingListView'
-import getMetadata from '@/app/api/metadata'
 import { getUseRpcData } from '@/app/utils/metadata'
-import { getRawAppFromRpc } from '@/app/(details)/app/[id]/getApp'
+import { getUrl } from '@/app/components/RawEntity/utils'
 import BaseTable from '@/app/components/BaseTable'
 import TableDownloadButton from '@/app/components/TableDownloadButton'
 import { formatSimpleAmount } from '@/app/utils/format'
 import EntityLink from '@/app/components/EntityLink'
 import { CircleAlert } from 'lucide-react'
+import { indexerMetadataDocument } from '@/app/operations/metadata'
+import useFetchOnBlock from '@/app/hooks/useFetchOnBlock'
+import { useSearchParams } from 'next/navigation'
+import type { ApplicationResponseFromRpc } from '@/app/(details)/app/[id]/getApp'
 
-const rpcUrl = process.env.RPC_BASE_URL!
+const rpcUrl = process.env.NEXT_PUBLIC_RPC_BASE_URL!
 
-interface DelegatedToTabProps extends PageProps {
+interface DelegatedToTabProps {
   app: string
 }
 
-async function ServerDelegatedTo({searchParams, app}: DelegatedToTabProps) {
-  const metadata = await getMetadata()
+export default function DelegatedToTab({app}: DelegatedToTabProps) {
+  const searchParams = useSearchParams()
+  const [rpcData, setRpcData] = useState<ApplicationResponseFromRpc['application'] | null>(null)
+  const [isLoadingRpc, setIsLoadingRpc] = useState(false)
 
-  if (getUseRpcData(metadata)) {
-    const application = await getRawAppFromRpc(app, rpcUrl)
+  const pageParam = searchParams.get('p')
+  const itemsParam = searchParams.get('ps')
+  const activeFilter = searchParams.get('filter') || undefined
 
-    const rows = application?.delegatee_gateway_addresses?.map(address => ({
+  const page = pageParam ? parseInt(pageParam, 10) : 1
+  const itemsPerPage = itemsParam ? parseInt(itemsParam, 10) : 25
+
+  const { data: metadata, isLoading: isLoadingMetadata } = useFetchOnBlock({
+    query: indexerMetadataDocument,
+    initialResult: null,
+    initialError: false
+  })
+
+  const useRpcData = metadata ? getUseRpcData(metadata) : false
+
+  useEffect(() => {
+    if (useRpcData && !rpcData && !isLoadingRpc) {
+      setIsLoadingRpc(true)
+      fetch(getUrl(rpcUrl, 'app', app))
+        .then(res => {
+          if (res.status === 404) {
+            return null
+          }
+          return res.json().then(res => res.application)
+        })
+        .then(data => {
+          setRpcData(data)
+          setIsLoadingRpc(false)
+        })
+        .catch(() => {
+          setIsLoadingRpc(false)
+        })
+    }
+  }, [useRpcData, app, rpcData, isLoadingRpc])
+
+  if (isLoadingMetadata || (useRpcData && isLoadingRpc)) {
+    return <LoadingTable columns={columns} rowsAmount={itemsPerPage} />
+  }
+
+  if (useRpcData) {
+    const rows = rpcData?.delegatee_gateway_addresses?.map(address => ({
       id: address
     })) || []
 
@@ -48,7 +90,7 @@ async function ServerDelegatedTo({searchParams, app}: DelegatedToTabProps) {
       <div className={"w-full h-full flex flex-col rounded-lg border border-[color:--divider] bg-[color:--main-background] base-shadow"}>
         <div className={"flex pt-4 px-3 md:px-4 pb-3 flex-row w-full min-h-[74px] flex-wrap items-center justify-between gap-3"}>
           <p className={"text-sm"}>
-            {formatSimpleAmount(application?.delegatee_gateway_addresses?.length || 0)} gateway{application?.delegatee_gateway_addresses?.length === 1 ? '' : 's'} found
+            {formatSimpleAmount(rpcData?.delegatee_gateway_addresses?.length || 0)} gateway{rpcData?.delegatee_gateway_addresses?.length === 1 ? '' : 's'} found
           </p>
           {rows.length > 0 && (
             <TableDownloadButton rows={rows} columns={tableColumns.map((col) => ({...col, renderCell: undefined}))} />
@@ -58,7 +100,7 @@ async function ServerDelegatedTo({searchParams, app}: DelegatedToTabProps) {
           rows={rows}
           columns={tableColumns}
         />
-        {!application?.delegatee_gateway_addresses?.length && (
+        {!rpcData?.delegatee_gateway_addresses?.length && (
           <div className={"h-[400px] flex flex-col items-center justify-center"}>
             <CircleAlert className={"h-16 w-16 text-[color:--warning]"}/>
             <p className={"text-lg font-semibold mt-4 mb-3"}>
@@ -71,35 +113,15 @@ async function ServerDelegatedTo({searchParams, app}: DelegatedToTabProps) {
         )}
       </div>
     )
-  } else {
-    const [pageInfo, sParams] = await Promise.all([
-      getPageAndItems(searchParams),
-      searchParams
-    ])
-
-    const activeFilter = typeof sParams.filter === 'string' ? sParams.filter : undefined
-
-    return (
-      <GatewaysTable
-        page={pageInfo.page}
-        itemsPerPage={pageInfo.itemsPerPage}
-        basePath={`/app/${app}?tab=delegated_to`}
-        application={app}
-        activeFilter={activeFilter}
-      />
-    )
   }
-}
 
-export default async function DelegatedToTab({searchParams, app}: DelegatedToTabProps) {
   return (
-    <Suspense
-      key={`${app}-${new Date().toISOString()}`}
-      fallback={
-        <LoadingTable columns={columns} rowsAmount={25} />
-      }
-    >
-      <ServerDelegatedTo searchParams={searchParams} app={app} />
-    </Suspense>
+    <GatewaysTable
+      page={page}
+      itemsPerPage={itemsPerPage}
+      basePath={`/app/${app}?tab=delegated_to`}
+      application={app}
+      activeFilter={activeFilter}
+    />
   )
 }

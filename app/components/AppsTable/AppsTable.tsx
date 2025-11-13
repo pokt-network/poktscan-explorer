@@ -1,15 +1,19 @@
-import { getClient } from '@/app/config/apollo/rsc'
+'use client'
+
 import { getStakeLabel, stakeFilters, StakeTableFilter } from '@/app/utils/stake'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
-import React from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import { ChipText } from '@/app/components/Chip'
 import { applicationListDocument } from '@/app/(lists)/apps/operations'
 import AppsSubscription from '@/app/components/AppsTable/AppsSubscription'
-import { RefreshPageError } from '@/app/components/ErrorBoundary'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { ApplicationFilter, StakeStatus } from '@/app/config/gql/graphql'
 import { graphql } from '@/app/config/gql'
+import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
+import { LoadingTable } from '@/app/components/LoadingListView'
+import { useQuery } from '@apollo/client'
 
 const paramsForFiltersDocument = graphql(`
   query paramsForAppsFilters {
@@ -84,7 +88,7 @@ enum AppTableFilters {
   LowStake = 'Low Stake'
 }
 
-async function getApplicationGraphQlFilter({
+function useApplicationFilter({
   filter,
   service,
   gateway
@@ -93,81 +97,86 @@ async function getApplicationGraphQlFilter({
   service?: string,
   gateway?: string,
 }) {
-  if (!filter && !service && !gateway) {
-    return undefined
-  }
+  // Fetch min stake params for LowStake filter
+  const { data: paramsData } = useQuery(paramsForFiltersDocument, {
+    skip: filter !== AppTableFilters.LowStake
+  })
 
-  let graphQlFilter: ApplicationFilter | undefined = undefined
+  const graphQlFilter = useMemo(() => {
+    if (!filter && !service && !gateway) {
+      return undefined
+    }
 
-  if (filter && Object.values(StakeTableFilter).includes(filter as StakeTableFilter)) {
-    if (filter === StakeTableFilter.LowBalance) {
-      graphQlFilter = {
-        stakeStatus: {
-          equalTo: StakeStatus.Staked
-        },
-        account: {
-          balances: {
-            some: {
-              denom: {
-                equalTo: 'upokt'
-              },
-              amount: {
-                lessThanOrEqualTo: (2 * 1e6).toString()
+    let baseFilter: ApplicationFilter | undefined = undefined
+
+    if (filter && Object.values(StakeTableFilter).includes(filter as StakeTableFilter)) {
+      if (filter === StakeTableFilter.LowBalance) {
+        baseFilter = {
+          stakeStatus: {
+            equalTo: StakeStatus.Staked
+          },
+          account: {
+            balances: {
+              some: {
+                denom: {
+                  equalTo: 'upokt'
+                },
+                amount: {
+                  lessThanOrEqualTo: (2 * 1e6).toString()
+                }
               }
             }
           }
         }
+      } else {
+        baseFilter = {
+          stakeStatus: {
+            equalTo: filter === StakeTableFilter.Staked ? StakeStatus.Staked :
+              filter === StakeTableFilter.Unstaking ? StakeStatus.Unstaking : StakeStatus.Unstaked
+          }
+        }
       }
-    } else {
-      graphQlFilter = {
+    } else if (filter === AppTableFilters.LowStake) {
+      const minStake = paramsData?.param?.value ? JSON.parse(paramsData.param.value)?.amount || '0' : '0'
+
+      baseFilter = {
         stakeStatus: {
-          equalTo: filter === StakeTableFilter.Staked ? StakeStatus.Staked :
-            filter === StakeTableFilter.Unstaking ? StakeStatus.Unstaking : StakeStatus.Unstaked
+          equalTo: StakeStatus.Staked
+        },
+        stakeAmount: {
+          lessThanOrEqualTo: (Number(minStake) + 5e6).toString()
         }
       }
     }
-  } else if (filter === AppTableFilters.LowStake) {
-    const {data} = await getClient().query({
-      query: paramsForFiltersDocument
-    })
 
-    const minStake = JSON.parse(data.param?.value || '{}')?.amount || '0'
-
-    graphQlFilter = {
-      stakeStatus: {
-        equalTo: StakeStatus.Staked
-      },
-      stakeAmount: {
-        lessThanOrEqualTo: (Number(minStake) + 5e6).toString()
-      }
-    }
-  }
-
-  if (service) {
-    graphQlFilter = {
-      ...(graphQlFilter! || {}),
-      applicationServices: {
-        some: {
-          serviceId: {
-            equalTo: service
+    if (service) {
+      baseFilter = {
+        ...(baseFilter || {}),
+        applicationServices: {
+          some: {
+            serviceId: {
+              equalTo: service
+            }
           }
         }
       }
     }
-  }
 
-  if (gateway) {
-    graphQlFilter = {
-      ...(graphQlFilter! || {}),
-      applicationGateways: {
-        some: {
-          gatewayId: {
-            equalTo: gateway
+    if (gateway) {
+      baseFilter = {
+        ...(baseFilter || {}),
+        applicationGateways: {
+          some: {
+            gatewayId: {
+              equalTo: gateway
+            }
           }
         }
       }
     }
-  }
+
+    return baseFilter
+  }, [filter, service, gateway, paramsData])
 
   return graphQlFilter
 }
@@ -192,102 +201,102 @@ interface PageProps {
   activeFilter?: string
 }
 
-export default async function AppsTable({page, itemsPerPage, basePath, service, gateway, activeFilter}: PageProps) {
-  try {
-    const client = getClient()
+export default function AppsTable({page, itemsPerPage, basePath, service, gateway, activeFilter}: PageProps) {
+  const filter = useApplicationFilter({
+    service,
+    gateway,
+    filter: activeFilter || StakeTableFilter.Staked,
+  })
 
-    const filter = await getApplicationGraphQlFilter({
-      service,
-      gateway,
-      filter: activeFilter || StakeTableFilter.Staked,
-    })
+  const variables = useCallback(() => ({
+    limit: itemsPerPage,
+    offset: (page - 1) * itemsPerPage,
+    filter
+  }), [page, itemsPerPage, filter])
 
-    // eslint-disable-next-line prefer-const
-    let {data} = await client.query({
-      query: applicationListDocument,
-      variables: {
-        limit: itemsPerPage,
-        offset: (page - 1) * itemsPerPage,
-        filter
-      }
-    })
+  const { data, error, isLoading, refetch } = useFetchOnBlock({
+    query: applicationListDocument,
+    variables,
+    initialResult: null as unknown as DocumentNodeData<typeof applicationListDocument>,
+    initialError: false
+  })
 
-    const totalPages = Math.ceil((data.applications?.totalCount || 0) / itemsPerPage)
-
-    if (page > totalPages) {
-      page = 1
-
-      const result = await client.query({
-        query: applicationListDocument,
-        variables: {
-          limit: itemsPerPage,
-          offset: (page - 1) * itemsPerPage,
-          filter
-        }
-      })
-
-      data = result.data
-    }
-
-    const rows: Array<RowApp> = data.applications?.nodes?.map((application) => {
-      const balance = application.account?.balances?.nodes?.at(0) || {
-        amount: '0',
-        denom: 'upokt'
-      }
-
-      return {
-        id: application!.id,
-        status: getStakeLabel(application!.stakeStatus),
-        stakeAmount: formatAmount({
-          amount: application!.stakeAmount,
-          denom: application!.stakeDenom,
-        }),
-        raw_stakeAmount: convertUpoktToPokt(application!.stakeAmount),
-        balance: formatAmount(balance),
-        raw_balance: convertUpoktToPokt(balance?.amount),
-        firstService: application!.services.nodes.at(0)?.serviceId,
-        amountOfServices: application!.services.totalCount,
-        firstGateway: application!.applicationGateways.nodes.at(0)?.gatewayId,
-        amountOfGateways: application!.applicationGateways.totalCount,
-      }
-    })
-
-    // Build entity filters for CSV export
-    const entityFilters: Record<string, string> = {}
-    if (service) entityFilters.service = service
-    if (gateway) entityFilters.gateway = gateway
-
+  if (isLoading) {
     return (
-      <Table
+      <LoadingTable
         columns={columns}
-        rows={rows}
-        header={{
-          title: `${data.applications?.totalCount} applications found`,
-          subtitle: (
-            <AppsSubscription service={service} />
-          )
-        }}
-        pagination={{
-          currentPage: page,
-          totalPages,
-          itemsPerPage,
-          basePath
-        }}
-        activeFilter={activeFilter || StakeTableFilter.Staked}
-        filters={[
-          ...stakeFilters,
-          {
-            label: 'Low Stake',
-            value: AppTableFilters.LowStake
-          }
-        ]}
-        csvEndpoint="/api/export/apps"
-        entityFilters={Object.keys(entityFilters).length > 0 ? entityFilters : undefined}
+        rowsAmount={itemsPerPage}
       />
     )
-  } catch {
+  }
+
+  if (error) {
     return (
-      <RefreshPageError />
+      <div className={"bg-[color:--main-background] pt-3 pb-1 gap-1 rounded-lg border border-[color:--divider] base-shadow"}>
+        <BaseRetryError
+          onRetry={refetch}
+          errorMessage={'Oops. There was an error loading the applications data.'}
+        />
+      </div>
     )
   }
+
+  const rows: Array<RowApp> = data?.applications?.nodes?.map((application) => {
+    const balance = application?.account?.balances?.nodes?.at(0) || {
+      amount: '0',
+      denom: 'upokt'
+    }
+
+    return {
+      id: application!.id,
+      status: getStakeLabel(application!.stakeStatus),
+      stakeAmount: formatAmount({
+        amount: application!.stakeAmount,
+        denom: application!.stakeDenom,
+      }),
+      raw_stakeAmount: convertUpoktToPokt(application!.stakeAmount),
+      balance: formatAmount(balance),
+      raw_balance: convertUpoktToPokt(balance?.amount),
+      firstService: application!.services.nodes.at(0)?.serviceId,
+      amountOfServices: application!.services.totalCount,
+      firstGateway: application!.applicationGateways.nodes.at(0)?.gatewayId,
+      amountOfGateways: application!.applicationGateways.totalCount,
+    }
+  }) || []
+
+  const totalPages = Math.ceil((data?.applications?.totalCount || 0) / itemsPerPage)
+
+  // Build entity filters for CSV export
+  const entityFilters: Record<string, string> = {}
+  if (service) entityFilters.service = service
+  if (gateway) entityFilters.gateway = gateway
+
+  return (
+    <Table
+      columns={columns}
+      rows={rows}
+      header={{
+        title: `${data?.applications?.totalCount} applications found`,
+        subtitle: (
+          <AppsSubscription service={service} />
+        )
+      }}
+      pagination={{
+        currentPage: page,
+        totalPages,
+        itemsPerPage,
+        basePath
+      }}
+      activeFilter={activeFilter || StakeTableFilter.Staked}
+      filters={[
+        ...stakeFilters,
+        {
+          label: 'Low Stake',
+          value: AppTableFilters.LowStake
+        }
+      ]}
+      csvEndpoint="/api/export/apps"
+      entityFilters={Object.keys(entityFilters).length > 0 ? entityFilters : undefined}
+    />
+  )
 }

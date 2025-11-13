@@ -5,6 +5,7 @@ import { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import { graphql } from '@/app/config/gql'
 import { getMultisigInfo, isMsgValidatorRelated, isMulti, PREFIX,Secp256k1, pubKeyToAddress, SignerInfoSDKType, VALIDATOR_PREFIX } from '@/app/utils/poktroll'
 import { fetchDataFromRpcOrIndexer } from '@/app/utils/fetch'
+import axios from 'axios'
 
 export type TxFromIndexer = DocumentNodeData<typeof txByIdDocument>['transaction']
 
@@ -121,14 +122,12 @@ const txByIdDocument = graphql(`
 `)
 
 const getRawTxFromRpc = cache(async (hash: string, rpcUrl: string): Promise<TxResponseFromRpc> => {
-  return await fetch(
-    getUrl(rpcUrl, 'tx', hash)
-  ).then((res) => {
+  return await axios.get(getUrl(rpcUrl, 'tx', hash)).then((res) => {
     if (res.status === 404) {
       return null
     }
 
-    return res.json()
+    return res.data
   })
 })
 

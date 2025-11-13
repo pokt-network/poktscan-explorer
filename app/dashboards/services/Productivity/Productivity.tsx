@@ -1,44 +1,22 @@
-import { getLatestBlock } from '@/app/api/blocks'
-import { getClient } from '@/app/config/apollo/rsc'
-import { getProductivityVariables, productivityQuery } from '@/app/dashboards/services/operations'
 import React from 'react'
 import ServicesProductivityChart from '@/app/dashboards/services/Productivity/Chart'
-import { cookies } from 'next/headers'
-import { selectedServicesCookieKey } from '@/app/dashboards/services/Productivity/constants'
 import { ChartTypeProvider } from '@/app/Charts/ChartType'
-import { chartTypeCookieKey } from '@/app/dashboards/services/constants'
 import ProductivityCard from '@/app/dashboards/services/Productivity/Card'
 import DataProvider from '@/app/context/DataContext'
 import CardActions from '@/app/dashboards/services/Productivity/CardActions'
 
 interface ServicesProductivityProps {
   timeSelected: string
+  chartType?: 'line' | 'bar'
+  selectedServices?: Array<string>
 }
 
-export default async function ServerServicesProductivity({timeSelected}: ServicesProductivityProps) {
-  let data, variables, error = false, cookiesAwaited: Awaited<ReturnType<typeof cookies>>
-  try {
-    cookiesAwaited = await cookies()
-
-    const latestBlock = await getLatestBlock()
-    variables = getProductivityVariables(latestBlock.timestamp, timeSelected)
-
-    const response = await getClient().query({
-      query: productivityQuery,
-      variables,
-    })
-
-    data = response.data
-  } catch {
-    error = true
-  }
-
-
+export default async function ServerServicesProductivity({timeSelected, selectedServices, chartType}: ServicesProductivityProps) {
   return (
     <DataProvider
       initialData={[]}
     >
-      <ChartTypeProvider defaultChartType={cookiesAwaited.get(chartTypeCookieKey)?.value}>
+      <ChartTypeProvider defaultChartType={chartType}>
         <ProductivityCard
           timeSelected={timeSelected}
           actions={(
@@ -47,12 +25,10 @@ export default async function ServerServicesProductivity({timeSelected}: Service
         >
           <ServicesProductivityChart
             timeSelected={timeSelected}
-            initialData={data}
-            initialVariables={variables || null}
-            initialError={error}
-            initialSelectedServices={
-              cookiesAwaited.get(selectedServicesCookieKey)?.value?.split(',') || []
-            }
+            initialData={null}
+            initialVariables={null}
+            initialError={false}
+            initialSelectedServices={selectedServices || []}
           />
         </ProductivityCard>
       </ChartTypeProvider>

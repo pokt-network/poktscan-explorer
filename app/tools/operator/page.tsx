@@ -1,19 +1,16 @@
 import { PageProps } from '@/app/types/pages'
 import { addressesCookieKey, OperatorTabs, selectedTimeCookieKey, selectedTimeParamKey } from './constants'
 import { cookies } from 'next/headers'
-import React, { Suspense } from 'react'
+import React from 'react'
 import { getValidAddresses } from '@/app/tools/utils'
-import LastClaimingWindowTableLoader from '@/app/tools/operator/ClaimProofTable/Loader'
 import ServerLastClaimingWindowTable from '@/app/tools/operator/ClaimProofTable/Table'
 import { getPageAndItems } from '@/app/utils/pagination'
-import { LoadingTable } from '@/app/components/LoadingListView'
-import SuppliersTable, { columns as supplierColumns } from '@/app/components/SuppliersTable/SuppliersTable'
+import SuppliersTable from '@/app/components/SuppliersTable/SuppliersTable'
 import Tabs from '@/app/components/Tabs'
-import SlashingTable, { slashedColumns } from '@/app/tools/operator/SlashingTable'
+import SlashingTable from '@/app/tools/operator/SlashingTable'
 import NoData from '@/app/components/NoData'
 import { getValidTime, Time } from '@/app/utils/dates'
 import RewardsByServiceTable from '@/app/tools/operator/ServicesTab/Table'
-import RewardsByServiceLoader from '@/app/tools/operator/ServicesTab/Loader'
 import ComparisonChart from '@/app/tools/operator/ComparisonChart'
 
 const tabs = [
@@ -71,28 +68,12 @@ export default async function NodeRunningPage({searchParams}: PageProps) {
     content = (
       <>
         <ComparisonChart />
-        <Suspense
-          key={validAddresses.join(',') + selectedTime}
-          fallback={(
-            <>
-              <LastClaimingWindowTableLoader />
-            </>
-          )}
-        >
-          <ServerLastClaimingWindowTable addresses={validAddresses} time={selectedTime} />
-        </Suspense>
+        <ServerLastClaimingWindowTable addresses={validAddresses} time={selectedTime} />
       </>
     )
   } else if (activeTab === OperatorTabs.RewardsByService) {
     content = (
-      <Suspense
-        key={validAddresses.join(',') + selectedTime}
-        fallback={(
-          <RewardsByServiceLoader />
-        )}
-      >
-        <RewardsByServiceTable addresses={validAddresses} time={selectedTime} />
-      </Suspense>
+      <RewardsByServiceTable addresses={validAddresses} time={selectedTime} />
     )
   } else {
     if (validAddresses.length === 0) {
@@ -113,25 +94,13 @@ export default async function NodeRunningPage({searchParams}: PageProps) {
       const Table = isSuppliers ? SuppliersTable : SlashingTable
 
       content = (
-        <Suspense
-          key={`${activeTab as string}-${new Date().toISOString()}`}
-          fallback={
-            <LoadingTable
-              columns={
-                isSuppliers ? supplierColumns : slashedColumns
-              }
-              rowsAmount={itemsPerPage}
-            />
-          }
-        >
-          <Table
-            page={page}
-            delegators={validAddresses}
-            itemsPerPage={itemsPerPage}
-            basePath={`/tools/operator?addresses=${validAddresses.join(',')}&tab=${activeTab}`}
-            activeFilter={activeFilter}
-          />
-        </Suspense>
+        <Table
+          page={page}
+          delegators={validAddresses}
+          itemsPerPage={itemsPerPage}
+          basePath={`/tools/operator?addresses=${validAddresses.join(',')}&tab=${activeTab}`}
+          activeFilter={activeFilter}
+        />
       )
     }
   }

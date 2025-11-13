@@ -1,10 +1,13 @@
-import { getClient } from '@/app/config/apollo/rsc'
+'use client'
+
 import { slashedDocument } from '@/app/tools/operator/operations'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
-import React from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { convertUpoktToPokt, formatUpokt } from '@/app/utils/format'
-import { RefreshPageError } from '@/app/components/ErrorBoundary'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
+import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
+import { LoadingTable } from '@/app/components/LoadingListView'
 
 interface SlashRow {
   id: string
@@ -109,107 +112,109 @@ interface SlashingTableProps {
   itemsPerPage: number
   basePath: string
   delegators: Array<string>
+  activeFilter?: string
 }
 
-export default async function SlashingTable({
+export default function SlashingTable({
   page,
   itemsPerPage,
   basePath,
   delegators,
 }: SlashingTableProps) {
-  try {
-    const client = getClient()
-
-    const filter = {
-      supplier: {
-        serviceConfigs: {
-          some: {
-            or: delegators.map(address => ({
-              revShare: {
-                contains: [{ address }]
-              }
-            }))
-          }
+  const filter = useMemo(() => ({
+    supplier: {
+      serviceConfigs: {
+        some: {
+          or: delegators.map(address => ({
+            revShare: {
+              contains: [{ address }]
+            }
+          }))
         }
       }
     }
+  }), [delegators])
 
-    let {data} = await client.query({
-      query: slashedDocument,
-      variables: {
-        filter,
-        limit: itemsPerPage,
-        offset: (page - 1) * itemsPerPage,
-      }
-    })
+  const variables = useCallback(() => ({
+    limit: itemsPerPage,
+    offset: (page - 1) * itemsPerPage,
+    filter
+  }), [page, itemsPerPage, filter])
 
-    const totalPages = Math.ceil((data?.eventSupplierSlasheds?.totalCount || 0) / itemsPerPage)
+  const { data, error, isLoading, refetch } = useFetchOnBlock({
+    query: slashedDocument,
+    variables,
+    initialResult: null as unknown as DocumentNodeData<typeof slashedDocument>,
+    initialError: false
+  })
 
-    if (page > totalPages) {
-      page = 1
-
-      const result = await client.query({
-        query: slashedDocument,
-        variables: {
-          filter,
-          limit: itemsPerPage,
-          offset: (page - 1) * itemsPerPage,
-        }
-      })
-
-      data = result.data
-    }
-
-    const rows: Array<SlashRow> = (data?.eventSupplierSlasheds?.nodes || []).map(row => {
-      if (!row) {
-        throw new Error('Row is empty')
-      }
-
-      return ({
-        id: `${row.supplierId}-${row.blockId}-${row.serviceId}-${row.applicationId}-${row.sessionId}`,
-
-        supplier: row.supplierId,
-        blockId: row.blockId,
-
-        proofValidationStatus: row.proofValidationStatus || '',
-
-        slashed: formatUpokt({
-          amount: row.proofMissingPenalty
-        }),
-        raw_slashed: convertUpoktToPokt(row.proofMissingPenalty),
-        previousStake: formatUpokt({
-          amount: row.previousStakeAmount
-        }),
-        raw_previousStake: convertUpoktToPokt(row.previousStakeAmount),
-        afterStake: formatUpokt({
-          amount: row.afterStakeAmount
-        }),
-        raw_afterStake: convertUpoktToPokt(row.afterStakeAmount),
-        sessionId: row.sessionId,
-        serviceId: row.serviceId,
-        applicationId: row.applicationId,
-      })
-    })
-
+  if (isLoading) {
     return (
-      <Table
-        header={{
-          title: `${data?.eventSupplierSlasheds?.totalCount || 0} slashed events found`,
-        }}
+      <LoadingTable
         columns={slashedColumns}
-        rows={rows}
-        pagination={{
-          currentPage: page,
-          totalPages,
-          itemsPerPage,
-          basePath,
-        }}
-        defaultMinWidth={70}
+        rowsAmount={itemsPerPage}
       />
     )
-  } catch {
+  }
+
+  if (error) {
     return (
-      <RefreshPageError />
+      <div className={"bg-[color:--main-background] pt-3 pb-1 gap-1 rounded-lg border border-[color:--divider] base-shadow"}>
+        <BaseRetryError
+          onRetry={refetch}
+          errorMessage={'Oops. There was an error loading the slashing data.'}
+        />
+      </div>
     )
   }
+
+  const rows: Array<SlashRow> = (data?.eventSupplierSlasheds?.nodes || []).map(row => {
+    if (!row) {
+      throw new Error('Row is empty')
+    }
+
+    return ({
+      id: `${row.supplierId}-${row.blockId}-${row.serviceId}-${row.applicationId}-${row.sessionId}`,
+
+      supplier: row.supplierId,
+      blockId: row.blockId,
+
+      proofValidationStatus: row.proofValidationStatus || '',
+
+      slashed: formatUpokt({
+        amount: row.proofMissingPenalty
+      }),
+      raw_slashed: convertUpoktToPokt(row.proofMissingPenalty),
+      previousStake: formatUpokt({
+        amount: row.previousStakeAmount
+      }),
+      raw_previousStake: convertUpoktToPokt(row.previousStakeAmount),
+      afterStake: formatUpokt({
+        amount: row.afterStakeAmount
+      }),
+      raw_afterStake: convertUpoktToPokt(row.afterStakeAmount),
+      sessionId: row.sessionId,
+      serviceId: row.serviceId,
+      applicationId: row.applicationId,
+    })
+  })
+
+  const totalPages = Math.ceil((data?.eventSupplierSlasheds?.totalCount || 0) / itemsPerPage)
+
+  return (
+    <Table
+      header={{
+        title: `${data?.eventSupplierSlasheds?.totalCount || 0} slashed events found`,
+      }}
+      columns={slashedColumns}
+      rows={rows}
+      pagination={{
+        currentPage: page,
+        totalPages,
+        itemsPerPage,
+        basePath,
+      }}
+      defaultMinWidth={70}
+    />
+  )
 }

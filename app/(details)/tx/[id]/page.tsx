@@ -1,20 +1,21 @@
-import React from 'react'
 import TransactionTabs from '@/app/(details)/tx/[id]/Tabs'
+import { PageProps } from '@/app/types/pages'
 
 export const dynamic = "force-dynamic";
 
-export default async function TransactionDetailPage({params, searchParams}: {
-  params: Promise<{ id: string }>
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}) {
-  const [{ id }, awaitedSearchParams] = await Promise.all([
-    params,
-    searchParams
+export default async function TransactionDetailPage({
+  params: paramsPromise,
+  searchParams: searchParamsPromise,
+}: PageProps) {
+  const [params, searchParams] = await Promise.all([
+    paramsPromise,
+    searchParamsPromise
   ])
 
-  const tab = awaitedSearchParams['tab']?.toString() || 'messages'
+  const id = params.id as string
+  const tab = searchParams['tab']?.toString() || 'messages'
 
   return (
-    <TransactionTabs hash={id} tab={tab} />
+    <TransactionTabs hash={id} tab={tab} rpcUrl={process.env.RPC_BASE_URL} />
   )
 }

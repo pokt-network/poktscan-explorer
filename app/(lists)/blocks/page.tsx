@@ -1,50 +1,28 @@
-import { getClient } from '@/app/config/apollo/rsc'
+'use client'
+
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
-import { getPageAndItems } from '@/app/utils/pagination'
 import { formatTimeDifference } from '@/app/(home)/utils'
-import { getLatestBlock } from '@/app/api/blocks'
 import { convertUpoktToPokt, formatAmount, formatSimpleAmount, formatSize } from '@/app/utils/format'
 import ListTitle from '@/app/components/ListTitle'
-import React, { Suspense } from 'react'
+import React, { useCallback } from 'react'
 import DateColumn from '@/app/dates/DateColumn'
 import DateCellText from '@/app/dates/DateCellText'
-import { blockListDocument, blockSummaryDocument } from '@/app/(lists)/blocks/operations'
-import { getSummaryVariables } from '@/app/(lists)/blocks/utils'
+import { blockListDocument } from '@/app/(lists)/blocks/operations'
 import Summary from '@/app/(lists)/blocks/Summary'
 import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 import { subscriptionQuery } from '@/app/operations/block'
 import { LabelByIndex } from '@/app/components/FourCards/utils'
-import { LoadingSummary, LoadingTable } from '../../components/LoadingListView'
-import { RefreshPageError } from '@/app/components/ErrorBoundary'
-
-export const dynamic = "force-dynamic";
+import { LoadingTable } from '../../components/LoadingListView'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
+import { useSearchParams } from 'next/navigation'
+import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 
 const summaryLabels: LabelByIndex = {
   1: 'Last Block',
   2: 'Transactions',
   3: 'Production Time (Avg. 24H)',
   4: 'Total Size (Avg. 24H)',
-}
-
-async function BlocksSummary() {
-  let data, error = false
-
-  try {
-    const latestBlock = await getLatestBlock()
-    const response = await getClient().query({
-      query: blockSummaryDocument,
-      variables: getSummaryVariables(latestBlock.timestamp)
-    })
-
-    data = response.data
-  } catch {
-    error = true
-  }
-
-  return (
-    <Summary initialData={data} initialError={error} labels={summaryLabels} />
-  )
 }
 
 const columns: Array<GridColDef> = [
@@ -133,122 +111,105 @@ interface RowBlock {
   supply: string
 }
 
-interface PageProps {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
+function BlocksTable() {
+  const searchParams = useSearchParams()
 
-async function BlocksTable({searchParams}: PageProps) {
-  try {
-    const pageInfo = await getPageAndItems(searchParams)
+  const pageParam = searchParams.get('p')
+  const itemsParam = searchParams.get('ps')
+  const page = pageParam ? parseInt(pageParam, 10) : 1
+  const itemsPerPage = itemsParam ? parseInt(itemsParam, 10) : 25
 
-    let page = pageInfo.page
-    const itemsPerPage = pageInfo.itemsPerPage
+  const variables = useCallback(() => ({
+    limit: itemsPerPage,
+    offset: (page - 1) * itemsPerPage,
+  }), [page, itemsPerPage])
 
-    const client = getClient()
+  const { data, error, isLoading, refetch } = useFetchOnBlock({
+    query: blockListDocument,
+    variables,
+    initialResult: null as unknown as DocumentNodeData<typeof blockListDocument>,
+    initialError: false
+  })
 
-    // eslint-disable-next-line prefer-const
-    let {data} = await client.query({
-      query: blockListDocument,
-      variables: {
-        limit: itemsPerPage,
-        offset: (page - 1) * itemsPerPage,
-      }
-    })
-
-    const totalPages = Math.ceil((data.blocks?.totalCount || 0) / itemsPerPage)
-
-    if (page > totalPages) {
-      page = 1
-
-      const result = await client.query({
-        query: blockListDocument,
-        variables: {
-          limit: itemsPerPage,
-          offset: (page - 1) * itemsPerPage,
-        }
-      })
-
-      data = result.data
-    }
-
-    const rows: Array<RowBlock> = data.blocks?.nodes?.map((block) => {
-      const supply = block.supplies.nodes.find((item) => item.supply.denom === 'upokt')?.supply || {
-        amount: '0',
-        denom: 'upokt',
-      }
-      return ({
-        id: block.height,
-        height: Number(block.height),
-        timestamp: block.timestamp,
-        txAmount: formatSimpleAmount(block.totalTxs),
-        proposer: block.proposerAddress,
-        nodes: formatSimpleAmount(block.stakedSuppliers),
-        apps: formatSimpleAmount(block.stakedApps),
-        took: formatTimeDifference(block.timeToBlock),
-        gateways: formatSimpleAmount(block.stakedGateways),
-        relays: formatSimpleAmount(block.totalRelays),
-        size: formatSize(block.size),
-        supply: formatAmount(supply),
-        raw_supply: convertUpoktToPokt(supply?.amount),
-      })
-    }) || []
-
+  if (isLoading) {
     return (
-      <Table
+      <LoadingTable
         columns={columns}
-        rows={rows}
-        header={{
-          title: `${data.blocks?.totalCount} blocks found`,
-          subtitle: (
-            <NewEntitiesFound<typeof subscriptionQuery>
-              subscription={subscriptionQuery}
-              entity={'blocks'}
-            />
-          )
-        }}
-        pagination={{
-          currentPage: page,
-          totalPages,
-          itemsPerPage,
-          basePath: '/blocks'
-        }}
-        defaultMinWidth={70}
-        csvEndpoint="/api/export/blocks"
+        rowsAmount={itemsPerPage}
       />
     )
-  } catch {
+  }
+
+  if (error) {
     return (
-      <RefreshPageError />
+      <div className={"h-[400px] flex bg-[color:--main-background] pt-3 pb-1 gap-1 rounded-lg border border-[color:--divider] base-shadow"}>
+        <BaseRetryError
+          onRetry={refetch}
+          errorMessage={'Oops. There was an error loading the blocks data.'}
+        />
+      </div>
     )
   }
+
+  const rows: Array<RowBlock> = data?.blocks?.nodes?.map((block) => {
+    const supply = block?.supplies?.nodes?.find((item) => item?.supply?.denom === 'upokt')?.supply || {
+      amount: '0',
+      denom: 'upokt',
+    }
+    return ({
+      id: block!.height,
+      height: Number(block!.height),
+      timestamp: block!.timestamp,
+      txAmount: formatSimpleAmount(block!.totalTxs),
+      proposer: block!.proposerAddress,
+      nodes: formatSimpleAmount(block!.stakedSuppliers),
+      apps: formatSimpleAmount(block!.stakedApps),
+      took: formatTimeDifference(block!.timeToBlock),
+      gateways: formatSimpleAmount(block!.stakedGateways),
+      relays: formatSimpleAmount(block!.totalRelays),
+      size: formatSize(block!.size),
+      supply: formatAmount(supply),
+      raw_supply: convertUpoktToPokt(supply?.amount),
+    })
+  }) || []
+
+  const totalPages = Math.ceil((data?.blocks?.totalCount || 0) / itemsPerPage)
+
+  return (
+    <Table
+      columns={columns}
+      rows={rows}
+      header={{
+        title: `${data?.blocks?.totalCount} blocks found`,
+        subtitle: (
+          <NewEntitiesFound<typeof subscriptionQuery>
+            subscription={subscriptionQuery}
+            entity={'blocks'}
+          />
+        )
+      }}
+      pagination={{
+        currentPage: page,
+        totalPages,
+        itemsPerPage,
+        basePath: '/blocks'
+      }}
+      defaultMinWidth={70}
+      csvEndpoint="/api/export/blocks"
+    />
+  )
 }
 
-export default async function BlocksPage({searchParams}: PageProps) {
-  const pageInfo = await getPageAndItems(searchParams)
+export default function BlocksPage() {
   return (
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <ListTitle title={'Blocks'} />
-      <Suspense
-        key={`blocks-summary`}
-        fallback={
-          <LoadingSummary
-            labels= {summaryLabels}
-          />
-        }
-      >
-        <BlocksSummary />
-      </Suspense>
-      <Suspense
-        key={`blocks-page-${pageInfo.page}-${pageInfo.itemsPerPage}-${new Date().toISOString()}`}
-        fallback={
-          <LoadingTable
-            columns={columns}
-            rowsAmount={pageInfo.itemsPerPage}
-          />
-        }
-      >
-        <BlocksTable searchParams={searchParams} />
-      </Suspense>
+      <Summary
+        initialData={null as any}
+        initialError={false}
+        labels={summaryLabels}
+      />
+      <BlocksTable />
     </div>
   )
 }

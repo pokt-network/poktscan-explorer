@@ -1,18 +1,19 @@
+'use client'
+
 import { graphql } from '@/app/config/gql'
-import { getPageAndItems } from '@/app/utils/pagination'
-import { getClient } from '@/app/config/apollo/rsc'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
-import React, { Suspense } from 'react'
+import React, { useCallback } from 'react'
 import { getStakeLabel } from '@/app/utils/stake'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import ListTitle from '@/app/components/ListTitle'
 import NewEntitiesFound from '@/app/components/NewEntitiesFound'
 import { RowTransaction } from '@/app/(transactions)/TransactionTable'
-import LoadingListView from '@/app/components/LoadingListView'
-import { RefreshPageError } from '@/app/components/ErrorBoundary'
-
-export const dynamic = "force-dynamic";
+import { LoadingTable } from '@/app/components/LoadingListView'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
+import { useSearchParams } from 'next/navigation'
+import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
+import { StakeStatus } from '@/app/config/gql/graphql'
 
 const columns: Array<GridColDef> = [
   {
@@ -135,104 +136,96 @@ interface RowValidator {
   signer: string
 }
 
-interface PageProps {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
+function ValidatorsTable() {
+  const searchParams = useSearchParams()
 
-async function ServerValidatorsPage({searchParams}: PageProps) {
-  try {
-    const pageInfo = await getPageAndItems(searchParams)
-    let page = pageInfo.page
-    const itemsPerPage = pageInfo.itemsPerPage
+  const pageParam = searchParams.get('p')
+  const itemsParam = searchParams.get('ps')
+  const page = pageParam ? parseInt(pageParam, 10) : 1
+  const itemsPerPage = itemsParam ? parseInt(itemsParam, 10) : 50
 
-    let {data} = await getClient().query({
-      query: validatorsListDocument,
-      variables: {
-        limit: itemsPerPage,
-        offset: (page - 1) * itemsPerPage
-      }
-    })
+  const variables = useCallback(() => ({
+    limit: itemsPerPage,
+    offset: (page - 1) * itemsPerPage,
+  }), [page, itemsPerPage])
 
-    const totalPages = Math.ceil((data.validators?.totalCount || 0) / itemsPerPage)
+  const { data, error, isLoading, refetch } = useFetchOnBlock({
+    query: validatorsListDocument,
+    variables,
+    initialResult: null as unknown as DocumentNodeData<typeof validatorsListDocument>,
+    initialError: false
+  })
 
-    if (page > totalPages) {
-      page = 1
-
-      const result = await getClient().query({
-        query: validatorsListDocument,
-        variables: {
-          limit: itemsPerPage,
-          offset: (page - 1) * itemsPerPage
-        }
-      })
-
-      data = result.data
-    }
-
-    const rows: Array<RowValidator> = data.validators?.nodes?.map((validator) => {
-      return {
-        id: validator?.id,
-        status: getStakeLabel(validator?.stakeStatus as number),
-        stakeAmount: formatAmount({
-          amount: validator?.stakeAmount,
-          denom: validator?.stakeDenom,
-        }),
-        raw_stakeAmount: convertUpoktToPokt(validator?.stakeAmount),
-        moniker: validator?.description?.moniker,
-        minSelfDelegation: validator?.minSelfDelegation,
-        commissionRate: Number(validator?.commission.rate),
-        commissionMaxRate: Number(validator?.commission.maxRate),
-        commissionMaxChangeRate: Number(validator?.commission.maxChangeRate),
-        signer: validator?.signer?.id || '',
-      }
-    })
-
+  if (isLoading) {
     return (
-      <Table
+      <LoadingTable
         columns={columns}
-        rows={rows}
-        header={{
-          title: `${data.validators?.totalCount} validators found`,
-          subtitle: (
-            <NewEntitiesFound<typeof validatorsSubscription>
-              subscription={validatorsSubscription}
-              entity={'validators'}
-            />
-          )
-        }}
-        pagination={{
-          currentPage: page,
-          totalPages,
-          itemsPerPage,
-          basePath: '/validators'
-        }}
-        defaultMinWidth={70}
-        csvEndpoint="/api/export/validators"
+        rowsAmount={itemsPerPage}
       />
     )
-  } catch {
+  }
+
+  if (error) {
     return (
-      <RefreshPageError />
+      <div className={"bg-[color:--main-background] pt-3 pb-1 gap-1 rounded-lg border border-[color:--divider] base-shadow"}>
+        <BaseRetryError
+          onRetry={refetch}
+          errorMessage={'Oops. There was an error loading the validators data.'}
+        />
+      </div>
     )
   }
+
+  const rows: Array<RowValidator> = data?.validators?.nodes?.map((validator) => {
+    return {
+      id: validator?.id || '',
+      stakeAmount: formatAmount({
+        amount: validator?.stakeAmount || '0',
+        denom: validator?.stakeDenom || 'upokt',
+      }),
+      status: getStakeLabel(validator?.stakeStatus || StakeStatus.Unstaked),
+      raw_stakeAmount: convertUpoktToPokt(validator?.stakeAmount || 0),
+      moniker: validator?.description?.moniker || '',
+      minSelfDelegation: (validator?.minSelfDelegation || 0).toString(),
+      commissionRate: Number(validator?.commission?.rate),
+      commissionMaxRate: Number(validator?.commission?.maxRate),
+      commissionMaxChangeRate: Number(validator?.commission?.maxChangeRate),
+      signer: validator?.signer?.id || '',
+    }
+  }) || []
+
+  const totalPages = Math.ceil((data?.validators?.totalCount || 0) / itemsPerPage)
+
+  return (
+    <Table
+      columns={columns}
+      rows={rows}
+      header={{
+        title: `${data?.validators?.totalCount} validators found`,
+        subtitle: (
+          <NewEntitiesFound<typeof validatorsSubscription>
+            subscription={validatorsSubscription}
+            entity={'validators'}
+          />
+        )
+      }}
+      pagination={{
+        currentPage: page,
+        totalPages,
+        itemsPerPage,
+        basePath: '/validators'
+      }}
+      defaultMinWidth={70}
+      csvEndpoint="/api/export/validators"
+    />
+  )
 }
 
-export default async function ValidatorsPage({searchParams}: PageProps) {
-  const pageInfo = await getPageAndItems(searchParams)
+export default function ValidatorsPage() {
   return (
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <ListTitle title={'Validators'} />
-      <Suspense
-        key={`validators-page-${pageInfo.page}-${pageInfo.itemsPerPage}-${new Date().toISOString()}`}
-        fallback={
-          <LoadingListView
-            columns={columns}
-            rowsAmount={pageInfo.itemsPerPage}
-          />
-        }
-      >
-        <ServerValidatorsPage searchParams={searchParams} />
-      </Suspense>
+      <ValidatorsTable />
     </div>
   )
 }

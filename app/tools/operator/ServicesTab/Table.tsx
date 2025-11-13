@@ -1,10 +1,4 @@
 import { Time } from '@/app/utils/dates'
-import { getClient } from '@/app/config/apollo/rsc'
-import { getLatestBlock } from '@/app/api/blocks'
-import {
-  getDataByDelegatorAddressesAndTimesVariables,
-  rewardsByServicesDocument,
-} from '@/app/tools/operator/operations'
 import DataProvider from '@/app/context/DataContext'
 import RewardsByServiceCard from '@/app/tools/operator/ServicesTab/Card'
 import ClientRewardsByServiceTable from '@/app/tools/operator/ServicesTab/ClientTable'
@@ -15,28 +9,7 @@ interface ServicesTableProps {
   time: Time
 }
 
-export default async function RewardsByServiceTable({addresses, time}: ServicesTableProps) {
-  let data, error = false
-
-  try {
-    const client = getClient()
-
-    const latestBlock = await getLatestBlock()
-
-    const response = await client.query({
-      query: rewardsByServicesDocument,
-      variables: getDataByDelegatorAddressesAndTimesVariables(
-        addresses,
-        latestBlock.timestamp,
-        time
-      )
-    })
-
-    data = response.data
-  } catch {
-    error = true
-  }
-
+export default async function RewardsByServiceTable({addresses}: ServicesTableProps) {
   return (
     <DataProvider initialData={[]}>
       <RewardsByServiceCard
@@ -46,8 +19,8 @@ export default async function RewardsByServiceTable({addresses, time}: ServicesT
       >
         <ClientRewardsByServiceTable
           addresses={addresses}
-          initialData={data}
-          initialError={error}
+          initialData={null}
+          initialError={false}
         />
       </RewardsByServiceCard>
     </DataProvider>

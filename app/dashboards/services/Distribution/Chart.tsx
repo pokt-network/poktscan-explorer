@@ -12,7 +12,7 @@ import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { ContentLoader } from '@/app/dashboards/services/Distribution/Loader'
 
 interface DistributionChartProps {
-  initialData: DocumentNodeData<typeof distributionDocument>
+  initialData: DocumentNodeData<typeof distributionDocument> | null
   timeSelected: string
   initialError: boolean
 }
@@ -44,7 +44,7 @@ export default function DistributionChart({initialData, initialError, timeSelect
     // eslint-disable-next-line
   }, [processedData])
 
-  if (isLoading) {
+  if (isLoading || (!error && !data)) {
     return <ContentLoader/>
   } else if (error) {
     return (

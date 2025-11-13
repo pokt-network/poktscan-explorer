@@ -1,3 +1,4 @@
+import type { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 
 export interface RewardsByServiceRow {
@@ -12,7 +13,7 @@ export interface RewardsByServiceRow {
   raw_netRewards: string | number
 }
 
-export const rewardsByServiceColumns = [
+export const rewardsByServiceColumns: Array<GridColDef> = [
   {
     field: 'id',
     headerName: 'Service',

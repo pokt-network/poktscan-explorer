@@ -44,7 +44,7 @@ export interface TableProps {
 }
 
 export default function Table({pagination, rows, columns, header, defaultMinWidth = 100, filters, activeFilter, csvEndpoint, entityFilters}: TableProps) {
-  const paginationFilter = filters?.length ? filters.find((filter) => filter.value === activeFilter)?.value : undefined
+  const paginationFilter = activeFilter === 'all' ? 'all' : filters?.length ? filters.find((filter) => filter.value === activeFilter)?.value : undefined
 
   return (
     <div className={"w-full h-full flex flex-col rounded-lg border border-[color:--divider] bg-[color:--main-background] base-shadow"}>

@@ -1,5 +1,7 @@
+'use client'
+
 import type { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
-import React, { Suspense } from 'react'
+import React, { useEffect, useState } from 'react'
 import { validatorUptimeDocument } from '@/app/(details)/validator/[id]/Uptime/operations'
 import ClientUptime from '@/app/(details)/validator/[id]/Uptime/Client'
 import UptimeLoader from '@/app/(details)/validator/[id]/Uptime/Loader'
@@ -8,75 +10,92 @@ import {
   getHexAddressFromConsensusPubkey,
   getRawValidatorFromRpc
 } from '@/app/(details)/validator/[id]/getValidator'
-import { getClient } from '@/app/config/apollo/rsc'
-import getMetadata from '@/app/api/metadata'
+import { indexerMetadataDocument } from '@/app/operations/metadata'
+import useFetchOnBlock from '@/app/hooks/useFetchOnBlock'
+import { useQuery } from '@apollo/client'
 
 const amountOfBlocks = 499
-const rpcUrl = process.env.RPC_BASE_URL!
-
-async function ServerUptime({valoperAddress}: UptimeProps) {
-  let data: DocumentNodeData<typeof validatorUptimeDocument> | null = null,
-    error = false,
-    from = '',
-    to = '',
-    hexAddress = ''
-
-  try {
-    const [validator, metadata] = await Promise.all([
-      getRawValidatorFromRpc(valoperAddress, rpcUrl),
-      getMetadata(),
-    ])
-
-    if (!validator) {
-      return null
-    }
-
-    hexAddress = getHexAddressFromConsensusPubkey(validator.consensus_pubkey.key)
-    to = metadata?._metadata?.lastProcessedHeight?.toString() || '0'
-    from = (BigInt(to) - BigInt(amountOfBlocks)).toString()
-
-    const response = await getClient().query({
-      query: validatorUptimeDocument,
-      variables: {
-        from,
-        validatorHexAddress: hexAddress,
-      }
-    })
-
-    data = response.data
-  } catch {
-    error = true
-  }
-
-  return (
-    <ClientUptime
-      initialTo={to}
-      initialFrom={from}
-      initialData={data}
-      initialError={error}
-      amountOfBlocks={amountOfBlocks}
-      validatorHexAddress={hexAddress}
-      valoperAddress={valoperAddress}
-      rpcUrl={rpcUrl}
-    />
-  )
-}
+const rpcUrl = process.env.NEXT_PUBLIC_RPC_BASE_URL!
 
 interface UptimeProps {
   valoperAddress: string
 }
 
-export default async function Uptime({valoperAddress}: UptimeProps) {
+export default function Uptime({valoperAddress}: UptimeProps) {
+  const [validatorData, setValidatorData] = useState<{
+    hexAddress: string
+    from: string
+    to: string
+  } | null>(null)
+  const [isLoadingValidator, setIsLoadingValidator] = useState(true)
+  const [uptimeData, setUptimeData] = useState<DocumentNodeData<typeof validatorUptimeDocument> | null>(null)
+  const [uptimeError, setUptimeError] = useState(false)
+
+  const { data: metadata, isLoading: isLoadingMetadata } = useFetchOnBlock({
+    query: indexerMetadataDocument,
+    initialResult: null,
+    initialError: false
+  })
+
+  const { data: graphqlUptimeData, error: graphqlUptimeError } = useQuery(
+    validatorUptimeDocument,
+    {
+      variables: {
+        from: validatorData?.from || '0',
+        validatorHexAddress: validatorData?.hexAddress || '',
+      },
+      skip: !validatorData || !validatorData.hexAddress
+    }
+  )
+
+  useEffect(() => {
+    if (graphqlUptimeData) {
+      setUptimeData(graphqlUptimeData)
+      setUptimeError(false)
+    }
+    if (graphqlUptimeError) {
+      setUptimeError(true)
+    }
+  }, [graphqlUptimeData, graphqlUptimeError])
+
+  useEffect(() => {
+    if (!isLoadingMetadata && metadata) {
+      setIsLoadingValidator(true)
+      getRawValidatorFromRpc(valoperAddress, rpcUrl)
+        .then(validator => {
+          if (validator) {
+            const hexAddress = getHexAddressFromConsensusPubkey(validator.consensus_pubkey.key)
+            const to = metadata?._metadata?.lastProcessedHeight?.toString() || '0'
+            const from = (BigInt(to) - BigInt(amountOfBlocks)).toString()
+
+            setValidatorData({ hexAddress, from, to })
+          }
+          setIsLoadingValidator(false)
+        })
+        .catch(() => {
+          setIsLoadingValidator(false)
+        })
+    }
+  }, [isLoadingMetadata, metadata, valoperAddress])
+
+  if (isLoadingMetadata || isLoadingValidator || !validatorData) {
+    return (
+      <UptimeCard>
+        <UptimeLoader amountOfBlocks={amountOfBlocks} />
+      </UptimeCard>
+    )
+  }
+
   return (
-    <Suspense
-      key={valoperAddress}
-      fallback={(
-        <UptimeCard>
-          <UptimeLoader amountOfBlocks={amountOfBlocks} />
-        </UptimeCard>
-      )}
-    >
-      <ServerUptime valoperAddress={valoperAddress} />
-    </Suspense>
+    <ClientUptime
+      initialTo={validatorData.to}
+      initialFrom={validatorData.from}
+      initialData={uptimeData}
+      initialError={uptimeError}
+      amountOfBlocks={amountOfBlocks}
+      validatorHexAddress={validatorData.hexAddress}
+      valoperAddress={valoperAddress}
+      rpcUrl={rpcUrl}
+    />
   )
 }

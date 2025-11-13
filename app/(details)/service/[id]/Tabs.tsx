@@ -1,16 +1,11 @@
-import { getPageAndItems } from '@/app/utils/pagination'
-import Tabs from '@/app/components/Tabs'
-import SuppliersTable, { columns as supplierColumns } from '@/app/components/SuppliersTable/SuppliersTable'
-import AppsTable, { columns as appColumns } from '@/app/components/AppsTable/AppsTable'
-import GatewaysTable, { columns as gatewayColumns } from '@/app/components/GatewaysTable/GatewaysTable'
-import RawEntity from '@/app/components/RawEntity/RawEntity'
-import { Suspense } from 'react'
-import { LoadingTable } from '@/app/components/LoadingListView'
+'use client'
 
-interface PageProps {
-  params: Promise<{id: string, idForUrl?: string}>
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
+import Tabs from '@/app/components/Tabs'
+import SuppliersTable from '@/app/components/SuppliersTable/SuppliersTable'
+import AppsTable from '@/app/components/AppsTable/AppsTable'
+import GatewaysTable from '@/app/components/GatewaysTable/GatewaysTable'
+import RawEntity from '@/app/components/RawEntity/RawEntity'
+import { useParams, useSearchParams } from 'next/navigation'
 
 const tabs = [
   {
@@ -31,15 +26,25 @@ const tabs = [
   }
 ]
 
-export default async function ServiceTabs({params, searchParams}: PageProps) {
-  const [{ id, idForUrl }, { page, itemsPerPage }, sParams] = await Promise.all([
-    params,
-    getPageAndItems(searchParams),
-    searchParams,
-  ])
+interface ServiceTabsProps {
+  rpcUrl?: string
+}
 
-  const activeFilter = typeof sParams.filter === 'string' ? sParams.filter : undefined
-  let activeTab = sParams.tab || 'suppliers'
+export default function ServiceTabs({rpcUrl}: ServiceTabsProps) {
+  const params = useParams()
+  const searchParams = useSearchParams()
+
+  const id = params.id as string
+  const idForUrl = params.idForUrl as string | undefined
+
+  const pageParam = searchParams.get('p')
+  const itemsParam = searchParams.get('ps')
+  const tabParam = searchParams.get('tab')
+  const activeFilter = searchParams.get('filter') || undefined
+
+  const page = pageParam ? parseInt(pageParam, 10) : 1
+  const itemsPerPage = itemsParam ? parseInt(itemsParam, 10) : 25
+  let activeTab = tabParam || 'suppliers'
 
   if (!tabs.some(t => t.tab === activeTab)) {
     activeTab = 'suppliers'
@@ -77,6 +82,7 @@ export default async function ServiceTabs({params, searchParams}: PageProps) {
         <RawEntity
           entity={'service'}
           id={id!.toString()}
+          rpcUrl={rpcUrl}
         />
       )
       break
@@ -91,24 +97,6 @@ export default async function ServiceTabs({params, searchParams}: PageProps) {
         />
       )
       break
-  }
-
-  if (activeTab !== 'raw') {
-    table = (
-      <Suspense
-        key={`${activeTab as string}-${new Date().toISOString()}`}
-        fallback={
-          <LoadingTable
-            columns={
-              activeTab === 'apps' ? appColumns : activeTab === 'suppliers' ? supplierColumns : gatewayColumns
-            }
-            rowsAmount={itemsPerPage}
-          />
-        }
-      >
-        {table}
-      </Suspense>
-    )
   }
 
   return (

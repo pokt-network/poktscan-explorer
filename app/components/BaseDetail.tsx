@@ -1,97 +1,66 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React from 'react'
 import { useApolloClient } from '@apollo/client'
-import { DocumentNode } from 'graphql'
-import useFetchOnBlock from '@/app/hooks/useFetchOnBlock'
-import ErrorBoundary from '@/app/components/ErrorBoundary'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import EntityDetail, { Item } from '@/app/components/EntityDetail'
 import { getSourceChipsRow } from '@/app/components/SourceChips'
 import EntityNotFound from '@/app/(details)/EntityNotFound'
+import { useQuery } from '@tanstack/react-query'
+import { FetchResult } from '@/app/utils/fetch'
 
-interface DetailWrapperProps<T, TProps, TResult> {
+interface DetailWrapperProps<T, TResult> {
   id: string
-  source: 'indexer' | 'rpc' | null
   rpcUrl: string
-  height?: number | string
-  initialData: T | null
-  error?: true | null
-
-  // Data fetching configuration
-  graphqlDocument: DocumentNode
-  resultParser?: (data: any) => T | null
+  entity: string
   fetchFunction: (id: string, rpcUrl: string, client: any) => Promise<TResult>
-
   // Rendering configuration
   getRows: (data: T | null, loading?: boolean) => Array<Item>
   showNotFoundForMissingData?: boolean
-
-  // Component self-reference for error retry
-  SelfComponent: (props: TProps) => React.JSX.Element
-
-  skipRefetch?: boolean
+  pollInterval?: number
 }
 
-export default function BaseDetail<T, TProps, TResult>({
+export default function BaseDetail<T, TResult>({
                                                     id,
-                                                    source,
                                                     rpcUrl,
-                                                    height,
-                                                    initialData,
-                                                    error,
-                                                    graphqlDocument,
-                                                    resultParser,
+  entity,
                                                     fetchFunction,
                                                     getRows,
-                                                    showNotFoundForMissingData = false,
-                                                    SelfComponent,
-  skipRefetch = false
-                                                  }: DetailWrapperProps<T, TProps, TResult>) {
-  const variables = useMemo(() => ({ id }), [id])
+                                                         pollInterval
+                                                  }: DetailWrapperProps<T, TResult>) {
   const client = useApolloClient()
-
-  const { data, } = useFetchOnBlock({
-    query: graphqlDocument,
-    variables,
-    initialResult: initialData,
-    skip: source !== 'indexer' || skipRefetch,
-    resultParser
+  const {isError, isLoading, data, refetch} = useQuery({
+    queryKey: [entity, id],
+    queryFn: () => fetchFunction(id, rpcUrl, client),
+    refetchInterval: pollInterval,
   })
 
-  // Handle not found case (only for components that need it)
-  if (showNotFoundForMissingData && !data && !error) {
-    return <EntityNotFound id={id} />
-  }
-
-  // Handle error case with retry functionality
-  if (error) {
+  if (isLoading) {
     return (
-      <div className="h-[200px] w-full flex">
-        <ErrorBoundary
-          getProps={async () => {
-            const res = await fetchFunction(id, rpcUrl, client)
-            return {
-              id,
-              rpcUrl,
-              ...res,
-            } as TProps
-          }}
-          RenderElement={SelfComponent}
-          fallback={
-            <EntityDetail items={getRows(null, true)} />
-          }
-        />
+      <div className="w-full flex [&_div]:w-full">
+        <EntityDetail items={getRows(null, true)} />
       </div>
     )
-  }
+  } else if (isError) {
+    return (
+      <div className="h-[162px] w-full flex bg-[color:--main-background] rounded-lg border border-[color:--divider] base-shadow p-4">
+        <BaseRetryError onRetry={refetch}/>
+      </div>
+    )
+  } else if (data) {
+    const {source, height, data: dataForRows} = data as unknown as FetchResult<T>
 
-  // Successful render
-  return (
-    <EntityDetail
-      items={[
-        ...(source ? [getSourceChipsRow(source, height)] : []),
-        ...getRows(data)
-      ]}
-    />
-  )
+    if (!dataForRows) return <EntityNotFound id={id}/>
+
+    return (
+      <EntityDetail
+        items={[
+          ...(source ? [getSourceChipsRow(source, height)] : []),
+          ...getRows(dataForRows)
+        ]}
+      />
+    )
+  } else {
+    return <EntityNotFound id={id} />
+  }
 }

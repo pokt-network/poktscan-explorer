@@ -3,56 +3,53 @@
 import { getRows } from '@/app/(details)/block/[id]/utils'
 import React from 'react'
 import TitleEntity from '@/app/components/TitleEntity'
-import getBlock, { GetBlockResult } from '@/app/(details)/block/[id]/getBlock'
+import getBlock from '@/app/(details)/block/[id]/getBlock'
 import { useApolloClient } from '@apollo/client'
-import ErrorBoundary from '@/app/components/ErrorBoundary'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import EntityDetail from '@/app/components/EntityDetail'
 import { getSourceChipsRow } from '@/app/components/SourceChips'
 import EntityNotFound from '@/app/(details)/EntityNotFound'
+import { useQuery } from '@tanstack/react-query'
 
-interface BlockDetailProps extends GetBlockResult {
+interface BlockDetailProps {
   id: string
   rpcUrl: string
 }
 
-export default function BlockDetail({id, rpcUrl, error, source, data,}: BlockDetailProps) {
+export default function BlockDetail({id, rpcUrl, }: BlockDetailProps) {
   const client = useApolloClient()
 
-  if (error) {
-    return (
-      <div className="h-[162px] w-full flex">
-        <ErrorBoundary
-          getProps={async () => {
-            const res = await getBlock(id, rpcUrl, client)
-            return {
-              id,
-              rpcUrl,
-              ...res,
-            }
-          }}
-          RenderElement={BlockDetail}
-          fallback={
-            <EntityDetail items={getRows(null, true)} />
-          }
-        />
+  const {isError, isLoading, data, refetch} = useQuery({
+    queryKey: ['block', id],
+    queryFn: () => getBlock(id, rpcUrl, client)
+  })
+
+  let content: React.ReactNode
+
+  if (isLoading) {
+    content = (
+      <div className="w-full flex [&_div]:w-full">
+        <EntityDetail items={getRows(null, true)} />
       </div>
     )
-  }
-
-  let content: React.ReactNode = null
-
-  if (data) {
+  } else if (isError) {
     content = (
-      <EntityDetail
-        items={[
-          ...(source ? [getSourceChipsRow(source)] : []),
-          ...getRows(data)
-        ]}
-      />
+      <div className="h-[162px] w-full flex bg-[color:--main-background] rounded-lg border border-[color:--divider] base-shadow p-4">
+        <BaseRetryError onRetry={refetch}/>
+      </div>
+    )
+  } else if (!data) {
+    content = (
+      <EntityNotFound id={id} />
     )
   } else {
     content = (
-      <EntityNotFound id={id} />
+      <EntityDetail
+        items={[
+          ...(data.source ? [getSourceChipsRow(data.source)] : []),
+          ...getRows(data.data)
+        ]}
+      />
     )
   }
 

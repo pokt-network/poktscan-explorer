@@ -11,7 +11,7 @@ import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { ContentLoader } from '@/app/params/Loader'
 
 interface ParamListProps {
-  initialData: DocumentNodeData<typeof paramsDocument>
+  initialData: DocumentNodeData<typeof paramsDocument> | null
   initialError: boolean
 }
 
@@ -21,13 +21,13 @@ export default function ParamList({initialData, initialError}: ParamListProps) {
 
   const { data, error, refetch, isLoading } = useFetchOnBlock({
     query: paramsDocument,
-    initialResult: initialData,
+    initialResult: initialData as DocumentNodeData<typeof paramsDocument>,
     initialError,
   })
 
   let content: React.ReactNode
 
-  if (isLoading) {
+  if (isLoading || (!error && !data)) {
     content = (
       <ContentLoader />
     )

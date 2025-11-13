@@ -1,14 +1,11 @@
+'use client'
+
 import type { LabelByIndex } from '@/app/components/FourCards/utils'
-import { supplierSummaryDocument } from '@/app/(lists)/suppliers/operations'
-import { getClient } from '@/app/config/apollo/rsc'
-import SuppliersTable, { columns } from '@/app/components/SuppliersTable/SuppliersTable'
+import SuppliersTable from '@/app/components/SuppliersTable/SuppliersTable'
 import ListTitle from '@/app/components/ListTitle'
 import Summary from '@/app/(lists)/suppliers/Summary'
-import React, { Suspense } from 'react'
-import { getPageAndItems } from '@/app/utils/pagination'
-import { LoadingSummary, LoadingTable } from '@/app/components/LoadingListView'
-
-export const dynamic = "force-dynamic";
+import React, { useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 const summaryLabelsByIndex: LabelByIndex = {
   1: 'Staked Suppliers',
@@ -17,75 +14,35 @@ const summaryLabelsByIndex: LabelByIndex = {
   4: 'Unstaking Tokens',
 }
 
-async function SuppliersSummary() {
-  let data, error = false
+export default function SuppliersPage() {
+  const searchParams = useSearchParams()
 
-  try {
-    const response = await getClient().query({
-      query: supplierSummaryDocument,
-    })
+  const { page, itemsPerPage, activeFilter } = useMemo(() => {
+    const pageParam = searchParams.get('p')
+    const itemsParam = searchParams.get('ps')
+    const filterParam = searchParams.get('filter')
 
-    data = response.data
-  } catch {
-    error = true
-  }
+    const page = pageParam ? parseInt(pageParam, 10) : 1
+    const itemsPerPage = itemsParam ? parseInt(itemsParam, 10) : 25
+    const activeFilter = typeof filterParam === 'string' ? filterParam : undefined
 
-
-  return (
-    <Summary initialData={data} initialError={error} labels={summaryLabelsByIndex} />
-  )
-}
-
-interface PageProps {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
-
-async function ServerSuppliersTable({searchParams}: PageProps) {
-  const [{page, itemsPerPage,}, sParams] = await Promise.all([
-    getPageAndItems(searchParams),
-    searchParams
-  ])
-
-  const activeFilter = typeof sParams.filter === 'string' ? sParams.filter : undefined
-
-  return (
-    <SuppliersTable
-      page={page}
-      itemsPerPage={itemsPerPage}
-      basePath={'/suppliers'}
-      key={'suppliers'}
-      activeFilter={activeFilter}
-    />
-  )
-}
-
-export default async function SuppliersPage({searchParams}: PageProps) {
-  const pageInfo = await getPageAndItems(searchParams)
+    return { page, itemsPerPage, activeFilter }
+  }, [searchParams])
 
   return (
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <ListTitle title={'Suppliers'} />
-      <Suspense
-        key={`suppliers-summary`}
-        fallback={
-          <LoadingSummary
-            labels= {summaryLabelsByIndex}
-          />
-        }
-      >
-        <SuppliersSummary />
-      </Suspense>
-      <Suspense
-        key={`suppliers-page-${pageInfo.page}-${pageInfo.itemsPerPage}-${new Date().toISOString()}`}
-        fallback={
-          <LoadingTable
-            columns={columns}
-            rowsAmount={pageInfo.itemsPerPage}
-          />
-        }
-      >
-        <ServerSuppliersTable searchParams={searchParams} />
-      </Suspense>
+      <Summary
+        initialData={null as any}
+        initialError={false}
+        labels={summaryLabelsByIndex}
+      />
+      <SuppliersTable
+        page={page}
+        itemsPerPage={itemsPerPage}
+        basePath={'/suppliers'}
+        activeFilter={activeFilter}
+      />
     </div>
   )
 }

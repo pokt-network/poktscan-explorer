@@ -32,8 +32,8 @@ interface ServicesProductivityChartProps {
   timeSelected: string
   initialError: boolean
   initialSelectedServices: Array<string>
-  initialData: DocumentNodeData<typeof productivityQuery>
-  initialVariables: ExtractVariables<typeof productivityQuery>
+  initialData: DocumentNodeData<typeof productivityQuery> | null
+  initialVariables: ExtractVariables<typeof productivityQuery> | null
 }
 
 export default function ServicesProductivityChart({
@@ -198,7 +198,7 @@ export default function ServicesProductivityChart({
   const component: React.ReactNode = useMemo(() => {
     let content: React.ReactNode
 
-    if (isLoading) {
+    if (isLoading || (!error && !rawData)) {
       content = (
         <ContentLoader chartType={chartType} />
       )
@@ -253,7 +253,7 @@ export default function ServicesProductivityChart({
 
     return content
     // eslint-disable-next-line
-  }, [filteredDataByService, chartType, isLoading, error, selectedServices])
+  }, [filteredDataByService, chartType, isLoading, error, selectedServices, rawData])
 
   return (
     <div className={'flex flex-col md:flex-row items-center px-4 pt-2 pb-4 h-[calc(100%-44px)] gap-4'}>
