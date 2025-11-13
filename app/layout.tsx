@@ -11,7 +11,6 @@ import { dateTimeColumnField, dateTimeZoneField, formatTextField } from '@/app/d
 import HeightContextProvider from '@/app/context/height'
 import { getLatestBlock } from '@/app/api/blocks'
 import ReactQueryProvider from '@/app/config/query'
-import getPrice from '@/app/api/price'
 import RegisterPlugins from '@/app/Charts/Plugins/RegisterPlugins'
 import getMetadata from '@/app/api/metadata'
 
@@ -37,20 +36,18 @@ export default async function RootLayout({children}: Readonly<{
   const [
     cookiesAwaited,
     latestBlock,
-    price,
     metadata,
   ] = await Promise.all([
     cookies(),
     getLatestBlock().catch(() => null),
-    getPrice(),
     getMetadata().catch(() => null),
   ])
 
   return (
     <html lang="en" suppressHydrationWarning  className={`${roboto.variable}`}>
       <body>
-        <ReactQueryProvider initialPriceData={price}>
-          <ApolloWrapper url={process.env.GRAPHQL_API_URL}>
+        <ReactQueryProvider>
+          <ApolloWrapper url={process.env.CLIENT_GRAPHQL_API_URL!}>
             <DatesProvider
               defaultDateTimeColumn={cookiesAwaited.get(dateTimeColumnField)?.value}
               defaultDateTimeZone={cookiesAwaited.get(dateTimeZoneField)?.value}

@@ -15,10 +15,11 @@ import orderBy from 'lodash/orderBy'
 import NoData from '@/app/components/NoData'
 import BaseTable from '@/app/components/BaseTable'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
+import { DataByDelegatorRow } from '@/app/tools/operator/columns'
 
 interface ClientRewardsByServiceTableProps {
   initialError: boolean
-  initialData: DocumentNodeData<typeof rewardsByServicesDocument>
+  initialData: DocumentNodeData<typeof rewardsByServicesDocument> | null
   addresses: Array<string>
 }
 
@@ -66,7 +67,7 @@ export default function ClientRewardsByServiceTable({
     )
   }
 
-  if (isLoading) {
+  if (isLoading || (!data && !error)) {
     return (
       <BaseTable columns={rewardsByServiceColumns} rows={rows} isLoading={true} />
     )

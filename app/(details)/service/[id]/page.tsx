@@ -1,15 +1,7 @@
-import React from 'react'
 import ServiceTabs from '@/app/(details)/service/[id]/Tabs'
 
-export const dynamic = "force-dynamic";
-
-interface PageProps {
-  params: Promise<{id: string}>
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
-
-export default async function ServicePage({params, searchParams}: PageProps) {
+export default async function ServicePage() {
   return (
-    <ServiceTabs params={params} searchParams={searchParams}/>
+    <ServiceTabs rpcUrl={process.env.RPC_BASE_URL} />
   )
 }

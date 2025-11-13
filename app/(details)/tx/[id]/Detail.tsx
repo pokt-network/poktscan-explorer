@@ -1,43 +1,40 @@
 'use client'
-import { getTransaction, GetTxResult } from '@/app/(details)/tx/[id]/getTx'
+import { getTransaction } from '@/app/(details)/tx/[id]/getTx'
 import EntityDetail from '@/app/components/EntityDetail'
 import getRows from '@/app/(details)/tx/[id]/rows'
 import { useApolloClient } from '@apollo/client'
-import ErrorBoundary from '@/app/components/ErrorBoundary'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import React from 'react'
 import { getSourceChipsRow } from '@/app/components/SourceChips'
 import EntityNotFound from '@/app/(details)/EntityNotFound'
+import { useQuery } from '@tanstack/react-query'
 
-interface TransactionDetailProps extends GetTxResult {
+interface TransactionDetailProps {
   hash: string
   rpcUrl: string
 }
 
-export default function TransactionDetail({hash, rpcUrl, error, source, data,}: TransactionDetailProps) {
+export default function TransactionDetail({hash, rpcUrl,}: TransactionDetailProps) {
   const client = useApolloClient()
 
-  if (error) {
+  const {isError, isLoading, data, refetch} = useQuery({
+    queryKey: ['tx', hash],
+    queryFn: () => getTransaction(hash, rpcUrl, client)
+  })
+
+  if (isLoading) {
     return (
-      <div className="h-[162px] w-full flex">
-        <ErrorBoundary
-          getProps={async () => {
-            const res = await getTransaction(hash, rpcUrl, client)
-            return {
-              hash,
-              rpcUrl,
-              ...res,
-            }
-          }}
-          RenderElement={TransactionDetail}
-          fallback={
-            <EntityDetail items={getRows(null, true)} />
-          }
-        />
+      <div className="w-full flex [&_div]:w-full">
+        <EntityDetail items={getRows(null, true)} />
       </div>
     )
-  }
-
-  if (!data) {
+  } else if (isError) {
+    return (
+      <div className="h-[162px] w-full flex bg-[color:--main-background] rounded-lg border border-[color:--divider] base-shadow p-4">
+        <BaseRetryError onRetry={refetch}/>
+      </div>
+    )
+  } else if (!data) {
     return (
       <EntityNotFound id={hash} />
     )
@@ -46,8 +43,8 @@ export default function TransactionDetail({hash, rpcUrl, error, source, data,}: 
   return (
     <EntityDetail
       items={[
-        ...(source ? [getSourceChipsRow(source)] : []),
-        ...getRows(data)
+        ...(data.source ? [getSourceChipsRow(data.source)] : []),
+        ...getRows(data.data)
       ]}
     />
   )

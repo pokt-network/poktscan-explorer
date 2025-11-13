@@ -1,16 +1,7 @@
-import React from 'react'
 import BlockTabs from '@/app/(details)/block/[id]/Tabs'
 
-export const dynamic = "force-dynamic";
-
-export default async function BlockDetailPage({
-  params,
-  searchParams
-}: {
-  params: Promise<{ id: string }>
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}) {
+export default async function BlockDetailPage() {
   return (
-    <BlockTabs params={params} searchParams={searchParams} />
+    <BlockTabs rpcUrl={process.env.RPC_BASE_URL} />
   )
 }

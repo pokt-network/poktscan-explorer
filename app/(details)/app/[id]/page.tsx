@@ -1,36 +1,7 @@
-import TransferAndTxTabs from '@/app/(transactions)/TransferAndTxTabs'
-import DelegatedToTab from '@/app/(details)/app/[id]/DelegatedToTab'
+import AppPageClient from '@/app/(details)/app/[id]/PageClient'
 
-export const dynamic = "force-dynamic";
-
-interface PageProps {
-  params: Promise<{id: string}>
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
-
-export default async function AppPage({params, searchParams}: PageProps) {
-  const {id} = await params
-
+export default async function AppPage() {
   return (
-    <TransferAndTxTabs
-      searchParams={searchParams}
-      params={params}
-      entity={'app'}
-      defaultTab={'delegated_to'}
-      supportMigrationTab={true}
-      moreTabs={{
-        tabs: [
-          {
-            tab: 'delegated_to',
-            label: 'Delegated To'
-          }
-        ],
-        getContent: (tab: string) => {
-          if (tab === 'delegated_to') {
-            return <DelegatedToTab app={id} searchParams={searchParams} />
-          }
-        }
-      }}
-    />
+    <AppPageClient rpcUrl={process.env.RPC_BASE_URL} />
   )
 }

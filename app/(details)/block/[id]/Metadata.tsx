@@ -1,18 +1,112 @@
+'use client'
+
 import EntityDetail from '@/app/components/EntityDetail'
-import React from 'react'
-import getBlock from '@/app/(details)/block/[id]/getBlock'
-import { getClient } from '@/app/config/apollo/rsc'
+import React, { useEffect, useState } from 'react'
+import { blockByHeightDocument, getBlockFromRpc, type BlockResponse } from '@/app/(details)/block/[id]/getBlock'
 import SourceChips from '@/app/components/SourceChips'
 import NoData from '@/app/components/NoData'
+import { getUseRpcData } from '@/app/utils/metadata'
+import { indexerMetadataDocument } from '@/app/operations/metadata'
+import useFetchOnBlock from '@/app/hooks/useFetchOnBlock'
+import { useQuery } from '@apollo/client'
+import { Skeleton } from '@/components/ui/skeleton'
 
-const rpcUrl = process.env.RPC_BASE_URL!
+const rpcUrl = process.env.NEXT_PUBLIC_RPC_BASE_URL!
 
 interface MetadataProps {
   id: string
 }
 
-export default async function Metadata({id}: MetadataProps) {
-  const {data: block, source} = await getBlock(id, rpcUrl, getClient())
+export default function Metadata({id}: MetadataProps) {
+  const [rpcData, setRpcData] = useState<BlockResponse | null | undefined>(undefined)
+  const [isLoadingRpc, setIsLoadingRpc] = useState(false)
+
+  const { data: metadata, isLoading: isLoadingMetadata } = useFetchOnBlock({
+    query: indexerMetadataDocument,
+    initialResult: null,
+    initialError: false
+  })
+
+  const useRpcData = metadata ? getUseRpcData(metadata) : false
+
+  // Fetch from GraphQL when not using RPC
+  const { data: graphqlData, loading: isLoadingGraphql } = useQuery(blockByHeightDocument, {
+    variables: { height: id },
+    skip: useRpcData || isLoadingMetadata
+  })
+
+  useEffect(() => {
+    if (useRpcData && rpcData === undefined && !isLoadingRpc) {
+      setIsLoadingRpc(true)
+      getBlockFromRpc(id, rpcUrl)
+        .then(data => {
+          setRpcData(data)
+          setIsLoadingRpc(false)
+        })
+        .catch(() => {
+          setRpcData(null)
+          setIsLoadingRpc(false)
+        })
+    }
+  }, [useRpcData, id, rpcData, isLoadingRpc])
+
+  if (isLoadingMetadata || (useRpcData && isLoadingRpc) || (!useRpcData && isLoadingGraphql)) {
+    return (
+      <div className={"bg-[color:--main-background] px-6 py-4 relative rounded-lg border border-[color:--divider] flex flex-col base-shadow [&_p]:text-xs [&_div]:shadow-none"}>
+        <Skeleton className="h-8 w-32 mb-4" />
+        <Skeleton className="h-6 w-full mb-2" />
+        <Skeleton className="h-6 w-full mb-2" />
+        <Skeleton className="h-6 w-full mb-2" />
+      </div>
+    )
+  }
+
+  const block = useRpcData ? rpcData : (graphqlData?.block ? {
+    height: graphqlData.block.height,
+    timestamp: graphqlData.block.timestamp,
+    transactions: graphqlData.block.totalTxs || 0,
+    took: graphqlData.block.timeToBlock!,
+    proposerAddress: graphqlData.block.proposerAddress,
+    size: graphqlData.block.size,
+    totalSupply: graphqlData.block.supplies.nodes.find((item: any) => item?.supply?.denom === 'upokt')?.supply?.amount,
+    stakedAppsTokens: graphqlData.block.stakedAppsTokens,
+    stakedApps: graphqlData.block.stakedApps!,
+    stakedSuppliersTokens: graphqlData.block.stakedSuppliersTokens,
+    stakedSuppliers: graphqlData.block.stakedSuppliers!,
+    stakedGatewaysTokens: graphqlData.block.stakedGatewaysTokens,
+    stakedGateways: graphqlData.block.stakedGateways!,
+    totalRelays: graphqlData.block.totalRelays,
+    totalComputedUnits: graphqlData.block.totalComputedUnits,
+    metadata: {
+      versionBlock: graphqlData.block.metadata!.header.version.block,
+      versionApp: graphqlData.block.metadata!.header.version.app,
+      chainId: graphqlData.block.metadata!.header.chainId,
+      lastBlockId: graphqlData.block.metadata!.header.lastBlockId.hash,
+      lastBlockIdPartSetHeader: graphqlData.block.metadata!.header.lastBlockId.parts.hash,
+      lastCommitHash: graphqlData.block.metadata!.header.lastCommitHash,
+      dataHash: graphqlData.block.metadata!.header.dataHash,
+      validatorsHash: graphqlData.block.metadata!.header.validatorsHash,
+      nextValidatorsHash: graphqlData.block.metadata!.header.nextValidatorsHash,
+      appHash: graphqlData.block.metadata!.header.appHash,
+      lastResultsHash: graphqlData.block.metadata!.header.lastResultsHash,
+      evidenceHash: graphqlData.block.metadata!.header.evidenceHash,
+    },
+    lastCommit: {
+      round: graphqlData.block.metadata!.lastCommit.round,
+      height: graphqlData.block.metadata!.lastCommit.height,
+      blockId: graphqlData.block.metadata!.lastCommit.blockId.hash,
+      blockIdPartSetHeader: graphqlData.block.metadata!.lastCommit.blockId.parts.hash,
+      blockIdTotal: graphqlData.block.metadata!.lastCommit.blockId.parts.total,
+    },
+    signatures: graphqlData.block.metadata!.lastCommit.signatures.map((signature: any) => ({
+      signature: signature.signature,
+      timestamp: signature.timestamp,
+      validatorAddress: signature.validatorAddress,
+      blockIdFlag: signature.blockIdFlag,
+    }))
+  } as BlockResponse : null)
+
+  const source = useRpcData ? 'rpc' : 'indexer'
 
   let content: React.ReactNode = null
 

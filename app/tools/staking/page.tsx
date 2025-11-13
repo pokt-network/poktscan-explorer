@@ -1,8 +1,6 @@
 import { PageProps } from '@/app/types/pages'
-import { Suspense } from 'react'
 import { cookies } from 'next/headers'
-import { LoadingTable } from '@/app/components/LoadingListView'
-import SuppliersTable, { columns as supplierColumns } from '@/app/components/SuppliersTable/SuppliersTable'
+import SuppliersTable from '@/app/components/SuppliersTable/SuppliersTable'
 import { addressesCookieKey } from '@/app/tools/staking/constants'
 import { getPageAndItems } from '@/app/utils/pagination'
 import { getValidAddresses } from '@/app/tools/utils'
@@ -36,23 +34,13 @@ export default async function NodeRunningPage({searchParams}: PageProps) {
   return (
     <>
       <hr className={'border-[color:--divider] mb-4'} />
-      <Suspense
-        key={`${new Date().toISOString()}`}
-        fallback={
-          <LoadingTable
-            columns={supplierColumns}
-            rowsAmount={itemsPerPage}
-          />
-        }
-      >
-        <SuppliersTable
-          page={page}
-          itemsPerPage={itemsPerPage}
-          basePath={`/tools/staking?addresses=${validAddresses.join(',')}`}
-          owners={validAddresses}
-          activeFilter={activeFilter}
-        />
-      </Suspense>
+      <SuppliersTable
+        page={page}
+        itemsPerPage={itemsPerPage}
+        basePath={`/tools/staking?addresses=${validAddresses.join(',')}`}
+        owners={validAddresses}
+        activeFilter={activeFilter}
+      />
     </>
   )
 }

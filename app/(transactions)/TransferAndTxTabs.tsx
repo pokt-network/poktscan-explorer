@@ -1,16 +1,15 @@
-import { getPageAndItems } from '@/app/utils/pagination'
+'use client'
+
 import TransactionByAddressTable from '@/app/(transactions)/TransactionsByAddress'
 import TransferTable from '@/app/(transactions)/TransferTable'
 import Tabs from '@/app/components/Tabs'
-import React, { Suspense } from 'react'
+import React from 'react'
 import RawEntity from '@/app/components/RawEntity/RawEntity'
 import { EntityLinkProps } from '@/app/components/EntityLink'
-import MorseClaimableAccountTable, { columns } from '@/app/migration/Table'
-import LoadingListView from '@/app/components/LoadingListView'
+import MorseClaimableAccountTable from '@/app/migration/Table'
+import { useParams, useSearchParams } from 'next/navigation'
 
 interface PageProps {
-  params: Promise<{id: string, idForUrl?: string}>
-  searchParams: Promise<Record<string, string | string[] | undefined>>
   entity: EntityLinkProps['entity']
   supportMigrationTab?: boolean
   moreTabs?: {
@@ -19,17 +18,25 @@ interface PageProps {
     getContent: (tab: string) => React.ReactNode
   },
   defaultTab?: string
+  addressOverride?: string
+  rpcUrl?: string
 }
 
-export default async function TransferAndTxTabs({params, searchParams, entity, supportMigrationTab = false, moreTabs, defaultTab}: PageProps) {
-  const [{ id, idForUrl }, { page, itemsPerPage }, sParams] = await Promise.all([
-    params,
-    getPageAndItems(searchParams),
-    searchParams,
-  ])
+export default function TransferAndTxTabs({entity, supportMigrationTab = false, moreTabs, defaultTab, addressOverride, rpcUrl}: PageProps) {
+  const params = useParams()
+  const searchParams = useSearchParams()
 
-  const activeTab = sParams.tab || defaultTab || 'txs'
-  const activeFilter = typeof sParams?.['filter'] === 'string' ? sParams?.['filter'] : undefined
+  const id = params.id as string
+  const idForUrl = params.idForUrl as string | undefined
+  const address = addressOverride || id
+
+  const pageParam = searchParams.get('p')
+  const itemsParam = searchParams.get('ps')
+  const activeTab = searchParams.get('tab') || defaultTab || 'txs'
+  const activeFilter = searchParams.get('filter') || undefined
+
+  const page = pageParam ? parseInt(pageParam, 10) : 1
+  const itemsPerPage = itemsParam ? parseInt(itemsParam, 10) : 25
 
   let element: React.ReactNode
 
@@ -37,7 +44,7 @@ export default async function TransferAndTxTabs({params, searchParams, entity, s
     case 'txs':
       element = (
         <TransactionByAddressTable
-          address={id as string}
+          address={address as string}
           page={page}
           itemsPerPage={itemsPerPage}
           basePath={`/${entity}/${idForUrl || id}?tab=txs`}
@@ -48,7 +55,7 @@ export default async function TransferAndTxTabs({params, searchParams, entity, s
     case 'transfers':
       element = (
         <TransferTable
-          address={id as string}
+          address={address as string}
           page={page}
           itemsPerPage={itemsPerPage}
           basePath={`/${entity}/${idForUrl || id}?tab=transfers`}
@@ -60,27 +67,17 @@ export default async function TransferAndTxTabs({params, searchParams, entity, s
         <RawEntity
           entity={entity}
           id={id!.toString()}
+          rpcUrl={rpcUrl}
         />
       )
       break
-      case 'migration':
-        element = supportMigrationTab ? (
-          <Suspense
-            key={`migration-table-${page}-${itemsPerPage}-${new Date().toISOString()}`}
-            fallback={
-              <LoadingListView
-                rowsAmount={itemsPerPage}
-                columns={columns}
-              />
-            }
-          >
-            <MorseClaimableAccountTable
-              searchParams={searchParams}
-              address={id as string}
-              basePath={`/${entity}/${idForUrl || id}?tab=migration`}
-            />
-          </Suspense>
-        ) : null
+    case 'migration':
+      element = supportMigrationTab ? (
+        <MorseClaimableAccountTable
+          basePath={`/${entity}/${idForUrl || id}?tab=migration`}
+          address={address as string}
+        />
+      ) : null
       break
     default: {
       if (moreTabs) {

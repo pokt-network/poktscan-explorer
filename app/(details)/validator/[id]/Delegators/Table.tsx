@@ -1,12 +1,15 @@
+'use client'
+
 import type { GridColDef } from '@/app/components/Table'
 import Big from 'big.js'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import BaseTable from '@/app/components/BaseTable'
 import EntityLink from '@/app/components/EntityLink'
-import { RefreshPageError } from '@/app/components/ErrorBoundary'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { formatUpokt, formatSimpleAmount } from '@/app/utils/format'
+import { Skeleton } from '@/components/ui/skeleton'
 
-const rpcUrl = process.env.RPC_BASE_URL!
+const rpcUrl = process.env.NEXT_PUBLIC_RPC_BASE_URL!
 
 export type DelegatorsResponseFromRpc = {
   delegation_responses: Array<{
@@ -26,9 +29,9 @@ export type DelegatorsResponseFromRpc = {
   }
 }
 
-async function getValidatorDelegators(valoperAddress: string, rpcUrl: string) {
+async function getValidatorDelegators(valoperAddress: string, rpcUrl: string): Promise<DelegatorsResponseFromRpc['delegation_responses']> {
   const allDelegations: DelegatorsResponseFromRpc['delegation_responses'] = [];
-  let nextKey = undefined;
+  let nextKey: string | null = null;
 
   do {
     const url = new URL(
@@ -53,6 +56,29 @@ async function getValidatorDelegators(valoperAddress: string, rpcUrl: string) {
   } while (nextKey);
 
   return allDelegations;
+}
+
+function DelegatorsTableLoader() {
+  const row = (
+    <div className={'h-[56px] flex flex-row items-center gap-2 border-b border-[color:--divider] px-4'}>
+      <Skeleton className={'h-5 w-32'} />
+      <Skeleton className={'h-5 w-24 ml-auto'} />
+      <Skeleton className={'h-5 w-20'} />
+      <Skeleton className={'h-5 w-24'} />
+    </div>
+  )
+
+  return (
+    <div className={"w-full h-full flex flex-col rounded-lg border border-[color:--divider] bg-[color:--main-background] base-shadow pt-4"}>
+      <div>
+        {row}
+        {row}
+        {row}
+        {row}
+        {row}
+      </div>
+    </div>
+  )
 }
 
 export const validatorDelegatorsColumns: Array<GridColDef> = [
@@ -98,30 +124,75 @@ interface ValidatorDelegatorsTableProps {
   valoperAddress: string
 }
 
-export default async function ValidatorDelegatorsTable({valoperAddress}: ValidatorDelegatorsTableProps) {
-  try {
-    const delegators = await getValidatorDelegators(valoperAddress, rpcUrl)
+export default function ValidatorDelegatorsTable({valoperAddress}: ValidatorDelegatorsTableProps) {
+  const [delegators, setDelegators] = useState<DelegatorsResponseFromRpc['delegation_responses'] | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(false)
 
-    const total = delegators.reduce((acc, item) => acc.plus(item.balance.amount), new Big(0))
+  useEffect(() => {
+    setIsLoading(true)
+    setError(false)
+    getValidatorDelegators(valoperAddress, rpcUrl)
+      .then(data => {
+        setDelegators(data)
+        setIsLoading(false)
+      })
+      .catch(() => {
+        setError(true)
+        setIsLoading(false)
+      })
+  }, [valoperAddress])
 
-    const rows: Array<RowValidatorDelegator> = delegators.map(delegation => {
-      return {
-        id: delegation.delegation.delegator_address,
-        staked: formatUpokt({ amount: delegation.balance.amount, maxDecimals: 6 }),
-        stakePercent: `${new Big(delegation.balance.amount).div(total).mul(100).toFixed(3)}%`,
-        shares: formatSimpleAmount(delegation.delegation.shares),
-        numShares: Number(delegation.delegation.shares)
-      }
-    }).sort((a, b) => b.numShares - a.numShares)
+  const refetch = () => {
+    setIsLoading(true)
+    setError(false)
+    getValidatorDelegators(valoperAddress, rpcUrl)
+      .then(data => {
+        setDelegators(data)
+        setIsLoading(false)
+      })
+      .catch(() => {
+        setError(true)
+        setIsLoading(false)
+      })
+  }
 
+  if (isLoading) {
+    return <DelegatorsTableLoader />
+  }
+
+  if (error) {
     return (
       <div className={"w-full h-full flex flex-col rounded-lg border border-[color:--divider] bg-[color:--main-background] base-shadow pt-4"}>
-        <BaseTable columns={validatorDelegatorsColumns} rows={rows} />
+        <div className={"bg-[color:--main-background] pt-3 pb-1 gap-1"}>
+          <BaseRetryError
+            onRetry={refetch}
+            errorMessage={'Oops. There was an error loading the delegators data.'}
+          />
+        </div>
       </div>
     )
-  } catch {
-    return (
-      <RefreshPageError />
-    )
   }
+
+  if (!delegators) {
+    return <DelegatorsTableLoader />
+  }
+
+  const total = delegators.reduce((acc, item) => acc.plus(item.balance.amount), new Big(0))
+
+  const rows: Array<RowValidatorDelegator> = delegators.map(delegation => {
+    return {
+      id: delegation.delegation.delegator_address,
+      staked: formatUpokt({ amount: delegation.balance.amount, maxDecimals: 6 }),
+      stakePercent: `${new Big(delegation.balance.amount).div(total).mul(100).toFixed(3)}%`,
+      shares: formatSimpleAmount(delegation.delegation.shares),
+      numShares: Number(delegation.delegation.shares)
+    }
+  }).sort((a, b) => b.numShares - a.numShares)
+
+  return (
+    <div className={"w-full h-full flex flex-col rounded-lg border border-[color:--divider] bg-[color:--main-background] base-shadow pt-4"}>
+      <BaseTable columns={validatorDelegatorsColumns} rows={rows} />
+    </div>
+  )
 }

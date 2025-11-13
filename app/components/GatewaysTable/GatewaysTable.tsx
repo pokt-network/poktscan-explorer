@@ -1,14 +1,17 @@
+'use client'
+
 import { graphql } from '@/app/config/gql'
-import { getClient } from '@/app/config/apollo/rsc'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
-import React from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { getStakeLabel, stakeFilters, StakeTableFilter } from '@/app/utils/stake'
 import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import { ChipText } from '@/app/components/Chip'
 import { GatewaysSubscription } from '@/app/components/GatewaysTable/GatewaysSubscription'
-import { RefreshPageError } from '@/app/components/ErrorBoundary'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { GatewayFilter, StakeStatus } from '@/app/config/gql/graphql'
+import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
+import { LoadingTable } from '@/app/components/LoadingListView'
 
 export const columns: Array<GridColDef> = [
   {
@@ -104,7 +107,7 @@ const gatewayListDocument = graphql(`
   }
 `)
 
-function getGatewayGraphQlFilter({
+function useGatewayFilter({
   filter,
   application,
   service
@@ -112,52 +115,54 @@ function getGatewayGraphQlFilter({
   filter?: string,
   service?: string,
   application?: string,
-}): GatewayFilter | undefined {
-  if (!filter && !application && !service) {
-    return undefined
-  }
+}) {
+  const graphQlFilter = useMemo(() => {
+    if (!filter && !application && !service) {
+      return undefined
+    }
 
-  let graphQlFilter: GatewayFilter | undefined = undefined
+    let baseFilter: GatewayFilter | undefined = undefined
 
-  if (filter && Object.values(StakeTableFilter).includes(filter as StakeTableFilter)) {
-    if (filter === StakeTableFilter.LowBalance) {
-      graphQlFilter = {
-        stakeStatus: {
-          equalTo: StakeStatus.Staked
-        },
-        account: {
-          balances: {
-            some: {
-              denom: {
-                equalTo: 'upokt'
-              },
-              amount: {
-                lessThanOrEqualTo: (2 * 1e6).toString()
+    if (filter && Object.values(StakeTableFilter).includes(filter as StakeTableFilter)) {
+      if (filter === StakeTableFilter.LowBalance) {
+        baseFilter = {
+          stakeStatus: {
+            equalTo: StakeStatus.Staked
+          },
+          account: {
+            balances: {
+              some: {
+                denom: {
+                  equalTo: 'upokt'
+                },
+                amount: {
+                  lessThanOrEqualTo: (2 * 1e6).toString()
+                }
               }
             }
           }
         }
-      }
-    } else {
-      graphQlFilter = {
-        stakeStatus: {
-          equalTo: filter === StakeTableFilter.Staked ? StakeStatus.Staked :
-            filter === StakeTableFilter.Unstaking ? StakeStatus.Unstaking : StakeStatus.Unstaked
+      } else {
+        baseFilter = {
+          stakeStatus: {
+            equalTo: filter === StakeTableFilter.Staked ? StakeStatus.Staked :
+              filter === StakeTableFilter.Unstaking ? StakeStatus.Unstaking : StakeStatus.Unstaked
+          }
         }
       }
     }
-  }
 
-  if (service) {
-    graphQlFilter = {
-      ...(graphQlFilter! || {}),
-      applicationGateways: {
-        some: {
-          application: {
-            applicationServices: {
-              some: {
-                serviceId: {
-                  equalTo: service
+    if (service) {
+      baseFilter = {
+        ...(baseFilter || {}),
+        applicationGateways: {
+          some: {
+            application: {
+              applicationServices: {
+                some: {
+                  serviceId: {
+                    equalTo: service
+                  }
                 }
               }
             }
@@ -165,20 +170,22 @@ function getGatewayGraphQlFilter({
         }
       }
     }
-  }
 
-  if (application) {
-    graphQlFilter = {
-      ...(graphQlFilter! || {}),
-      applicationGateways: {
-        some: {
-          applicationId: {
-            equalTo: application
+    if (application) {
+      baseFilter = {
+        ...(baseFilter || {}),
+        applicationGateways: {
+          some: {
+            applicationId: {
+              equalTo: application
+            }
           }
         }
       }
     }
-  }
+
+    return baseFilter
+  }, [filter, application, service])
 
   return graphQlFilter
 }
@@ -201,92 +208,95 @@ interface PageProps {
   activeFilter?: string
 }
 
-export default async function GatewaysTable({page, itemsPerPage, basePath, service, application, activeFilter}: PageProps) {
-  try {
-    const filter = getGatewayGraphQlFilter({
-      application,
-      service,
-      filter: activeFilter || StakeTableFilter.Staked,
-    })
+export default function GatewaysTable({page, itemsPerPage, basePath, service, application, activeFilter}: PageProps) {
+  const filter = useGatewayFilter({
+    application,
+    service,
+    filter: activeFilter || StakeTableFilter.Staked,
+  })
 
-    let {data} = await getClient().query({
-      query: gatewayListDocument,
-      variables: {
-        limit: itemsPerPage,
-        offset: (page - 1) * itemsPerPage,
-        filter
-      }
-    })
+  const variables = useCallback(() => ({
+    limit: itemsPerPage,
+    offset: (page - 1) * itemsPerPage,
+    filter
+  }), [page, itemsPerPage, filter])
 
-    const totalPages = Math.ceil((data.gateways?.totalCount || 0) / itemsPerPage)
+  const { data, error, isLoading, refetch } = useFetchOnBlock({
+    query: gatewayListDocument,
+    variables,
+    initialResult: null as unknown as DocumentNodeData<typeof gatewayListDocument>,
+    initialError: false
+  })
 
-    if (page > totalPages) {
-      page = 1
-
-      const result = await getClient().query({
-        query: gatewayListDocument,
-        variables: {
-          limit: itemsPerPage,
-          offset: (page - 1) * itemsPerPage,
-          filter
-        }
-      })
-
-      data = result.data
-    }
-
-    const rows: Array<RowGateway> = data.gateways?.nodes?.map((gateway) => {
-      const balance = gateway.account?.balances?.nodes?.at(0) || {
-        amount: '0',
-        denom: 'upokt'
-      }
-
-      return {
-        id: gateway.id,
-        status: getStakeLabel(gateway.stakeStatus),
-        stakeAmount: formatAmount({
-          amount: gateway.stakeAmount,
-          denom: gateway.stakeDenom
-        }),
-        raw_stakeAmount: convertUpoktToPokt(gateway.stakeAmount),
-        balance: formatAmount(balance),
-        raw_balance: convertUpoktToPokt(balance?.amount),
-        firstApplication: gateway.applications.nodes[0]?.applicationId,
-        allApplications: gateway.applications.totalCount,
-      }
-    })
-
-    // Build entity filters for CSV export
-    const entityFilters: Record<string, string> = {}
-    if (service) entityFilters.service = service
-    if (application) entityFilters.app = application
-
+  if (isLoading) {
     return (
-      <Table
+      <LoadingTable
         columns={columns}
-        rows={rows}
-        header={{
-          title: `${data.gateways?.totalCount} gateways found`,
-          subtitle: (
-            <GatewaysSubscription service={service} />
-          )
-        }}
-        pagination={{
-          currentPage: page,
-          totalPages,
-          itemsPerPage,
-          basePath
-        }}
-        defaultMinWidth={70}
-        activeFilter={activeFilter || StakeTableFilter.Staked}
-        filters={stakeFilters}
-        csvEndpoint="/api/export/gateways"
-        entityFilters={Object.keys(entityFilters).length > 0 ? entityFilters : undefined}
+        rowsAmount={itemsPerPage}
       />
     )
-  } catch {
+  }
+
+  if (error) {
     return (
-      <RefreshPageError />
+      <div className={"bg-[color:--main-background] pt-3 pb-1 gap-1 rounded-lg border border-[color:--divider] base-shadow"}>
+        <BaseRetryError
+          onRetry={refetch}
+          errorMessage={'Oops. There was an error loading the gateways data.'}
+        />
+      </div>
     )
   }
+
+  const rows: Array<RowGateway> = data?.gateways?.nodes?.map((gateway) => {
+    const balance = gateway?.account?.balances?.nodes?.at(0) || {
+      amount: '0',
+      denom: 'upokt'
+    }
+
+    return {
+      id: gateway!.id,
+      status: getStakeLabel(gateway!.stakeStatus),
+      stakeAmount: formatAmount({
+        amount: gateway!.stakeAmount,
+        denom: gateway!.stakeDenom
+      }),
+      raw_stakeAmount: convertUpoktToPokt(gateway!.stakeAmount),
+      balance: formatAmount(balance),
+      raw_balance: convertUpoktToPokt(balance?.amount),
+      firstApplication: gateway!.applications.nodes[0]?.applicationId,
+      allApplications: gateway!.applications.totalCount,
+    }
+  }) || []
+
+  const totalPages = Math.ceil((data?.gateways?.totalCount || 0) / itemsPerPage)
+
+  // Build entity filters for CSV export
+  const entityFilters: Record<string, string> = {}
+  if (service) entityFilters.service = service
+  if (application) entityFilters.app = application
+
+  return (
+    <Table
+      columns={columns}
+      rows={rows}
+      header={{
+        title: `${data?.gateways?.totalCount} gateways found`,
+        subtitle: (
+          <GatewaysSubscription service={service} />
+        )
+      }}
+      pagination={{
+        currentPage: page,
+        totalPages,
+        itemsPerPage,
+        basePath
+      }}
+      defaultMinWidth={70}
+      activeFilter={activeFilter || StakeTableFilter.Staked}
+      filters={stakeFilters}
+      csvEndpoint="/api/export/gateways"
+      entityFilters={Object.keys(entityFilters).length > 0 ? entityFilters : undefined}
+    />
+  )
 }

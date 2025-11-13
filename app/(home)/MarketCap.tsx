@@ -4,7 +4,7 @@ import usePrice from '@/app/hooks/usePrice'
 import { formatAmount } from '@/app/utils/format'
 
 export default function MarketCap() {
-  const {usd_market_cap} = usePrice()
+  const { data: { usd_market_cap } } = usePrice()
 
   return `$${formatAmount({
     amount: usd_market_cap?.toFixed(2) || 0,

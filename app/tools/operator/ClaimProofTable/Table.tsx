@@ -1,10 +1,4 @@
-import { getClient } from '@/app/config/apollo/rsc'
-import { getLatestBlock } from '@/app/api/blocks'
 import DataProvider from '@/app/context/DataContext'
-import {
-  getDataByDelegatorAddressesAndTimesDocument,
-  getDataByDelegatorAddressesAndTimesVariables,
-} from '@/app/tools/operator/operations'
 import LastClaimingWindowTableCard from '@/app/tools/operator/ClaimProofTable/Card'
 import ClientLastClaimingWindowTable from '@/app/tools/operator/ClaimProofTable/ClientTable'
 import TableCardActions from '@/app/tools/operator/CardActions'
@@ -16,27 +10,6 @@ interface LastClaimingWindowTableProps {
 }
 
 export default async function ServerLastClaimingWindowTable({addresses, time}: LastClaimingWindowTableProps) {
-  let data, error = false
-
-  try {
-    const client = getClient()
-
-    const latestBlock = await getLatestBlock()
-
-    const response = await client.query({
-      query: getDataByDelegatorAddressesAndTimesDocument,
-      variables: getDataByDelegatorAddressesAndTimesVariables(
-        addresses,
-        latestBlock.timestamp,
-        time
-      )
-    })
-
-    data = response.data
-  } catch {
-    error = true
-  }
-
   return (
     <DataProvider initialData={[]}>
       <LastClaimingWindowTableCard
@@ -48,8 +21,8 @@ export default async function ServerLastClaimingWindowTable({addresses, time}: L
       >
         <ClientLastClaimingWindowTable
           addresses={addresses}
-          initialData={data}
-          initialError={error}
+          initialData={null}
+          initialError={false}
         />
       </LastClaimingWindowTableCard>
     </DataProvider>

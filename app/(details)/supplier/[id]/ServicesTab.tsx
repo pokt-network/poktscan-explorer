@@ -1,16 +1,19 @@
-import {
-  getRawSupplierFromRpc,
-  getServicesOfSupplier,
-  SupplierResponseFromRpc,
-} from '@/app/(details)/supplier/[id]/getSupplier'
+'use client'
+
+import { SupplierResponseFromRpc } from '@/app/(details)/supplier/[id]/getSupplier'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import EntityLink from '@/app/components/EntityLink'
-import React, { Suspense } from 'react'
+import React, { useEffect, useState } from 'react'
 import NoData from '@/app/components/NoData'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getClient } from '@/app/config/apollo/rsc'
+import { getUseRpcData } from '@/app/utils/metadata'
+import { indexerMetadataDocument } from '@/app/operations/metadata'
+import useFetchOnBlock from '@/app/hooks/useFetchOnBlock'
+import { getUrl } from '@/app/components/RawEntity/utils'
+import { useLazyQuery } from '@apollo/client'
+import { servicesOfSupplier } from '@/app/(details)/supplier/[id]/operations'
 
-const rpcUrl = process.env.RPC_BASE_URL!
+const rpcUrl = process.env.NEXT_PUBLIC_RPC_BASE_URL!
 
 function Card({children}: React.PropsWithChildren) {
   return (
@@ -63,16 +66,97 @@ interface ServicesTabProps {
   id: string
 }
 
-async function ServerServicesTab({id}: ServicesTabProps) {
-  const supplier = await getRawSupplierFromRpc(id, rpcUrl)
+export default function ServicesTab({id}: ServicesTabProps) {
+  const [rpcData, setRpcData] = useState<SupplierResponseFromRpc['supplier'] | null | undefined>(undefined)
+  const [isLoadingRpc, setIsLoadingRpc] = useState(false)
+  const [graphqlServices, setGraphqlServices] = useState<Array<SupplierResponseFromRpc['supplier']['services'][number] & {activatedAt: string}>>([])
 
-  let services: Array<SupplierResponseFromRpc['supplier']['services'][number] & {activatedAt?: string}>
+  const { data: metadata, isLoading: isLoadingMetadata } = useFetchOnBlock({
+    query: indexerMetadataDocument,
+    initialResult: null,
+    initialError: false
+  })
 
-  if (supplier) {
-    services = supplier.services
-  } else {
-    services = await getServicesOfSupplier(id, getClient())
+  const useRpcData = metadata ? getUseRpcData(metadata) : false
+
+  const [fetchGraphqlServices, { loading: isLoadingGraphql }] = useLazyQuery(servicesOfSupplier, {
+    fetchPolicy: 'network-only',
+    onCompleted: async (data) => {
+      const services: Array<SupplierResponseFromRpc['supplier']['services'][number] & {activatedAt: string}> = []
+
+      services.push(
+        ...data.supplierServiceConfigs.nodes.map((service: any) => ({
+          service_id: service.serviceId,
+          endpoints: service.endpoints.map((endpoint: any) => ({
+            url: endpoint.url,
+            rpc_type: endpoint.rpcType,
+            configs: endpoint.configs.map((config: any) => ({
+              key: config.key,
+              value: config.value,
+            }))
+          })),
+          rev_share: service.revShare.map((revShare: any) => ({
+            address: revShare.address,
+            rev_share_percentage: revShare.revSharePercentage,
+          })),
+          activatedAt: service.activatedAtId,
+        }))
+      )
+
+      // If there are more pages, fetch them recursively
+      if (data.supplierServiceConfigs.pageInfo.hasNextPage) {
+        fetchGraphqlServices({
+          variables: {
+            address: id,
+            cursor: data.supplierServiceConfigs.pageInfo.endCursor
+          }
+        })
+      }
+
+      setGraphqlServices(prev => [...prev, ...services])
+    }
+  })
+
+  useEffect(() => {
+    if (useRpcData && rpcData === undefined && !isLoadingRpc) {
+      setIsLoadingRpc(true)
+      fetch(getUrl(rpcUrl, 'supplier', id))
+        .then(res => {
+          if (res.status === 404) {
+            return null
+          }
+          return res.json().then(data => data.supplier)
+        })
+        .then(data => {
+          setRpcData(data)
+          setIsLoadingRpc(false)
+        })
+        .catch(() => {
+          setRpcData(null)
+          setIsLoadingRpc(false)
+        })
+    }
+  }, [useRpcData, id, rpcData, isLoadingRpc])
+
+  useEffect(() => {
+    if (!useRpcData && !isLoadingMetadata && graphqlServices.length === 0 && !isLoadingGraphql) {
+      setGraphqlServices([])
+      fetchGraphqlServices({
+        variables: {
+          address: id,
+          cursor: null
+        }
+      })
+    }
+  }, [useRpcData, isLoadingMetadata, id, graphqlServices.length, isLoadingGraphql, fetchGraphqlServices])
+
+  if (isLoadingMetadata || (useRpcData && isLoadingRpc) || (!useRpcData && isLoadingGraphql && graphqlServices.length === 0)) {
+    return <ServiceTabLoader />
   }
+
+  const supplier = rpcData
+  const services: Array<SupplierResponseFromRpc['supplier']['services'][number] & {activatedAt?: string}> =
+    useRpcData ? (supplier?.services || []) : graphqlServices
 
   let content: React.ReactNode
 
@@ -188,18 +272,5 @@ async function ServerServicesTab({id}: ServicesTabProps) {
     <Card>
       {content}
     </Card>
-  )
-}
-
-export default async function ServicesTab({id}: ServicesTabProps) {
-  return (
-    <Suspense
-      key={id}
-      fallback={
-        <ServiceTabLoader />
-      }
-    >
-      <ServerServicesTab id={id}/>
-    </Suspense>
   )
 }

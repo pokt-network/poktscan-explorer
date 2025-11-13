@@ -16,7 +16,7 @@ import { useDataContext } from '@/app/context/DataContext'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 
 interface PerformanceTableProps {
-  initialData: DocumentNodeData<typeof servicesPerformanceDocument>
+  initialData: DocumentNodeData<typeof servicesPerformanceDocument> | null
   timeSelected: string
   initialError: boolean
 }
@@ -87,7 +87,7 @@ export default function PerformanceTable({initialData, initialError, timeSelecte
     // eslint-disable-next-line
   }, [rows])
 
-  if (isLoading) {
+  if (isLoading || (!error && !data)) {
     return (
       <BaseTable columns={columns} rows={[]} isLoading={true} />
     )

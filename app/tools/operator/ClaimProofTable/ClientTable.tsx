@@ -16,7 +16,7 @@ import { useSelectedTime } from '@/app/Charts/SelectedTime'
 
 interface ClientLastClaimingWindowTableProps {
   initialError: boolean
-  initialData: DocumentNodeData<typeof getDataByDelegatorAddressesAndBlocksDocument>
+  initialData: DocumentNodeData<typeof getDataByDelegatorAddressesAndBlocksDocument> | null
   addresses: Array<string>,
 }
 
@@ -89,7 +89,7 @@ export default function ClientLastClaimingWindowTable({
     )
   }
 
-  if (isLoading) {
+  if (isLoading || (!data && !error)) {
     return (
       <BaseTable columns={columns} rows={rows} isLoading={true} />
     )

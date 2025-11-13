@@ -47,10 +47,10 @@ export default function Summary({initialData, initialError}: SummaryProps) {
         combineByIndex(
           transactionsSummaryLabels,
           {
-            1: data.validTxs.totalCount,
-            2: data.failedTxs.totalCount,
-            3: data.validTxs.totalCount + data.failedTxs.totalCount,
-            4: data.blocks?.nodes?.at(0)?.totalTxs || 0,
+            1: data?.validTxs?.totalCount || 0,
+            2: data?.failedTxs?.totalCount || 0,
+            3: (data?.validTxs?.totalCount || 0) + (data?.failedTxs?.totalCount || 0),
+            4: data?.blocks?.nodes?.at(0)?.totalTxs || 0,
           }
         )
       }

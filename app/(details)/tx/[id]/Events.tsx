@@ -1,37 +1,44 @@
-import React, { Suspense } from 'react'
+'use client'
+
+import React from 'react'
 import { Card, DisplayMessages, MessagesLoader } from '@/app/(details)/tx/[id]/Messages'
 import { getEvents } from '@/app/(details)/tx/[id]/getTx'
 import NoData from '@/app/components/NoData'
-
-const rpcUrl = process.env.RPC_BASE_URL!
+import { useQuery } from '@tanstack/react-query'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
 
 interface EventsProps {
   hash: string
+  rpcUrl: string
 }
 
-async function ServerEvents({hash}: EventsProps) {
-  const events = await getEvents(hash, rpcUrl)
+export default function Events({hash, rpcUrl}: EventsProps) {
+  const {isError, isLoading, data: events, refetch} = useQuery({
+    queryKey: ['tx', hash, 'events'],
+    queryFn: () => getEvents(hash, rpcUrl),
+  })
 
-  if (events.length === 0) {
-    return <NoData label={'No events found.'} />
+  let content: React.ReactNode
+
+  if (isLoading) {
+    content = (
+      <MessagesLoader />
+    )
+  } else if (isError) {
+    content = (
+      <div className={'flex grow justify-center items-center'}>
+        <BaseRetryError onRetry={refetch} />
+      </div>
+    )
+  } else if (!events || events.length === 0) {
+    content = <NoData label={'No Events found.'} />
+  } else {
+    content = <DisplayMessages messages={events} />
   }
 
   return (
-    <DisplayMessages messages={events} />
-  )
-}
-
-export default function Events({hash}: EventsProps) {
-  return (
     <Card>
-      <Suspense
-        key={hash}
-        fallback={
-          <MessagesLoader />
-        }
-      >
-        <ServerEvents hash={hash} />
-      </Suspense>
+      {content}
     </Card>
   )
 }

@@ -6,23 +6,24 @@ import Events from '@/app/(details)/tx/[id]/Events'
 
 const validTabs = ['messages', 'events', 'raw']
 
-export default function TransactionTabs({tab, hash}: TransactionTabsProps) {
+export default function TransactionTabs({tab, hash, rpcUrl}: TransactionTabsProps) {
   const activeTab = validTabs.includes(tab) ? tab : 'messages'
 
   let element: React.ReactNode
 
   switch (tab) {
     case 'messages':
-      element = <Messages hash={hash} />
+      element = <Messages hash={hash} rpcUrl={rpcUrl!} />
       break
     case 'events':
-      element = <Events hash={hash} />
+      element = <Events hash={hash} rpcUrl={rpcUrl!} />
       break
     case 'raw':
       element = (
         <RawEntity
           entity={'tx'}
           id={hash}
+          rpcUrl={rpcUrl}
         />
       )
       break
@@ -54,4 +55,5 @@ export default function TransactionTabs({tab, hash}: TransactionTabsProps) {
 interface TransactionTabsProps {
   tab: string
   hash: string
+  rpcUrl?: string
 }

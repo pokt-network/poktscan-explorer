@@ -79,7 +79,7 @@ function Value({percentage, value, total}: ValueProps) {
 }
 
 interface SummaryProps {
-  initialData: DocumentNodeData<typeof morseClaimableAccountsSummaryDocument>
+  initialData: DocumentNodeData<typeof morseClaimableAccountsSummaryDocument> | null
   labels: LabelByIndex
   initialError: boolean
 }
@@ -112,8 +112,8 @@ export default function Summary({initialData, initialError, labels}: SummaryProp
     )
   }
 
-  const notClaimed = data.morseClaimableAccounts.groupedAggregates.find(i => i.keys.at(0) === 'false')
-  const claimed = data.morseClaimableAccounts.groupedAggregates.find(i => i.keys.at(0) === 'true')
+  const notClaimed = data?.morseClaimableAccounts?.groupedAggregates?.find(i => i.keys.at(0) === 'false')
+  const claimed = data?.morseClaimableAccounts?.groupedAggregates?.find(i => i.keys.at(0) === 'true')
 
   const appStakedClaimed = new Big(claimed?.sum?.applicationStakeAmount || 0)
   const supplierStakedClaimed = new Big(claimed?.sum?.supplierStakeAmount || 0)

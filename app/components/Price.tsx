@@ -9,7 +9,7 @@ interface PriceProps {
 }
 
 export default function Price({showLabel = true, priceColor='--primary', fontSize = 'xs'}: PriceProps) {
-  const {usd, usd_24h_change} = usePrice()
+  const { data: { usd, usd_24h_change } } = usePrice()
   let changeColor: string
 
   if (usd_24h_change > 0) {

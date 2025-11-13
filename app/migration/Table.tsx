@@ -1,18 +1,21 @@
+'use client'
+
 import Table, { GridColDef } from '@/app/components/Table'
-import React from 'react'
+import React, { useCallback } from 'react'
 import { formatAmount, formatSimpleAmount, truncateAddress } from '@/app/utils/format'
 import EntityLink from '@/app/components/EntityLink'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { TooltipArrow } from '@radix-ui/react-tooltip'
 import CopyIconButton from '@/app/components/CopyIconButton'
-import { getClient } from '@/app/config/apollo/rsc'
 import { morseClaimableAccountsPageDocument } from '@/app/migration/operations'
-import { getPageAndItems } from '@/app/utils/pagination'
-import { PageProps } from '@/app/types/pages'
 import { MorseClaimableAccountFilter } from '../config/gql/graphql'
 import { isValidMorseAddress, isValidPoktAddress } from '@/app/utils/poktroll'
 import NewEntitiesSubscription from '@/app/migration/NewEntitiesSubscription'
-import { RefreshPageError } from '@/app/components/ErrorBoundary'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
+import { useSearchParams } from 'next/navigation'
+import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
+import { LoadingTable } from '@/app/components/LoadingListView'
+import SearchByAddress from '@/app/migration/SearchByAddress'
 
 export interface RowMorseClaimableAccount {
   id: string
@@ -122,15 +125,30 @@ export const columns: Array<GridColDef> = [
   },
 ]
 
-interface MorseClaimableAccountTableProps extends PageProps {
-  address?: string
+interface MorseClaimableAccountTableProps {
   basePath: string
+  address?: string
 }
 
-export default async function MorseClaimableAccountTable({searchParams, address, basePath}: MorseClaimableAccountTableProps) {
-  try {
-    const pageInfo = await getPageAndItems(searchParams)
+export default function MorseClaimableAccountTable({basePath, address: addressFromProps}: MorseClaimableAccountTableProps) {
+  const searchParams = useSearchParams()
 
+  const pageParam = searchParams.get('p')
+  const itemsParam = searchParams.get('ps')
+  const addressFromSearch = searchParams.get('address') || addressFromProps
+
+  const page = pageParam ? parseInt(pageParam, 10) : 1
+  const itemsPerPage = itemsParam ? parseInt(itemsParam, 10) : 25
+
+  let address: string | undefined = undefined
+  let defaultValueOfSearch: string | undefined = undefined
+
+  if (typeof addressFromSearch === 'string' && (isValidPoktAddress(addressFromSearch) || isValidMorseAddress(addressFromSearch))) {
+    address = addressFromSearch
+    defaultValueOfSearch = addressFromSearch
+  }
+
+  const variables = useCallback(() => {
     let filter: MorseClaimableAccountFilter | undefined = undefined
 
     if (address) {
@@ -162,82 +180,94 @@ export default async function MorseClaimableAccountTable({searchParams, address,
       }
     }
 
-    let page = pageInfo.page
-    const itemsPerPage = pageInfo.itemsPerPage
-
-    const client = getClient()
-
-    let {data} = await client.query({
-      query: morseClaimableAccountsPageDocument,
-      variables: {
-        limit: itemsPerPage,
-        offset: (page - 1) * itemsPerPage,
-        filter,
-      }
-    })
-
-    const totalPages = Math.ceil((data.morseClaimableAccounts?.totalCount || 0) / itemsPerPage)
-
-    if (page > totalPages) {
-      page = 1
-
-      const result = await client.query({
-        query: morseClaimableAccountsPageDocument,
-        variables: {
-          limit: itemsPerPage,
-          offset: (page - 1) * itemsPerPage,
-          filter,
-        }
-      })
-
-      data = result.data
+    return {
+      limit: itemsPerPage,
+      offset: (page - 1) * itemsPerPage,
+      filter,
     }
+  }, [page, itemsPerPage, address])
 
-    const rows: Array<RowMorseClaimableAccount> = data?.morseClaimableAccounts?.nodes?.map((morseClaimableAccount) => ({
-      id: morseClaimableAccount?.id || '',
-      shannonDestAddress: morseClaimableAccount?.shannonDestAddress || '',
-      claimedAtHeight: morseClaimableAccount?.claimedAtHeight,
-      unstakedBalance: formatAmount({
-        amount: morseClaimableAccount?.unstakedBalanceAmount || '0',
-        denom: morseClaimableAccount?.unstakedBalanceDenom || 'upokt',
-      }),
-      supplierStake: formatAmount({
-        amount: morseClaimableAccount?.supplierStakeAmount || '0',
-        denom: morseClaimableAccount?.supplierStakeDenom || 'upokt',
-      }),
-      applicationStake: formatAmount({
-        amount: morseClaimableAccount?.applicationStakeAmount || '0',
-        denom: morseClaimableAccount?.applicationStakeDenom || 'upokt',
-      }),
-      transactionHash: morseClaimableAccount?.transactionId,
-    })) || []
+  const { data, error, isLoading, refetch } = useFetchOnBlock({
+    query: morseClaimableAccountsPageDocument,
+    variables,
+    initialResult: null as unknown as DocumentNodeData<typeof morseClaimableAccountsPageDocument>,
+    initialError: false
+  })
 
-
+  if (isLoading) {
     return (
       <>
-        <Table
-          header={{
-            title: `${formatSimpleAmount(data?.morseClaimableAccounts?.totalCount || 0)} Morse claimable accounts found`,
-            subtitle: (
-              <NewEntitiesSubscription address={address} />
-            )
-          }}
+        {!addressFromProps && (
+          <SearchByAddress defaultValue={defaultValueOfSearch} />
+        )}
+        <LoadingTable
           columns={columns}
-          rows={rows}
-          pagination={{
-            currentPage: page,
-            totalPages,
-            itemsPerPage,
-            basePath,
-          }}
-          csvEndpoint={address ? `/api/export/migration?address=${address}` : '/api/export/migration'}
+          rowsAmount={itemsPerPage}
         />
       </>
     )
-  } catch {
+  }
+
+  if (error) {
     return (
-      <RefreshPageError />
+      <>
+        {!addressFromProps && (
+          <SearchByAddress defaultValue={defaultValueOfSearch} />
+        )}
+        <div className={"bg-[color:--main-background] pt-3 pb-1 gap-1 rounded-lg border border-[color:--divider] base-shadow"}>
+          <BaseRetryError
+            onRetry={refetch}
+            errorMessage={'Oops. There was an error loading the morse claimable accounts data.'}
+          />
+        </div>
+      </>
     )
   }
+
+  const rows: Array<RowMorseClaimableAccount> = data?.morseClaimableAccounts?.nodes?.map((morseClaimableAccount) => ({
+    id: morseClaimableAccount?.id || '',
+    shannonDestAddress: morseClaimableAccount?.shannonDestAddress || '',
+    claimedAtHeight: morseClaimableAccount?.claimedAtHeight,
+    unstakedBalance: formatAmount({
+      amount: morseClaimableAccount?.unstakedBalanceAmount || '0',
+      denom: morseClaimableAccount?.unstakedBalanceDenom || 'upokt',
+    }),
+    supplierStake: formatAmount({
+      amount: morseClaimableAccount?.supplierStakeAmount || '0',
+      denom: morseClaimableAccount?.supplierStakeDenom || 'upokt',
+    }),
+    applicationStake: formatAmount({
+      amount: morseClaimableAccount?.applicationStakeAmount || '0',
+      denom: morseClaimableAccount?.applicationStakeDenom || 'upokt',
+    }),
+    transactionHash: morseClaimableAccount?.transactionId,
+  })) || []
+
+  const totalPages = Math.ceil((data?.morseClaimableAccounts?.totalCount || 0) / itemsPerPage)
+
+  return (
+    <>
+      {!addressFromProps && (
+        <SearchByAddress defaultValue={defaultValueOfSearch} />
+      )}
+      <Table
+        header={{
+          title: `${formatSimpleAmount(data?.morseClaimableAccounts?.totalCount || 0)} Morse claimable accounts found`,
+          subtitle: (
+            <NewEntitiesSubscription address={address} />
+          )
+        }}
+        columns={columns}
+        rows={rows}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          itemsPerPage,
+          basePath,
+        }}
+        csvEndpoint={address ? `/api/export/migration?address=${address}` : '/api/export/migration'}
+      />
+    </>
+  )
 }
 

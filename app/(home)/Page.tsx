@@ -1,7 +1,7 @@
 'use client'
 
 import SearchInput from '@/app/Search/Search'
-import EvolutionCharts from '@/app/(home)/EvolutionCharts/EvolutionCharts'
+import EvolutionCharts from '@/app/(home)/EvolutionCharts/LazyEvolutionCharts'
 import ServicesCard from '@/app/(home)/Services/ServicesCard'
 import CustomizableCompUnits from '@/app/(home)/CustomizableCompUnitsChart'
 import Summary from '@/app/(home)/Summary'

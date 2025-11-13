@@ -1,11 +1,12 @@
+'use client'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import React, { Suspense } from 'react'
+import React from 'react'
 import JsonViewer from '@/app/components/JsonViewer'
 import { getMessages } from '@/app/(details)/tx/[id]/getTx'
 import { Skeleton } from '@/components/ui/skeleton'
 import NoData from '@/app/components/NoData'
-
-const rpcUrl = process.env.RPC_BASE_URL!
+import { useQuery } from '@tanstack/react-query'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
 
 export function Card({children}: React.PropsWithChildren) {
   return (
@@ -35,21 +36,9 @@ export function MessagesLoader() {
   )
 }
 
-
 interface MessagesProps {
   hash: string
-}
-
-async function ServerMessages({hash}: MessagesProps) {
-  const messages = await getMessages(hash, rpcUrl)
-
-  if (messages.length === 0) {
-    return <NoData label={'No messages found.'} />
-  }
-
-  return (
-    <DisplayMessages messages={messages} />
-  )
+  rpcUrl: string
 }
 
 export function DisplayMessages({messages}: {messages: Array<{typeUrl: string, json: string}>}) {
@@ -79,16 +68,33 @@ export function DisplayMessages({messages}: {messages: Array<{typeUrl: string, j
   )
 }
 
-export default async function Messages({hash}: MessagesProps) {
+export default function Messages({hash, rpcUrl}: MessagesProps) {
+  const {isError, isLoading, data: messages, refetch} = useQuery({
+    queryKey: ['tx', hash, 'messages'],
+    queryFn: () => getMessages(hash, rpcUrl),
+  })
+
+  let content: React.ReactNode
+
+  if (isLoading) {
+    content = (
+      <MessagesLoader />
+    )
+  } else if (isError) {
+    content = (
+      <div className={'flex grow justify-center items-center'}>
+        <BaseRetryError onRetry={refetch} />
+      </div>
+    )
+  } else if (!messages || messages.length === 0) {
+    content = <NoData label={'No messages found.'} />
+  } else {
+    content = <DisplayMessages messages={messages} />
+  }
+
   return (
     <Card>
-      <Suspense
-        fallback={
-          <MessagesLoader />
-        }
-      >
-        <ServerMessages hash={hash} />
-      </Suspense>
+      {content}
     </Card>
   )
 }

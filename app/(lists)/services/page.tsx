@@ -1,14 +1,16 @@
-import { getPageAndItems } from '@/app/utils/pagination'
-import { getClient } from '@/app/config/apollo/rsc'
+'use client'
+
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import ListTitle from '@/app/components/ListTitle'
 import NewEntitiesFound from '@/app/components/NewEntitiesFound'
-import React, { Suspense } from 'react'
+import React, { useCallback } from 'react'
 import { serviceListDocument, servicesSubscription } from '@/app/(lists)/services/operations'
 import { formatSimpleAmount } from '@/app/utils/format'
-import LoadingListView from '@/app/components/LoadingListView'
-import { RefreshPageError } from '@/app/components/ErrorBoundary'
+import { LoadingTable } from '@/app/components/LoadingListView'
+import { BaseRetryError } from '@/app/components/ErrorBoundary'
+import { useSearchParams } from 'next/navigation'
+import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 
 const columns: Array<GridColDef> = [
   {
@@ -59,99 +61,90 @@ interface RowService {
   suppliers: number
 }
 
-interface PageProps {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
+function ServicesTable() {
+  const searchParams = useSearchParams()
 
-async function ServerServicesPage({searchParams}: PageProps) {
-  try {
-    const pageInfo = await getPageAndItems(searchParams)
+  const pageParam = searchParams.get('p')
+  const itemsParam = searchParams.get('ps')
+  const page = pageParam ? parseInt(pageParam, 10) : 1
+  const itemsPerPage = itemsParam ? parseInt(itemsParam, 10) : 25
 
-    let page = pageInfo.page
-    const itemsPerPage = pageInfo.itemsPerPage
+  const variables = useCallback(() => ({
+    limit: itemsPerPage,
+    offset: (page - 1) * itemsPerPage,
+  }), [page, itemsPerPage])
 
-    let {data} = await getClient().query({
-      query: serviceListDocument,
-      variables: {
-        limit: itemsPerPage,
-        offset: (page - 1) * itemsPerPage
-      }
-    })
+  const { data, error, isLoading, refetch } = useFetchOnBlock({
+    query: serviceListDocument,
+    variables,
+    initialResult: null as unknown as DocumentNodeData<typeof serviceListDocument>,
+    initialError: false
+  })
 
-    const totalPages = Math.ceil((data.services?.totalCount || 0) / itemsPerPage)
-
-    if (page > totalPages) {
-      page = 1
-
-      const result = await getClient().query({
-        query: serviceListDocument,
-        variables: {
-          limit: itemsPerPage,
-          offset: (page - 1) * itemsPerPage
-        }
-      })
-
-      data = result.data
-    }
-
-    const rows: Array<RowService> = data.services?.nodes?.map((service) => {
-      const relayMiningDifficulty = service?.relayMiningDifficultyUpdatedEvents?.nodes?.at(0)?.newNumRelaysEma
-      return {
-        id: service?.id,
-        name: service?.name,
-        computeUnitsPerRelay: formatSimpleAmount(service?.computeUnitsPerRelay),
-        apps: service?.apps?.totalCount || 0,
-        suppliers: service?.suppliers?.totalCount || 0,
-        relayMiningDifficulty: relayMiningDifficulty ? formatSimpleAmount(relayMiningDifficulty) : '-'
-      }
-    })
-
+  if (isLoading) {
     return (
-      <Table
+      <LoadingTable
         columns={columns}
-        rows={rows}
-        header={{
-          title: `${data.services?.totalCount} services found`,
-          subtitle: (
-            <NewEntitiesFound<typeof servicesSubscription>
-              subscription={servicesSubscription}
-              entity={'services'}
-            />
-          )
-        }}
-        pagination={{
-          currentPage: page,
-          totalPages,
-          itemsPerPage,
-          basePath: '/services'
-        }}
-        defaultMinWidth={70}
-        csvEndpoint="/api/export/services"
+        rowsAmount={itemsPerPage}
       />
     )
-  } catch {
+  }
+
+  if (error) {
     return (
-      <RefreshPageError />
+      <div className={"bg-[color:--main-background] pt-3 pb-1 gap-1 rounded-lg border border-[color:--divider] base-shadow"}>
+        <BaseRetryError
+          onRetry={refetch}
+          errorMessage={'Oops. There was an error loading the services data.'}
+        />
+      </div>
     )
   }
+
+  const rows: Array<RowService> = data?.services?.nodes?.map((service) => {
+    const relayMiningDifficulty = service?.relayMiningDifficultyUpdatedEvents?.nodes?.at(0)?.newNumRelaysEma
+    return {
+      id: service.id!,
+      name: service.name!,
+      computeUnitsPerRelay: formatSimpleAmount(service?.computeUnitsPerRelay),
+      apps: service?.apps?.totalCount || 0,
+      suppliers: service?.suppliers?.totalCount || 0,
+      relayMiningDifficulty: relayMiningDifficulty ? formatSimpleAmount(relayMiningDifficulty) : '-'
+    }
+  }) || []
+
+  const totalPages = Math.ceil((data?.services?.totalCount || 0) / itemsPerPage)
+
+  return (
+    <Table
+      columns={columns}
+      rows={rows}
+      header={{
+        title: `${data?.services?.totalCount} services found`,
+        subtitle: (
+          <NewEntitiesFound<typeof servicesSubscription>
+            subscription={servicesSubscription}
+            entity={'services'}
+          />
+        )
+      }}
+      pagination={{
+        currentPage: page,
+        totalPages,
+        itemsPerPage,
+        basePath: '/services'
+      }}
+      defaultMinWidth={70}
+      csvEndpoint="/api/export/services"
+    />
+  )
 }
 
-export default async function ServicesPage({searchParams}: PageProps) {
-  const pageInfo = await getPageAndItems(searchParams)
+export default function ServicesPage() {
   return (
     <div className={"px-3 py-5 md:px-4 gap-4 flex flex-col"}>
       <ListTitle title={'Services'} />
-      <Suspense
-        key={`services-page-${pageInfo.page}-${pageInfo.itemsPerPage}-${new Date().toISOString()}`}
-        fallback={
-          <LoadingListView
-            columns={columns}
-            rowsAmount={pageInfo.itemsPerPage}
-          />
-        }
-      >
-        <ServerServicesPage searchParams={searchParams} />
-      </Suspense>
+      <ServicesTable />
     </div>
   )
 }

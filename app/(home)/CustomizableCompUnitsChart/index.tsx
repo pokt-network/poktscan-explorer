@@ -4,8 +4,10 @@ import { getValidTime, Time } from '@/app/utils/dates'
 import { ChartTypeProvider } from '@/app/Charts/ChartType'
 import CompUnitsActions from '@/app/(home)/CustomizableCompUnitsChart/Actions'
 import { SelectedTimeProvider, TimeSelector } from '@/app/Charts/SelectedTime'
-import CustomizableCompUnitsChart from '@/app/(home)/CustomizableCompUnitsChart/Chart'
+import CustomizableCompUnitsChart from '@/app/(home)/CustomizableCompUnitsChart/LazyCompUnitsChart'
 import { containerId, timeCookieKey } from '@/app/(home)/CustomizableCompUnitsChart/constants'
+
+
 
 interface CustomizableCompUnitsProps {
   cookieTime?: string

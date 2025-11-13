@@ -31,8 +31,6 @@ export async function fetchDataFromRpcOrIndexer<T>(
     fetchIndexerIfRpcNotFound = true,
   }: FetchDataFromRpcOrIndexerOptions<T>
 ): Promise<FetchResult<T>> {
-
-
   try {
     let metadata: DocumentNodeData<typeof indexerMetadataDocument>
 

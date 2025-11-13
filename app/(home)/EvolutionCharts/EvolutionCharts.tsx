@@ -2,7 +2,7 @@
 import CommonLineChart, { CommonLineChartProps } from '@/app/(home)/CommonLineChart'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import { useHeightContext } from '@/app/context/height'
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { getEvolutionVariables } from '@/app/(home)/utils'
 import { evolutionDocument } from '@/app/(home)/operations'
 import { useDateContext } from '@/app/dates/Context'
@@ -53,28 +53,30 @@ export default function EvolutionCharts({
 
   const {dateTimeZone} = useDateContext()
 
-  if (isLoading) {
-    return <EvolutionChartsLoader />
-  } else if (error) {
-    return (
-      <div className={'bg-[color:--main-background] grow flex rounded-lg border border-[color:--divider] base-shadow p-4'}>
-        <BaseRetryError
-          onRetry={refetch}
-          errorMessage={`Oops. There was an error loading the chart's data.`}
-        />
-      </div>
-    )
-  } else {
+  const {
+    validatorsData,
+    supplierData,
+    supplyData,
+    appsData,
+  } = useMemo(() => {
+    // Avoid creating DateTimeFormat on every render - memoize it externally if possible
     const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "2-digit", timeZone: dateTimeZone === 'utc' ? 'UTC' : undefined });
 
     const dates = getEvolutionVariables(currentTime)
-    const currentDate = dateFormatter.format(new Date(dates.currentDate))
-    const yesterdayDate = dateFormatter.format(new Date(dates.yesterdayDate))
-    const previous2Date = dateFormatter.format(new Date(dates.previous2Date))
-    const previous3Date = dateFormatter.format(new Date(dates.previous3Date))
-    const previous4Date = dateFormatter.format(new Date(dates.previous4Date))
-    const previous5Date = dateFormatter.format(new Date(dates.previous5Date))
-    const previous6Date = dateFormatter.format(new Date(dates.previous6Date))
+
+    // Batch date creation to reduce overhead
+    const dateObjects = [
+      dates.currentDate,
+      dates.yesterdayDate,
+      dates.previous2Date,
+      dates.previous3Date,
+      dates.previous4Date,
+      dates.previous5Date,
+      dates.previous6Date
+    ].map(d => new Date(d))
+
+    const [currentDate, yesterdayDate, previous2Date, previous3Date, previous4Date, previous5Date, previous6Date] =
+      dateObjects.map(d => dateFormatter.format(d))
 
     const supplyData: CommonLineChartProps['data'] = data?.supply?.map((supply) => ({
       label: dateFormatter.format(getDateFromIsoString(supply.day)),
@@ -84,31 +86,31 @@ export default function EvolutionCharts({
     const validatorsData: CommonLineChartProps['data'] = [
       {
         label: currentDate,
-        value: data?.today?.nodes?.at(0)?.stakedValidators || 0
+        value: data?.today?.nodes?.at(0)?.stakedValidators || 0,
       },
       {
         label: yesterdayDate,
-        value: data?.yesterday?.nodes?.at(0)?.stakedValidators || 0
+        value: data?.yesterday?.nodes?.at(0)?.stakedValidators || 0,
       },
       {
         label: previous2Date,
-        value: data?.last2?.nodes?.at(0)?.stakedValidators || 0
+        value: data?.last2?.nodes?.at(0)?.stakedValidators || 0,
       },
       {
         label: previous3Date,
-        value: data?.last3?.nodes?.at(0)?.stakedValidators || 0
+        value: data?.last3?.nodes?.at(0)?.stakedValidators || 0,
       },
       {
         label: previous4Date,
-        value: data?.last4?.nodes?.at(0)?.stakedValidators || 0
+        value: data?.last4?.nodes?.at(0)?.stakedValidators || 0,
       },
       {
         label: previous5Date,
-        value: data?.last5?.nodes?.at(0)?.stakedValidators || 0
+        value: data?.last5?.nodes?.at(0)?.stakedValidators || 0,
       },
       {
         label: previous6Date,
-        value: data?.last6?.nodes?.at(0)?.stakedValidators || 0
+        value: data?.last6?.nodes?.at(0)?.stakedValidators || 0,
       },
     ].reverse()
 
@@ -174,6 +176,26 @@ export default function EvolutionCharts({
       },
     ].reverse()
 
+    return {
+      validatorsData,
+      supplierData,
+      appsData,
+      supplyData,
+    }
+  }, [currentTime, data, dateTimeZone])
+
+  if (isLoading) {
+    return <EvolutionChartsLoader />
+  } else if (error) {
+    return (
+      <div className={'bg-[color:--main-background] grow flex rounded-lg border border-[color:--divider] base-shadow p-4'}>
+        <BaseRetryError
+          onRetry={refetch}
+          errorMessage={`Oops. There was an error loading the chart's data.`}
+        />
+      </div>
+    )
+  } else {
     return (
       <div className="flex flex-col gap-y-4 w-full">
         <CardEvolutionChart

@@ -1,10 +1,8 @@
 import React, { Suspense } from 'react'
-import { LoadingSummary } from '@/app/components/LoadingListView'
-import { labels } from '@/app/tools/Summary/constants'
-import ServerSummary from '@/app/tools/Summary/ServerSummary'
 import RewardsByAddressesLoader from '@/app/tools/RewardsByAddresses/Loader'
 import ServerRewardsByAddresses from '@/app/tools/RewardsByAddresses/ServerRewardsByAddresses'
 import { Time } from '@/app/utils/dates'
+import Summary from '@/app/tools/Summary/Summary'
 
 interface SummaryAndRewardsProps {
   validAddresses: Array<string>
@@ -24,14 +22,12 @@ export default function SummaryAndRewards({
       <div className={'flex flex-col gap-4'}>
 
         <div className={'min-w-[260px]'}>
-          <Suspense
-            key={validAddresses.join(',')}
-            fallback={
-              <LoadingSummary labels={labels} />
-            }
-          >
-            <ServerSummary addresses={validAddresses} isOwners={isOwner} />
-          </Suspense>
+          <Summary
+            isOwners={isOwner}
+            initialAddresses={validAddresses}
+            initialData={null}
+            initialError={false}
+          />
         </div>
 
         <Suspense

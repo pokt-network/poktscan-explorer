@@ -1,41 +1,12 @@
 'use client'
-import {
-  Chart,
-  CategoryScale,
-  LinearScale,
-  LineElement,
-  BarElement,
-  BarController,
-  Filler,
-  Legend,
-  PointElement,
-  Tooltip,
-  ArcElement,
-  LineController,
-  Title,
-  LogarithmicScale,
-  registerables,
-} from 'chart.js'
+import { Chart, registerables } from 'chart.js'
 import { useEffect } from 'react'
 
 export default function RegisterPlugins() {
   useEffect(() => {
-    Chart.register(
-      BarController,
-      LineController,
-      LineElement,
-      ArcElement,
-      PointElement,
-      BarElement,
-      CategoryScale,
-      LinearScale,
-      Title,
-      Filler,
-      Legend,
-      Tooltip,
-      LogarithmicScale,
-      ...registerables
-    )
+    // Note: registerables includes all standard Chart.js components
+    // Only register additional plugins here, not duplicates
+    Chart.register(...registerables)
   }, [])
 
   return null
