@@ -36,6 +36,7 @@ export default function HeightContextProvider({
   firstHeight,
   firstTime,
 }: HeightContextProviderProps) {
+  const [skipQueries, setSkipQueries] = useState(true)
   const [networkHeight, setNetworkHeight] = useState(initialNetworkHeight)
   const [sessionHeight, setSessionHeight] = useState(Number(firstHeight))
   const [{currentHeight, currentTime}, setState] = useState({
@@ -49,8 +50,17 @@ export default function HeightContextProvider({
       fetchPolicy: 'network-only',
       nextFetchPolicy: 'network-only',
       pollInterval: 15 * 1000,
+      skip: skipQueries
     }
   )
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setSkipQueries(false)
+    }, 10000)
+
+    return () => clearTimeout(timeout)
+  }, [])
 
   useEffect(() => {
     const block = data?.blocks?.nodes[0]
