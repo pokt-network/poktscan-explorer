@@ -66,6 +66,14 @@ function useCustomizableCompUnitsData() {
       }
     })
 
+      console.log('[CompUnits] Raw data mapped, count:', rawData.length)
+      //TODO WTF
+      // ALWAYS skip fillChartData for 8+ days to prevent blocking
+      if (rawData.length > 8 || !lastVariables.current) {
+          console.log('[CompUnits] Skipping fillChartData for large dataset')
+          return rawData
+      }
+
     return fillChartData({
       data: rawData,
       defaultProps: {
