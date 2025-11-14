@@ -90,7 +90,8 @@ function useCustomizableCompUnitsData() {
       endDate: lastVariables.current?.endDate || '',
       unitToFormatDate: (lastVariables.current?.truncInterval as UnitTimeGroup) || 'day'
     })
-  }, [data, selectedTime])
+    // eslint-disable-next-line
+  }, [data])
 
   useEffect(() => {
     setData(processedData)
