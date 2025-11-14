@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const summaryDocument = graphql(`
+export const summaryDocument = gql`
   query summary(
     $currentDate: Datetime!,
     $last24HourDate: Datetime!,
@@ -45,9 +45,9 @@ export const summaryDocument = graphql(`
       }
     }
   }
-`)
+`
 
-export const newEvolutionDocument = graphql(`
+export const newEvolutionDocument = gql`
   query latestBlockByDay($startDate: Datetime!, $endDate: Datetime!) {
     getLatestBlocksByDay(
       startDate: $startDate,
@@ -58,9 +58,9 @@ export const newEvolutionDocument = graphql(`
       endDate: $endDate,
     )
   }
-`)
+`
 
-export const evolutionDocument = graphql(`
+export const evolutionDocument = gql`
   query supplierAndAppsEvolution(
     $currentDate: Datetime!,
     $yesterdayDate: Datetime!
@@ -126,9 +126,9 @@ export const evolutionDocument = graphql(`
       }
     }
   }
-`)
+`
 
-export const servicesDocument = graphql(`
+export const servicesDocument = gql`
   query services($currentDate: Datetime!, $last24hDate: Datetime!, $last48hDate: Datetime!) {
     current24h: relayByBlockAndServices(filter: {block: {timestamp: {greaterThanOrEqualTo: $last24hDate, lessThanOrEqualTo: $currentDate}}}) {
       aggregated: groupedAggregates(groupBy: SERVICE_ID) {
@@ -153,4 +153,4 @@ export const servicesDocument = graphql(`
       }
     }
   }
-`)
+`

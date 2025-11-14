@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const supplierListDocument = graphql(`
+export const supplierListDocument = gql`
   query supplierList($limit: Int!, $offset: Int!, $filter: SupplierFilter) {
     suppliers(
       first: $limit,
@@ -49,9 +49,9 @@ export const supplierListDocument = graphql(`
       }
     }
   }
-`)
+`
 
-export const supplierSummaryDocument = graphql(`
+export const supplierSummaryDocument = gql`
   query supplierSummary {
     stakedSuppliers: suppliers(filter: {stakeStatus: {equalTo: Staked}}) {
       totalCount
@@ -70,4 +70,4 @@ export const supplierSummaryDocument = graphql(`
       }
     }
   }
-`)
+`

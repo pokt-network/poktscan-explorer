@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const appByIdDocument = graphql(`
+export const appByIdDocument = gql`
   query appById($id: String!) {
     application(id: $id) {
       id
@@ -40,9 +40,9 @@ export const appByIdDocument = graphql(`
       transferEndHeight
     }
   }
-`)
+`
 
-export const getDelegatedToDocument = graphql(`
+export const getDelegatedToDocument = gql`
   query getDelegatedTo($id: String!, $cursor: Cursor!) {
     applicationGateways(filter: {applicationId: {equalTo: $id}}, after: $cursor) {
       pageInfo {
@@ -58,4 +58,4 @@ export const getDelegatedToDocument = graphql(`
       }
     }
   }
-`)
+`

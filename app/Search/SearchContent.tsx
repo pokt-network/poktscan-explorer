@@ -1,9 +1,8 @@
-import { graphql } from '@/app/config/gql'
+import { gql, useSuspenseQuery } from '@apollo/client'
 import {
   isValidHash,
   isValidPoktAddress, VALIDATOR_PREFIX,
 } from '@/app/utils/poktroll'
-import { useSuspenseQuery } from '@apollo/client'
 import { EntityLinkProps } from '@/app/components/EntityLink'
 import React, { useEffect, useState } from 'react'
 import { getStakeLabel } from '@/app/utils/stake'
@@ -25,7 +24,7 @@ import { indexerMetadataDocument } from '@/app/operations/metadata'
 import { getUseRpcData } from '@/app/utils/metadata'
 import { StakeStatus } from '../config/gql/graphql'
 
-const searchByAddressDocument = graphql(`
+const searchByAddressDocument = gql`
   query searchByAddress($address: String!) {
     account(id: $address) {
       id
@@ -59,9 +58,9 @@ const searchByAddressDocument = graphql(`
       stakeDenom
     }
   }
-`)
+`
 
-const searchValidatorByAddress = graphql(`
+const searchValidatorByAddress = gql`
   query searchValidatorByAddress($address: String!) {
     validator(id: $address) {
       id
@@ -70,9 +69,9 @@ const searchValidatorByAddress = graphql(`
       stakeStatus
     }
   }
-`)
+`
 
-const searchByHashDocument = graphql(`
+const searchByHashDocument = gql`
   query searchByHash($hash: String!) {
     blocks(filter: {hash: {equalTo: $hash}}, first: 1) {
       nodes {
@@ -88,9 +87,9 @@ const searchByHashDocument = graphql(`
       amountOfMessages
     }
   }
-`)
+`
 
-const searchByHeightDocument = graphql(`
+const searchByHeightDocument = gql`
   query searchByHeight($height: BigFloat!) {
     block(id: $height) {
       height: id
@@ -99,9 +98,9 @@ const searchByHeightDocument = graphql(`
       totalTxs
     }
   }
-`)
+`
 
-const searchServicesDocument = graphql(`
+const searchServicesDocument = gql`
   query searchServices($text: String!) {
     services(
       filter: {
@@ -125,7 +124,7 @@ const searchServicesDocument = graphql(`
       }
     }
   }
-`)
+`
 
 function EmptySearch() {
   return (

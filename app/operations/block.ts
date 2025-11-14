@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const statusQuery = graphql(`
+export const statusQuery = gql`
   query status {
     blocks(orderBy: ID_DESC, first: 1) {
       nodes {
@@ -14,9 +14,9 @@ export const statusQuery = graphql(`
       lastProcessedHeight
     }
   }
-`)
+`
 
-export const latestBlockQuery = graphql(`
+export const latestBlockQuery = gql`
   query latestBlock {
     blocks(orderBy: ID_DESC, first: 1) {
       nodes {
@@ -59,9 +59,9 @@ export const latestBlockQuery = graphql(`
       }
     }
   }
-`)
+`
 
-export const numBlocksPerSessionDocument = graphql(`
+export const numBlocksPerSessionDocument = gql`
   query numBlocksPerSession {
     params(
       filter:  {
@@ -83,4 +83,4 @@ export const numBlocksPerSessionDocument = graphql(`
       }
     }
   }
-`)
+`

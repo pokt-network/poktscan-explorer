@@ -1,6 +1,6 @@
 'use client'
 
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React, { useCallback } from 'react'
@@ -93,7 +93,7 @@ const columns: Array<GridColDef> = [
   },
 ]
 
-const validatorsListDocument = graphql(`
+const validatorsListDocument = gql`
   query validatorsList($limit: Int!, $offset: Int!) {
     validators(first: $limit, offset: $offset) {
       totalCount
@@ -113,7 +113,7 @@ const validatorsListDocument = graphql(`
       }
     }
   }
-`)
+`
 
 interface RowValidator {
   id: string

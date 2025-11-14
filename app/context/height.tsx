@@ -46,16 +46,17 @@ export default function HeightContextProvider({
   const {data, refetch} = useQuery(
     statusQuery,
     {
-      fetchPolicy: 'network-only',
-      nextFetchPolicy: 'network-only',
+      // Use cache-and-network for instant cache response + network update
+      fetchPolicy: 'cache-and-network',
+      nextFetchPolicy: 'cache-first',
       pollInterval: 15 * 1000,
     }
   )
 
   useEffect(() => {
     const block = data?.blocks?.nodes[0]
-
     const newBlockId = Number(block?.id)
+
     if (block && newBlockId > currentHeight) {
       setState({
         currentHeight: newBlockId,

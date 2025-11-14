@@ -5,22 +5,41 @@ import EvolutionCharts from '@/app/(home)/EvolutionCharts/LazyEvolutionCharts'
 import ServicesCard from '@/app/(home)/Services/ServicesCard'
 import CustomizableCompUnits from '@/app/(home)/CustomizableCompUnitsChart'
 import Summary from '@/app/(home)/Summary'
+import { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
+import { summaryDocument, newEvolutionDocument, servicesDocument } from '@/app/(home)/operations'
+import { customizableCompUnitsDocument } from '@/app/(home)/CustomizableCompUnitsChart/operations'
+import { CacheHydration } from '@/app/config/apollo/cacheHydration'
 
 export default function Home({
   searchParams,
   rpcUrl,
   computedUnitsSelectedTime,
-  computedUnitsChartType
+  computedUnitsChartType,
+  initialSummaryData,
+  initialEvolutionData,
+  initialServicesData,
+  initialCompUnitsData,
 }: {
   searchParams: Record<string, string | string[] | undefined>
   rpcUrl: string
   computedUnitsSelectedTime?: string
   computedUnitsChartType?: string
+  initialSummaryData?: DocumentNodeData<typeof summaryDocument> | null
+  initialEvolutionData?: DocumentNodeData<typeof newEvolutionDocument> | null
+  initialServicesData?: DocumentNodeData<typeof servicesDocument> | null
+  initialCompUnitsData?: DocumentNodeData<typeof customizableCompUnitsDocument> | null
 }) {
   const serviceContentType = searchParams['dashboard_services_card']?.toString() || 'chart'
 
   return (
     <>
+      <CacheHydration
+        summaryData={initialSummaryData}
+        evolutionData={initialEvolutionData}
+        servicesData={initialServicesData}
+        compUnitsData={initialCompUnitsData}
+        cookieTime={computedUnitsSelectedTime}
+      />
       <section
         className='pt-7 relative md:pt-[56px] pb-[95px] px-4 md:px-5'
       >
@@ -37,8 +56,8 @@ export default function Home({
       </section>
       <div className={'px-4 md:px-5 pb-4 mt-[-46px]'}>
         <Summary
-          initialData={null}
-          initialError={false}
+          initialData={initialSummaryData}
+          initialError={!initialSummaryData}
         />
       </div>
 
@@ -46,20 +65,22 @@ export default function Home({
         <CustomizableCompUnits
           chartType={computedUnitsChartType}
           cookieTime={computedUnitsSelectedTime}
+          initialData={initialCompUnitsData}
+          initialError={!initialCompUnitsData}
         />
       </div>
 
       <div className={'px-4 md:px-5 pb-10 flex lg:flex-row flex-col gap-4'}>
         <div className={'w-full lg:w-[50%] flex flex-col gap-4 h-[652px]'}>
           <EvolutionCharts
-            initialData={null}
-            initialError={false}
+            initialData={initialEvolutionData}
+            initialError={!initialEvolutionData}
           />
         </div>
         <ServicesCard
           defaultType={serviceContentType}
-          initialData={null}
-          initialError={false}
+          initialData={initialServicesData}
+          initialError={!initialServicesData}
         />
       </div>
     </>

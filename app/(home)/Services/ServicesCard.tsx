@@ -2,7 +2,7 @@
 
 import ServicesTable from '@/app/(home)/Services/ServicesTable'
 import ServicesDoughnutChart from '@/app/(home)/Services/ServicesChart'
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo, memo } from 'react'
 import ServiceCardContent from '@/app/(home)/Services/ServiceCardContent'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import { servicesDocument } from '@/app/(home)/operations'
@@ -106,7 +106,7 @@ interface ServicesCardProps {
   initialError: boolean
 }
 
-export default function ServicesCard({
+function ServicesCardComponent({
   defaultType,
   initialData,
   initialError,
@@ -120,18 +120,35 @@ export default function ServicesCard({
     initialError,
   })
 
+  const processedData = useMemo(() => {
+    if (!data) return []
+
+    return calculateChanges(
+      (data?.current24h?.aggregated || []) as unknown as Item[],
+      (data?.last24h?.aggregated || []) as unknown as Item[]
+    )
+  }, [data])
+
+  const errorComponent = useMemo(() => (
+    <div className={'h-[calc(100%)] flex pb-[88px]'}>
+      <BaseRetryError
+        onRetry={refetch}
+        errorMessage={`Oops. There was an error loading the services data.`}
+      />
+    </div>
+  ), [refetch])
+
+  const tableComponent = useMemo(() => (
+    <ServicesTable data={processedData} />
+  ), [processedData])
+
+  const chartComponent = useMemo(() => (
+    <ServicesDoughnutChart data={processedData} />
+  ), [processedData])
+
   if (isLoading) {
     return <ServicesLoader defaultType={defaultType} />
   } else if (error) {
-    const errorComponent = (
-      <div className={'h-[calc(100%)] flex pb-[88px]'}>
-        <BaseRetryError
-          onRetry={refetch}
-          errorMessage={`Oops. There was an error loading the services data.`}
-        />
-      </div>
-    )
-
     return (
       <ServiceCardContent
         table={errorComponent}
@@ -143,18 +160,16 @@ export default function ServicesCard({
     )
   }
 
-  const processedData = calculateChanges(
-    (data?.current24h?.aggregated || []) as unknown as Item[],
-    (data?.last24h?.aggregated || []) as unknown as Item[]
-  )
-
   return (
     <ServiceCardContent
-      table={<ServicesTable data={processedData} />}
-      chart={<ServicesDoughnutChart data={processedData} />}
+      table={tableComponent}
+      chart={chartComponent}
       defaultType={defaultType}
       hasItems={processedData.length > 0}
     />
   )
 }
+
+const ServicesCard = memo(ServicesCardComponent)
+export default ServicesCard
 

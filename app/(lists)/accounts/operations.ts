@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const accountListDocument = graphql(`
+export const accountListDocument = gql`
   query accountList($limit: Int!, $offset: Int!) {
     balances (
       first: $limit,
@@ -20,9 +20,9 @@ export const accountListDocument = graphql(`
       }
     }
   }
-`)
+`
 
-export const accountSummaryDocument = graphql(`
+export const accountSummaryDocument = gql`
   query accountSummary($todayDate: Datetime!, $monthDate: Datetime!, $last90Date: Datetime!) {
     accountsWithBalance: balances(filter: {amount: {greaterThan: "0"}}) {
       totalCount
@@ -37,4 +37,4 @@ export const accountSummaryDocument = graphql(`
       totalCount
     }
   }
-`)
+`

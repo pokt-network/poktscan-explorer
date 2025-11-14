@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const serviceListDocument = graphql(`
+export const serviceListDocument = gql`
   query serviceList($limit: Int!, $offset: Int!) {
     services(first: $limit, offset: $offset) {
       totalCount
@@ -26,4 +26,4 @@ export const serviceListDocument = graphql(`
       }
     }
   }
-`)
+`

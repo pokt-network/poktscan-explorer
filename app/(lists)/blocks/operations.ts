@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const blockListDocument = graphql(`
+export const blockListDocument = gql`
   query blockList($limit: Int!, $offset: Int!) {
     blocks(first: $limit, offset: $offset, orderBy: ID_DESC) {
       nodes {
@@ -29,9 +29,9 @@ export const blockListDocument = graphql(`
       totalCount
     }
   }
-`)
+`
 
-export const blockSummaryDocument = graphql(`
+export const blockSummaryDocument = gql`
   query blockSummary($startDate: Datetime!, $endDate: Datetime!) {
     avgs: blocks(filter: {timestamp: {greaterThanOrEqualTo: $startDate, lessThanOrEqualTo: $endDate}}, orderBy: ID_DESC, first: 1) {
       nodes {
@@ -46,4 +46,4 @@ export const blockSummaryDocument = graphql(`
       }
     }
   }
-`)
+`

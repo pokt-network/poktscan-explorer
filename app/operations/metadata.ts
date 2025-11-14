@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const indexerMetadataDocument = graphql(`
+export const indexerMetadataDocument = gql`
   query metadata {
     _metadata {
       targetHeight
@@ -10,4 +10,4 @@ export const indexerMetadataDocument = graphql(`
       indexerHealthy
     }
   }
-`)
+`

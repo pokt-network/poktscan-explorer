@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const morseClaimableAccountsPageDocument = graphql(`
+export const morseClaimableAccountsPageDocument = gql`
   query morseClaimableAccountsList($limit: Int!, $offset: Int!, $filter: MorseClaimableAccountFilter) {
     morseClaimableAccounts(
       first: $limit,
@@ -27,11 +27,11 @@ export const morseClaimableAccountsPageDocument = graphql(`
         applicationStakeAmount
         applicationStakeDenom
       }
-    } 
+    }
   }
-`)
+`
 
-export const morseClaimableAccountsSummaryDocument = graphql(`
+export const morseClaimableAccountsSummaryDocument = gql`
   query morseClaimableAccountsSummary {
     morseClaimableAccounts {
       groupedAggregates(groupBy: CLAIMED) {
@@ -44,4 +44,4 @@ export const morseClaimableAccountsSummaryDocument = graphql(`
       }
     }
   }
-`)
+`

@@ -1,8 +1,8 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 import { ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { getStartAndEndDateBasedOnTime } from '@/app/utils/dates'
 
-export const claimProofByTimesDocument = graphql(`
+export const claimProofByTimesDocument = gql`
   query claimProofDataByTime(
     $startDate: Datetime!
     $endDate: Datetime!
@@ -14,7 +14,7 @@ export const claimProofByTimesDocument = graphql(`
       truncInterval: $truncInterval
     )
   }
-`)
+`
 
 export const claimProofByTimesVariables = (
   dateStr: string,

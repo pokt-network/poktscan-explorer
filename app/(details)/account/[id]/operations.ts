@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const accountByIdDocument = graphql(`
+export const accountByIdDocument = gql`
   query accountById($id: String!) {
     account(id: $id) {
       id
@@ -16,4 +16,4 @@ export const accountByIdDocument = graphql(`
       }
     }
   }
-`)
+`

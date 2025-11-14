@@ -6,15 +6,17 @@ import CompUnitsActions from '@/app/(home)/CustomizableCompUnitsChart/Actions'
 import { SelectedTimeProvider, TimeSelector } from '@/app/Charts/SelectedTime'
 import CustomizableCompUnitsChart from '@/app/(home)/CustomizableCompUnitsChart/LazyCompUnitsChart'
 import { containerId, timeCookieKey } from '@/app/(home)/CustomizableCompUnitsChart/constants'
-
-
+import { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
+import { customizableCompUnitsDocument } from '@/app/(home)/CustomizableCompUnitsChart/operations'
 
 interface CustomizableCompUnitsProps {
   cookieTime?: string
   chartType?: string
+  initialData?: DocumentNodeData<typeof customizableCompUnitsDocument> | null
+  initialError?: boolean
 }
 
-export default function CustomizableCompUnits({cookieTime, chartType}: CustomizableCompUnitsProps) {
+export default function CustomizableCompUnits({cookieTime, chartType, initialData, initialError}: CustomizableCompUnitsProps) {
   const time = getValidTime(
     cookieTime || '',
     Time.Last30d
@@ -39,7 +41,7 @@ export default function CustomizableCompUnits({cookieTime, chartType}: Customiza
               </div>
               <CompUnitsActions />
             </div>
-            <CustomizableCompUnitsChart />
+            <CustomizableCompUnitsChart initialData={initialData} initialError={initialError || false} />
           </div>
 
         </DataProvider>

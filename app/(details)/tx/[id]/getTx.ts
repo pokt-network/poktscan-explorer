@@ -2,7 +2,7 @@ import type { ApolloClient } from '@apollo/client'
 import { cache } from 'react'
 import { getUrl } from '@/app/components/RawEntity/utils'
 import { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 import { getMultisigInfo, isMsgValidatorRelated, isMulti, PREFIX,Secp256k1, pubKeyToAddress, SignerInfoSDKType, VALIDATOR_PREFIX } from '@/app/utils/poktroll'
 import { fetchDataFromRpcOrIndexer } from '@/app/utils/fetch'
 import axios from 'axios'
@@ -99,7 +99,7 @@ export interface TxResponseFromRpc {
   }
 }
 
-const txByIdDocument = graphql(`
+const txByIdDocument = gql`
   query transaction($id: String!) {
     transaction(id: $id) {
       id
@@ -119,7 +119,7 @@ const txByIdDocument = graphql(`
       amountSentByDenom
     }
   }
-`)
+`
 
 const getRawTxFromRpc = cache(async (hash: string, rpcUrl: string): Promise<TxResponseFromRpc> => {
   return await axios.get(getUrl(rpcUrl, 'tx', hash)).then((res) => {

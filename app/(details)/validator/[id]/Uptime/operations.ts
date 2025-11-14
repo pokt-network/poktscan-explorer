@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const validatorUptimeDocument = graphql(`
+export const validatorUptimeDocument = gql`
   query validatorUptime($from: BigInt!, $validatorHexAddress: String!) {
     producedBlocks: getProducedBlocksByValidator(
       fromId: $from
@@ -11,4 +11,4 @@ export const validatorUptimeDocument = graphql(`
       validatorAddress: $validatorHexAddress
     )
   }
-`)
+`

@@ -2,7 +2,7 @@
 
 import useFetchOnBlock, { DocumentNodeData, ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { summaryDocument } from '@/app/(home)/operations'
-import React, { useCallback, useRef } from 'react'
+import React, { useCallback, useRef, useMemo, memo } from 'react'
 import { getSummaryVariables } from '@/app/(home)/utils'
 import PocketLogo from '@/app/assets/pocket_logo.svg'
 import Price from '@/app/components/Price'
@@ -17,13 +17,14 @@ import { ContentLoader } from '@/app/(home)/SummaryLoader'
 import { clsx } from 'clsx'
 import { useHeightContext } from '@/app/context/height'
 
-function Title({title}: {title: string}) {
+// Memoize title component to prevent re-renders
+const Title = memo(function Title({title}: {title: string}) {
   return (
     <p className={'text-xs tracking-tight text-[color:--secondary]'}>
       {title.toUpperCase()}
     </p>
   )
-}
+})
 
 interface SummaryProps {
   initialData: DocumentNodeData<typeof summaryDocument> | null
@@ -31,7 +32,7 @@ interface SummaryProps {
   initialVariables?: ExtractVariables<typeof summaryDocument>
 }
 
-export default function Summary({initialData, initialError, initialVariables}: SummaryProps) {
+function SummaryComponent({initialData, initialError, initialVariables}: SummaryProps) {
   const lastVariablesRef = useRef<ExtractVariables<typeof summaryDocument>>(initialVariables!)
   const variables = useCallback((_: number, currentTime: string) => lastVariablesRef.current = getSummaryVariables(currentTime), [])
   const {currentHeight, currentTime, networkHeight} = useHeightContext()
@@ -41,6 +42,16 @@ export default function Summary({initialData, initialError, initialVariables}: S
     initialResult: initialData,
     initialError,
   })
+
+  // Memoize expensive computations
+  const computedValues = useMemo(() => {
+    const latestBlock = data?.lastBlock?.nodes?.at(0)
+    const currentSupply = data?.supply?.at(0)?.total_supply || latestBlock?.supplies?.nodes?.find((s) => s?.supply?.denom === 'upokt')?.supply?.amount
+    const totalStaked = BigInt(latestBlock?.stakedSuppliersTokens || 0) + BigInt(latestBlock?.stakedAppsTokens || 0) + BigInt(latestBlock?.stakedGatewaysTokens || 0)
+    const summary = data?.blocks?.aggregates?.sum
+
+    return { latestBlock, currentSupply, totalStaked, summary }
+  }, [data])
 
   let content: React.ReactNode
 
@@ -56,11 +67,7 @@ export default function Summary({initialData, initialError, initialVariables}: S
       />
     )
   } else {
-    const latestBlock = data?.lastBlock?.nodes?.at(0)
-
-    const currentSupply = data?.supply?.at(0)?.total_supply || latestBlock?.supplies?.nodes?.find((s) => s?.supply?.denom === 'upokt')?.supply?.amount
-    const totalStaked = BigInt(latestBlock?.stakedSuppliersTokens || 0) + BigInt(latestBlock?.stakedAppsTokens || 0) + BigInt(latestBlock?.stakedGatewaysTokens || 0)
-    const summary = data?.blocks?.aggregates?.sum
+    const { currentSupply, totalStaked, summary } = computedValues
 
     content = (
       <>
@@ -219,3 +226,8 @@ export default function Summary({initialData, initialError, initialVariables}: S
     </div>
   )
 }
+
+// Wrap with React.memo to prevent unnecessary re-renders
+const Summary = memo(SummaryComponent)
+
+export default Summary

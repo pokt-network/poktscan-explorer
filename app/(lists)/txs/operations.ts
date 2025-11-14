@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const transactionsPageDocument = graphql(`
+export const transactionsPageDocument = gql`
   query transactionsList($limit: Int!, $offset: Int!, $filter: TransactionFilter) {
     transactions(
       first: $limit,
@@ -25,9 +25,9 @@ export const transactionsPageDocument = graphql(`
       }
     }
   }
-`)
+`
 
-export const transactionsSummaryDocument = graphql(`
+export const transactionsSummaryDocument = gql`
   query transactionsSummary($startDate: Datetime!, $endDate: Datetime!) {
     blocks(orderBy: ID_DESC, first: 1) {
       nodes {
@@ -51,4 +51,4 @@ export const transactionsSummaryDocument = graphql(`
       totalCount
     }
   }
-`)
+`

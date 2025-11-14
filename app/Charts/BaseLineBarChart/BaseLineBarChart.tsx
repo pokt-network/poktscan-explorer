@@ -13,7 +13,7 @@ import {
   LineBarItem,
   UnitTimeGroup,
 } from '@/app/Charts/utils'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo, memo } from 'react'
 import { useTheme } from 'next-themes'
 import merge from 'lodash/merge'
 import { useHeightContext } from '@/app/context/height'
@@ -40,7 +40,7 @@ interface BaseLineBarChartProps<T extends LineBarItem> {
   projectionIsUpokt?: boolean
 }
 
-export default function BaseLineBarChart<T extends LineBarItem>({
+function BaseLineBarChartComponent<T extends LineBarItem>({
   data,
   colorById,
   chartType = 'line',
@@ -82,50 +82,58 @@ export default function BaseLineBarChart<T extends LineBarItem>({
     }, 0)
   }, [theme])
 
-  const dataEntries = Object.entries(data)
-
-  const projectionDatasets = []
+  // Memoize data entries to avoid recalculation on every render
+  const dataEntries = useMemo(() => Object.entries(data), [data])
 
   const getStartOfPoint = unitToFormatDate === 'hour' ? getUtcStartOfHour : getUtcStartOfDay
 
-  if (addProjection && chartType === 'bar') {
-    for (let i = 0; i < dataEntries.length; i++) {
-      const [id, items] = dataEntries[i]
+  // Memoize projection datasets calculation
+  const projectionDatasets = useMemo(() => {
+    const datasets = []
 
-      const latestPoint = items.at(-1)
-      const previousPoint = items.at(-2)
+    if (addProjection && chartType === 'bar') {
+      for (let i = 0; i < dataEntries.length; i++) {
+        const [id, items] = dataEntries[i]
 
-      if (latestPoint && getStartOfPoint(currentTime || new Date()).toISOString() === latestPoint.point) {
-        const original = Number(latestPoint[yAxisKey])
+        const latestPoint = items.at(-1)
+        const previousPoint = items.at(-2)
 
-        const projection = getProjection({
-          startOfDay: latestPoint.point,
-          currentDate: currentTime || new Date(),
-          currentValue: (latestPoint[yAxisKey] || 0).toString(),
-          previousValue: (previousPoint?.[yAxisKey] || 0).toString(),
-          unit: 'days'
-        }).toNumber() as T[typeof yAxisKey]
+        if (latestPoint && getStartOfPoint(currentTime || new Date()).toISOString() === latestPoint.point) {
+          const original = Number(latestPoint[yAxisKey])
 
-        projectionDatasets.push({
-          type: chartType,
-          data: [{
-            ...latestPoint,
-            original,
-            [yAxisKey]: projection - original,
-          }],
-          categoryPercentage: 0.5,
-          borderWidth: 0,
-          barPercentage: 1,
-          backgroundColor: '#95EEB9',
-          order: i + 1,
-          stack: id,
-        })
+          const projection = getProjection({
+            startOfDay: latestPoint.point,
+            currentDate: currentTime || new Date(),
+            currentValue: (latestPoint[yAxisKey] || 0).toString(),
+            previousValue: (previousPoint?.[yAxisKey] || 0).toString(),
+            unit: 'days'
+          }).toNumber() as T[typeof yAxisKey]
+
+          datasets.push({
+            type: chartType,
+            data: [{
+              ...latestPoint,
+              original,
+              [yAxisKey]: projection - original,
+            }],
+            categoryPercentage: 0.5,
+            borderWidth: 0,
+            barPercentage: 1,
+            backgroundColor: '#95EEB9',
+            order: i + 1,
+            stack: id,
+          })
+        }
       }
     }
-  }
 
-  const chartData = isLoading
-    ? getChartLoaderConfig({
+    return datasets
+  }, [addProjection, chartType, dataEntries, currentTime, yAxisKey, getStartOfPoint])
+
+  // Memoize chart data to avoid rebuilding datasets on every render
+  const chartData = useMemo(() => {
+    if (isLoading) {
+      return getChartLoaderConfig({
         length: 7,
         xAxisKey: 'point',
         yAxisKey: yAxisKey.toString(),
@@ -133,9 +141,11 @@ export default function BaseLineBarChart<T extends LineBarItem>({
         randomValues: true,
         ...customDataLoaderProps,
       })
-    : {
-    labels: [],
-    datasets: dataEntries.map(([id, items], index) => {
+    }
+
+    return {
+      labels: [],
+      datasets: dataEntries.map(([id, items], index) => {
       const color = colorById?.[id] || hashStringToColor(id)
 
       const chartData = [...items]
@@ -243,195 +253,201 @@ export default function BaseLineBarChart<T extends LineBarItem>({
         }
       }
     }).concat(projectionDatasets)
-  }
+    }
+  }, [isLoading, yAxisKey, chartType, customDataLoaderProps, dataEntries, colorById, addProjection, currentTime, getCustomDatasetProps, projectionDatasets, getStartOfPoint])
 
-  let options: object = {
-    parsing: {
-      xAxisKey: 'point',
-      yAxisKey: yAxisKey,
-    },
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-      intersect: false,
-    },
-    scales: {
-      x: {
-        ticks: {
-          font: {
-            size: 10,
-            weight: '400',
-            style: 'normal',
-          },
-          color: colors.secondary,
-          callback: function(value) {
-            if (isLoading && chartData.labels.length > 0) {
-              return chartData.labels[value]
-            }
-
-            return formatDate(dataEntries[0][1][value]?.point, unitToFormatDate, includeMonthOnXAxis)
-          }
-        },
-        grid: {
-          display: true,
-          drawBorder: false,
-          lineWidth: 2,
-          color: colors.skeleton,
-          borderColor: colors.skeleton,
-          tickColor: 'transparent',
-          tickLength: 6,
-        },
+  // Memoize options to avoid rebuilding on every render
+  const options = useMemo(() => {
+    let opts: object = {
+      parsing: {
+        xAxisKey: 'point',
+        yAxisKey: yAxisKey,
       },
-      y: {
-        grace: chartType === 'bar' ? '40%' : '40%',
-        title: {
-          display: true,
-          text: yAxisLabel,
-          color: theme === 'dark' ? '#FFF' : undefined,
-          font: {
-            weight: '600',
-            size: 12,
-          },
-        },
-        ticks: {
-          font: {
-            size: 10,
-            weight: '400',
-            style: 'normal',
-          },
-          color: colors.secondary,
-          callback: function (value) {
-            if (formatValueAxisY) {
-              return formatValueAxisY(value)
-            }
-            return formatSimpleAmount(value)
-          }
-        },
-        grid: {
-          display: true,
-          drawBorder: false,
-          color: colors.skeleton,
-          borderColor: colors.skeleton,
-          lineWidth: 2,
-          tickColor: 'transparent',
-          tickLength: 6,
-        },
-        beginAtZero: true,
-      }
-    },
-    plugins: {
-      legend: {
-        position: 'top',
-        align: 'end',
-        boxWidth: 12,
-        boxHeight: 12,
-        boxPadding: 10,
-        display: false,
-        font: {
-          size: 10,
-          weight: '400',
-          style: 'normal',
-        },
-      },
-      tooltip: {
-        mode: chartType === 'bar' ? 'point' :'nearest',
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
         intersect: false,
-        displayColors: displayColorsInTooltip,
-        boxWidth: 8,
-        boxHeight: 7,
-        caretSize: 8,
-        bodySpacing: 5,
-        boxPadding: 10,
-        clip: false,
-        bodyFont: {
-          weight: 'bold'
-        },
-        titleFont: {
-          size: 14,
-          weight: 'bold'
-        },
-        titleColor: colors.primary,
-        padding: 10,
-        callbacks: {
-          title: function(tooltipItems) {
-            return formatDate(tooltipItems.at(0).label, unitToFormatDate === 'day' ? 'day' : 'hour', unitToFormatDate === 'day')
-          },
-          label: function(context) {
-            const data = context.dataset.data[context.dataIndex] as T
+      },
+      scales: {
+        x: {
+          ticks: {
+            font: {
+              size: 10,
+              weight: '400',
+              style: 'normal',
+            },
+            color: colors.secondary,
+            callback: function(value) {
+              if (isLoading && chartData.labels.length > 0) {
+                return chartData.labels[value]
+              }
 
-            if (typeof data.original === 'number' && chartType === 'bar') {
-              return [
+              return formatDate(dataEntries[0][1][value]?.point, unitToFormatDate, includeMonthOnXAxis)
+            }
+          },
+          grid: {
+            display: true,
+            drawBorder: false,
+            lineWidth: 2,
+            color: colors.skeleton,
+            borderColor: colors.skeleton,
+            tickColor: 'transparent',
+            tickLength: 6,
+          },
+        },
+        y: {
+          grace: chartType === 'bar' ? '40%' : '40%',
+          title: {
+            display: true,
+            text: yAxisLabel,
+            color: theme === 'dark' ? '#FFF' : undefined,
+            font: {
+              weight: '600',
+              size: 12,
+            },
+          },
+          ticks: {
+            font: {
+              size: 10,
+              weight: '400',
+              style: 'normal',
+            },
+            color: colors.secondary,
+            callback: function (value) {
+              if (formatValueAxisY) {
+                return formatValueAxisY(value)
+              }
+              return formatSimpleAmount(value)
+            }
+          },
+          grid: {
+            display: true,
+            drawBorder: false,
+            color: colors.skeleton,
+            borderColor: colors.skeleton,
+            lineWidth: 2,
+            tickColor: 'transparent',
+            tickLength: 6,
+          },
+          beginAtZero: true,
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'top',
+          align: 'end',
+          boxWidth: 12,
+          boxHeight: 12,
+          boxPadding: 10,
+          display: false,
+          font: {
+            size: 10,
+            weight: '400',
+            style: 'normal',
+          },
+        },
+        tooltip: {
+          mode: chartType === 'bar' ? 'point' :'nearest',
+          intersect: false,
+          displayColors: displayColorsInTooltip,
+          boxWidth: 8,
+          boxHeight: 7,
+          caretSize: 8,
+          bodySpacing: 5,
+          boxPadding: 10,
+          clip: false,
+          bodyFont: {
+            weight: 'bold'
+          },
+          titleFont: {
+            size: 14,
+            weight: 'bold'
+          },
+          titleColor: colors.primary,
+          padding: 10,
+          callbacks: {
+            title: function(tooltipItems) {
+              return formatDate(tooltipItems.at(0).label, unitToFormatDate === 'day' ? 'day' : 'hour', unitToFormatDate === 'day')
+            },
+            label: function(context) {
+              const data = context.dataset.data[context.dataIndex] as T
+
+              if (typeof data.original === 'number' && chartType === 'bar') {
+                return [
+                  'PROJECTED:',
+                  formatAmount({
+                    amount: data.original + data[yAxisKey],
+                    denom: projectionIsUpokt ? 'upokt' : undefined,
+                    abbreviateThreshold: Infinity,
+                    maxDecimals: projectionIsUpokt ? 6 : 2
+                  }),
+                ]
+              }
+
+              const labels = getTooltipLabel ? getTooltipLabel({
+                ...data,
+                [yAxisKey]: typeof data.original === 'number' ? data.original : data[yAxisKey],
+              }) : context.label
+
+              if (typeof data.original !== 'number') return labels
+
+              const labelsToAdd = [
+                '',
                 'PROJECTED:',
                 formatAmount({
-                  amount: data.original + data[yAxisKey],
+                  amount: data[yAxisKey],
                   denom: projectionIsUpokt ? 'upokt' : undefined,
                   abbreviateThreshold: Infinity,
                   maxDecimals: projectionIsUpokt ? 6 : 2
                 }),
               ]
-            }
 
-            const labels = getTooltipLabel ? getTooltipLabel({
-              ...data,
-              [yAxisKey]: typeof data.original === 'number' ? data.original : data[yAxisKey],
-            }) : context.label
+              if (typeof labels === 'string') {
+                return [
+                  labels,
+                  ...labelsToAdd,
+                ]
+              } else {
+                labels.push(
+                  ...labelsToAdd
+                )
 
-            if (typeof data.original !== 'number') return labels
-
-            const labelsToAdd = [
-              '',
-              'PROJECTED:',
-              formatAmount({
-                amount: data[yAxisKey],
-                denom: projectionIsUpokt ? 'upokt' : undefined,
-                abbreviateThreshold: Infinity,
-                maxDecimals: projectionIsUpokt ? 6 : 2
-              }),
-            ]
-
-            if (typeof labels === 'string') {
-              return [
-                labels,
-                ...labelsToAdd,
-              ]
-            } else {
-              labels.push(
-                ...labelsToAdd
-              )
-
-              return labels
-            }
-          },
-        }
+                return labels
+              }
+            },
+          }
+        },
       },
-    },
-    animations: undefined,
-    events: undefined,
-  }
-
-  if (isLoading) {
-    options = merge(
-      options,
-      getCommonChartLoaderOptions({
-        isLight: theme === 'light',
-        chartType,
-        from: colors.skeleton
-      })
-    )
-  } else {
-    options = {
-      ...options,
-      animations: {
-        y: {
-          duration: 0
-        }
-      },
+      animations: undefined,
+      events: undefined,
     }
-  }
 
-  if (customOptions) {
-    options = merge(options, customOptions)
-  }
+    if (isLoading) {
+      opts = merge(
+        opts,
+        getCommonChartLoaderOptions({
+          isLight: theme === 'light',
+          chartType,
+          from: colors.skeleton
+        })
+      )
+    } else {
+      opts = {
+        ...opts,
+        animations: {
+          y: {
+            duration: 0
+          }
+        },
+      }
+    }
+
+    if (customOptions) {
+      opts = merge(opts, customOptions)
+    }
+
+    return opts
+  }, [yAxisKey, colors, isLoading, chartData, dataEntries, unitToFormatDate, includeMonthOnXAxis, chartType, yAxisLabel, theme, formatValueAxisY, displayColorsInTooltip, getTooltipLabel, projectionIsUpokt, customOptions])
 
   return (
     <Chart
@@ -443,3 +459,8 @@ export default function BaseLineBarChart<T extends LineBarItem>({
     />
   )
 }
+
+// Wrap with React.memo to prevent unnecessary re-renders
+const BaseLineBarChart = memo(BaseLineBarChartComponent) as typeof BaseLineBarChartComponent
+
+export default BaseLineBarChart

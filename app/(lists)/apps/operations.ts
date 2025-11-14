@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const applicationListDocument = graphql(`
+export const applicationListDocument = gql`
   query applicationList($limit: Int!, $offset: Int!, $filter: ApplicationFilter) {
     applications(first: $limit, offset: $offset, filter: $filter) {
       totalCount
@@ -41,9 +41,9 @@ export const applicationListDocument = graphql(`
       }
     }
   }
-`)
+`
 
-export const applicationSummaryDocument = graphql(`
+export const applicationSummaryDocument = gql`
   query applicationsSummary {
     stakedApps: applications(filter: {stakeStatus: {equalTo: Staked}}) {
       totalCount
@@ -62,4 +62,4 @@ export const applicationSummaryDocument = graphql(`
       }
     }
   }
-`)
+`

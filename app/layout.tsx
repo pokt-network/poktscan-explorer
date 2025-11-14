@@ -45,6 +45,13 @@ export default async function RootLayout({children}: Readonly<{
 
   return (
     <html lang="en" suppressHydrationWarning  className={`${roboto.variable}`}>
+      <head>
+        {/* Preconnect to API to reduce connection time */}
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_GRAPHQL_API_URL || process.env.CLIENT_GRAPHQL_API_URL} crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_GRAPHQL_API_URL || process.env.CLIENT_GRAPHQL_API_URL} />
+        {/* Preload critical resources to reduce LCP */}
+        <link rel="preload" href="/waves-light.svg" as="image" type="image/svg+xml" />
+      </head>
       <body>
         <ReactQueryProvider>
           <ApolloWrapper url={process.env.CLIENT_GRAPHQL_API_URL!}>

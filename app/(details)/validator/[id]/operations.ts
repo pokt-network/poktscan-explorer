@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const validatorByIdDocument = graphql(`
+export const validatorByIdDocument = gql`
   query validatorById($id: String!) {
     validator(id: $id) {
       id
@@ -22,4 +22,4 @@ export const validatorByIdDocument = graphql(`
       }
     }
   }
-`)
+`

@@ -1,12 +1,12 @@
 import type { ApolloClient } from '@apollo/client'
 import { getUrl } from '@/app/components/RawEntity/utils'
 import { fromBase64, toHex } from '@cosmjs/encoding'
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 import { Block } from '@/app/config/gql/graphql'
 import { fetchDataFromRpcOrIndexer } from '@/app/utils/fetch'
 import { cache } from 'react'
 
-export const blockByHeightDocument = graphql(`
+export const blockByHeightDocument = gql`
   query blockByHeight($height: BigFloat!) {
     block(id: $height) {
       hash
@@ -40,9 +40,9 @@ export const blockByHeightDocument = graphql(`
       }
     }
   }
-`)
+`
 
-const blockByHashDocument = graphql(`
+const blockByHashDocument = gql`
   query blockByHash($hash: String!) {
     blocks(
       filter: {
@@ -83,7 +83,7 @@ const blockByHashDocument = graphql(`
       }
     }
   }
-`)
+`
 
 type BlockWithHeight = Omit<Block, 'id'> & {
   height: Block['id']

@@ -1,8 +1,8 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 import { ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { getStartAndEndDateBasedOnTime, getStartMiddleAndEndDateBasedOnTime } from '@/app/utils/dates'
 
-export const servicesPerformanceDocument = graphql(`
+export const servicesPerformanceDocument = gql`
   query servicesPerformance($endCurrent: Datetime!, $startCurrentAndEndPrevious: Datetime!, $startPrevious: Datetime!) {
     performance: servicesPerformanceBetweenTimes(
       endCurrent: $endCurrent,
@@ -14,7 +14,7 @@ export const servicesPerformanceDocument = graphql(`
       endDate: $endCurrent
     )
   }
-`)
+`
 
 export const getServicesPerformanceVariables = (dateStr: string, timeSelected: string): ExtractVariables<typeof servicesPerformanceDocument> => {
   const {end, middle, start} = getStartMiddleAndEndDateBasedOnTime(
@@ -29,7 +29,7 @@ export const getServicesPerformanceVariables = (dateStr: string, timeSelected: s
   }
 }
 
-export const distributionDocument = graphql(`
+export const distributionDocument = gql`
   query distribution($startDate: Datetime!, $endDate: Datetime!) {
     relayByBlockAndServices(
       filter: {
@@ -49,7 +49,7 @@ export const distributionDocument = graphql(`
       }
     }
   }
-`)
+`
 
 export function getDistributionVariables(dateStr: string, timeSelected: string): ExtractVariables<typeof distributionDocument> {
   const {start, end} = getStartAndEndDateBasedOnTime(dateStr, timeSelected)
@@ -60,7 +60,7 @@ export function getDistributionVariables(dateStr: string, timeSelected: string):
   }
 }
 
-export const productivityQuery = graphql(`
+export const productivityQuery = gql`
   query servicesProductivity($startDate: Datetime!, $endDate: Datetime!, $truncInterval: String!) {
     servicesProductivity: getRelaysByServicePerPointJson(
       startTimestamp: $startDate
@@ -73,7 +73,7 @@ export const productivityQuery = graphql(`
       truncInterval: $truncInterval
     )
   }
-`)
+`
 
 export function getProductivityVariables(dateStr: string, timeSelected: string): ExtractVariables<typeof productivityQuery> {
   const {start, end, truncInterval} = getStartAndEndDateBasedOnTime(dateStr, timeSelected, true)

@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const gatewayByIdDocument = graphql(`
+export const gatewayByIdDocument = gql`
   query gatewayById($id: String!) {
     gateway(id: $id) {
       id
@@ -25,4 +25,4 @@ export const gatewayByIdDocument = graphql(`
       }
     }
   }
-`)
+`

@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const supplierByIdDocument = graphql(`
+export const supplierByIdDocument = gql`
   query supplierById($id: String!) {
     supplier(id: $id) {
       id
@@ -47,9 +47,9 @@ export const supplierByIdDocument = graphql(`
       }
     }
   }
-`)
+`
 
-export const servicesOfSupplier = graphql(`
+export const servicesOfSupplier = gql`
   query servicesOfSupplier($address: String!, $cursor: Cursor) {
     supplierServiceConfigs(
       filter: {
@@ -71,4 +71,4 @@ export const servicesOfSupplier = graphql(`
       }
     }
   }
-`)
+`

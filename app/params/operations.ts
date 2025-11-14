@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const paramsDocument = graphql(`
+export const paramsDocument = gql`
   query params {
     params(
       orderBy: [BLOCK_ID_DESC]
@@ -18,4 +18,4 @@ export const paramsDocument = graphql(`
       }
     }
   }
-`)
+`

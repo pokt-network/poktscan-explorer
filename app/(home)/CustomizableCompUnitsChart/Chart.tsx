@@ -1,7 +1,7 @@
 'use client'
 
 import { useTheme } from 'next-themes'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, memo } from 'react'
 import useFetchOnBlock, { DocumentNodeData, ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { fillChartData, LineBarItem, normalizeIsoDate, UnitTimeGroup } from '@/app/Charts/utils'
 import BaseLineBarChart from '@/app/Charts/BaseLineBarChart/BaseLineBarChart'
@@ -30,7 +30,10 @@ export interface ChartItem extends LineBarItem {
   totalPokt: number
 }
 
-function useCustomizableCompUnitsData() {
+function useCustomizableCompUnitsData(
+  initialData?: DocumentNodeData<typeof customizableCompUnitsDocument> | null,
+  initialError?: boolean
+) {
   const { selectedTime } = useSelectedTime()
   const { setData } = useDataContext<ChartItem>()
 
@@ -45,8 +48,8 @@ function useCustomizableCompUnitsData() {
   const {refetch, isLoading, data, error} = useFetchOnBlock({
     query: customizableCompUnitsDocument,
     variables: variables,
-    initialResult: null as unknown as DocumentNodeData<typeof customizableCompUnitsDocument>,
-    initialError: false,
+    initialResult: initialData || null as unknown as DocumentNodeData<typeof customizableCompUnitsDocument>,
+    initialError: initialError || false,
     updateOnNewSession: true
   })
 
@@ -92,14 +95,26 @@ function useCustomizableCompUnitsData() {
   }
 }
 
-export default function CustomizableCompUnitsChart() {
+interface CustomizableCompUnitsChartProps {
+  initialData?: DocumentNodeData<typeof customizableCompUnitsDocument> | null
+  initialError?: boolean
+}
+
+function CustomizableCompUnitsChartComponent({initialData, initialError}: CustomizableCompUnitsChartProps) {
   const { selectedTime } = useSelectedTime()
-  const {data, isLoading, error, refetch} = useCustomizableCompUnitsData()
+  const {data, isLoading, error, refetch} = useCustomizableCompUnitsData(initialData, initialError)
 
   const {theme = 'dark'} = useTheme();
   const isDark = theme === 'dark'
   const {chartType} = useChartType()
 
+  const chartData = useMemo(() => ({
+    '': data
+  }), [data])
+
+  const colorById = useMemo(() => ({
+    '': isDark ? '#b9b9b9' : '#3f3f3f'
+  }), [isDark])
 
   if (error) {
     return (
@@ -112,12 +127,8 @@ export default function CustomizableCompUnitsChart() {
   return (
     <div className={'pt-2 px-4 h-[calc(100%-60px)]'}>
       <BaseLineBarChart
-        data={{
-          '': data
-        }}
-        colorById={{
-          '': isDark ? '#b9b9b9' : '#3f3f3f'
-        }}
+        data={chartData}
+        colorById={colorById}
         yAxisKey={'totalComputedUnits'}
         yAxisLabel={'Computed Units'}
         isLoading={isLoading}
@@ -130,7 +141,7 @@ export default function CustomizableCompUnitsChart() {
               amount: data?.original || data?.totalComputedUnits || 0,
               abbreviateThreshold: Infinity,
             })}`,
-            `Relays: ${formatAmount({ 
+            `Relays: ${formatAmount({
               amount: data?.totalRelays || 0,
               abbreviateThreshold: Infinity,
             })}`,
@@ -160,3 +171,6 @@ export default function CustomizableCompUnitsChart() {
     </div>
   )
 }
+
+const CustomizableCompUnitsChart = memo(CustomizableCompUnitsChartComponent)
+export default CustomizableCompUnitsChart

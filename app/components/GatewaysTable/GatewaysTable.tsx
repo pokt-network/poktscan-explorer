@@ -1,6 +1,6 @@
 'use client'
 
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React, { useCallback, useMemo } from 'react'
@@ -63,7 +63,7 @@ export const columns: Array<GridColDef> = [
   },
 ]
 
-const gatewayListDocument = graphql(`
+const gatewayListDocument = gql`
   query gatewayList($limit: Int!, $offset: Int!, $filter: GatewayFilter) {
     gateways(first: $limit, offset: $offset, filter: $filter) {
       totalCount
@@ -104,7 +104,7 @@ const gatewayListDocument = graphql(`
       }
     }
   }
-`)
+`
 
 function useGatewayFilter({
   filter,

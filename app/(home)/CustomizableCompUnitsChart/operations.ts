@@ -1,8 +1,8 @@
 import type { ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { getStartAndEndDateBasedOnTime } from '@/app/utils/dates'
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const customizableCompUnitsDocument = graphql(`
+export const customizableCompUnitsDocument = gql`
   query customizableCompUnits($startDate: Datetime!, $endDate: Datetime!, $truncInterval: String!) {
     groupByDay: getRewardsByDate(
       startDate: $startDate,
@@ -10,7 +10,7 @@ export const customizableCompUnitsDocument = graphql(`
       truncInterval: $truncInterval,
     )
   }
-`)
+`
 
 export function customizableCompUnitsVariables(
   currentDate: string,

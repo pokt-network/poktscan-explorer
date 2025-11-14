@@ -1,17 +1,17 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 import { ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { getStartAndEndDateBasedOnTime } from '@/app/utils/dates'
 
-export const rewardsByAddressAndTimeGroupByDateDocument = graphql(`
+export const rewardsByAddressAndTimeGroupByDateDocument = gql`
   query getRewardsByAddressesAndTimeGroupByAddressAndDate($addresses: [String!]!, $startDate: Datetime!, $endDate: Datetime!, $truncInterval: String!) {
     rewards: getRewardsByAddressesAndTimeGroupByAddressAndDate(
-      addresses: $addresses, 
-      startDate: $startDate, 
-      endDate: $endDate, 
+      addresses: $addresses,
+      startDate: $startDate,
+      endDate: $endDate,
       truncInterval: $truncInterval
     )
   }
-`)
+`
 
 export function rewardsByAddressAndTimeGroupByDateVariables(
   addresses: Array<string>,

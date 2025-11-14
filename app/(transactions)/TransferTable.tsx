@@ -1,6 +1,6 @@
 'use client'
 
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 import Table, { GridColDef } from '@/app/components/Table'
 import EntityLink from '@/app/components/EntityLink'
 import React, { useCallback } from 'react'
@@ -12,7 +12,7 @@ import LoadingListView from '@/app/components/LoadingListView'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 
-const transfersByAddressDocument = graphql(`
+const transfersByAddressDocument = gql`
   query transfersList($limit: Int!, $offset: Int!, $address: String!) {
     transfers:nativeTransfers(
       first: $limit
@@ -44,7 +44,7 @@ const transfersByAddressDocument = graphql(`
       }
     }
   }
-`);
+`;
 
 const columns: Array<GridColDef> = [
   {

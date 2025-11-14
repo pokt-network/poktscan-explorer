@@ -9,12 +9,11 @@ import { convertUpoktToPokt, formatAmount } from '@/app/utils/format'
 import { ChipText } from '@/app/components/Chip'
 import { supplierListDocument, } from '@/app/(lists)/suppliers/operations'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
-import { graphql } from '@/app/config/gql'
+import { gql, useQuery } from '@apollo/client'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 import { LoadingTable } from '@/app/components/LoadingListView'
-import { useQuery } from '@apollo/client'
 
-const paramsForFiltersDocument = graphql(`
+const paramsForFiltersDocument = gql`
   query paramsForSupplierFilters {
     params(
       orderBy: [BLOCK_ID_DESC]
@@ -46,7 +45,7 @@ const paramsForFiltersDocument = graphql(`
       }
     }
   }
-`)
+`
 
 export const columns: Array<GridColDef> = [
   {

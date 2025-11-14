@@ -1,9 +1,9 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 import { StakeStatus, SupplierFilter } from '@/app/config/gql/graphql'
 import { ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { addHoursToUtc, getDateFromIsoString } from '@/app/Charts/utils'
 
-export const summaryDocument = graphql(`
+export const summaryDocument = gql`
   query nodesSummary(
     $filter: SupplierFilter!,
     $addresses: [String!]!,
@@ -33,7 +33,7 @@ export const summaryDocument = graphql(`
       endDate: $currentDate,
     )
   }
-`)
+`
 
 export const summaryVariables = (
   filterForOwners: boolean,

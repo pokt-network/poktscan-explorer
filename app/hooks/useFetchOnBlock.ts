@@ -2,7 +2,7 @@
 
 import { useHeightContext } from '@/app/context/height'
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLazyQuery } from '@apollo/client'
 
 export type DeepRequired<T> = NonNullable<{
@@ -66,15 +66,17 @@ export default function useFetchOnBlock<
   const abortRef = useRef<AbortController | null>(null)
 
   const [fetchData] = useLazyQuery(query, {
-    fetchPolicy: 'network-only',
-    nextFetchPolicy: 'network-only',
+    // Use cache-first since server data is now written to Apollo cache
+    // This avoids duplicate network requests on initial render
+    fetchPolicy: 'cache-first',
+    nextFetchPolicy: 'cache-and-network',
   })
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const fetchDataFunction = useCallback(() => {
-    const variablesToUse = typeof variables === 'function' ? variables(currentHeight, currentTime) : variables
+  const variablesToUse = typeof variables === 'function' ? variables(currentHeight, currentTime) : variables
 
+  const fetchDataFunction = () => {
     const fetchDataFn = () => {
       if (abortRef.current) {
         abortRef.current.abort()
@@ -121,7 +123,7 @@ export default function useFetchOnBlock<
     if (pollInterval) {
       intervalRef.current = setInterval(fetchDataFn, pollInterval)
     }
-  }, [variables, currentHeight, currentTime, resultParser, pollInterval, fetchData])
+  }
 
   useEffect(() => {
     if (firstRenderRef.current) {

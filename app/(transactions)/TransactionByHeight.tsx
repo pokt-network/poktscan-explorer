@@ -1,6 +1,6 @@
 'use client'
 
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 import React, { useCallback } from 'react'
 import TransactionTable from '@/app/(transactions)/TransactionTable'
 import { Transaction } from '@/app/config/gql/graphql'
@@ -10,7 +10,7 @@ import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { getTransactionGraphQlFilter, TransactionFilterValues } from '@/app/(transactions)/filters'
 import useFetchOnBlock, { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
 
-const transactionsByHeightDocument = graphql(`
+const transactionsByHeightDocument = gql`
   query transactionsByHeight($limit: Int!, $offset: Int!, $filter: TransactionFilter) {
     transactions(
       first: $limit
@@ -35,7 +35,7 @@ const transactionsByHeightDocument = graphql(`
       }
     }
   }
-`)
+`
 
 interface TransactionTableProps {
   height: string | bigint | number

@@ -2,8 +2,15 @@
 
 import dynamic from 'next/dynamic'
 import BaseLineBarChart from '@/app/Charts/BaseLineBarChart/BaseLineBarChart'
+import { DocumentNodeData } from '@/app/hooks/useFetchOnBlock'
+import { customizableCompUnitsDocument } from '@/app/(home)/CustomizableCompUnitsChart/operations'
 
-const LazyCompUnitsChart = dynamic(() => import('./Chart'), {
+interface LazyCompUnitsChartProps {
+  initialData?: DocumentNodeData<typeof customizableCompUnitsDocument> | null
+  initialError?: boolean
+}
+
+const DynamicChart = dynamic(() => import('./Chart'), {
   ssr: false,
   loading: () => (
     <div className={'pt-2 px-4 h-[calc(100%-60px)]'}>
@@ -35,4 +42,6 @@ const LazyCompUnitsChart = dynamic(() => import('./Chart'), {
   )
 })
 
-export default LazyCompUnitsChart
+export default function LazyCompUnitsChart({initialData, initialError}: LazyCompUnitsChartProps) {
+  return <DynamicChart initialData={initialData} initialError={initialError} />
+}

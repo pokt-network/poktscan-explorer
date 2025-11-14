@@ -1,6 +1,6 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 
-export const serviceByIdDocument = graphql(`
+export const serviceByIdDocument = gql`
   query serviceById($id: String!) {
     service(id: $id) {
       id
@@ -23,4 +23,4 @@ export const serviceByIdDocument = graphql(`
       }
     }
   }
-`)
+`

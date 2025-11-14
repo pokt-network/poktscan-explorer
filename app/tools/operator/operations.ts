@@ -1,8 +1,8 @@
-import { graphql } from '@/app/config/gql'
+import { gql } from '@apollo/client'
 import { ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { getStartAndEndDateBasedOnTime } from '@/app/utils/dates'
 
-export const getDataByDelegatorAddressesAndTimesDocument = graphql(`
+export const getDataByDelegatorAddressesAndTimesDocument = gql`
   query getDataByDelegatorAddressesAndTimes(
     $delegatorAddresses: [String!]!
     $startTime: Datetime!
@@ -14,7 +14,7 @@ export const getDataByDelegatorAddressesAndTimesDocument = graphql(`
       endTs: $endTime
     )
   }
-`)
+`
 
 export const getDataByDelegatorAddressesAndTimesVariables = (
   addresses: Array<string>,
@@ -33,7 +33,7 @@ export const getDataByDelegatorAddressesAndTimesVariables = (
   }
 }
 
-export const getParamsDocument = graphql(`
+export const getParamsDocument = gql`
   query getParams {
     params(
       filter: {
@@ -54,9 +54,9 @@ export const getParamsDocument = graphql(`
       }
     }
   }
-`)
+`
 
-export const getDataByDelegatorAddressesAndBlocksDocument = graphql(`
+export const getDataByDelegatorAddressesAndBlocksDocument = gql`
   query getDataByDelegatorAddressesAndBlocks(
     $delegatorAddresses: [String!]!
     $startBlock: BigInt!
@@ -68,9 +68,9 @@ export const getDataByDelegatorAddressesAndBlocksDocument = graphql(`
       endHeight: $endBlock
     )
   }
-`)
+`
 
-export const slashedDocument = graphql(`
+export const slashedDocument = gql`
   query slashedItems($limit: Int!, $offset: Int!, $filter: EventSupplierSlashedFilter!) {
     eventSupplierSlasheds(
       orderBy: [BLOCK_ID_DESC, SUPPLIER_ID_DESC]
@@ -92,9 +92,9 @@ export const slashedDocument = graphql(`
       }
     }
   }
-`)
+`
 
-export const rewardsByServicesDocument = graphql(`
+export const rewardsByServicesDocument = gql`
   query rewardsByServices(
     $delegatorAddresses: [String!]!
     $startTime: Datetime!
@@ -106,9 +106,9 @@ export const rewardsByServicesDocument = graphql(`
       endTs: $endTime
     )
   }
-`)
+`
 
-export const claimProofByAddressesAndTimesDocument = graphql(`
+export const claimProofByAddressesAndTimesDocument = gql`
   query claimProofData(
     $addresses: [String!]!
     $startDate: Datetime!
@@ -122,7 +122,7 @@ export const claimProofByAddressesAndTimesDocument = graphql(`
       truncInterval: $truncInterval
     )
   }
-`)
+`
 
 export const claimProofByAddressesAndTimesVariables = (
   addresses: Array<string>,
