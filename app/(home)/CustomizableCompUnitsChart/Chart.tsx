@@ -16,6 +16,15 @@ import { useChartType } from '@/app/Charts/ChartType'
 import { formatAmount } from '@/app/utils/format'
 import { Time } from '@/app/utils/dates'
 
+const pointsPerTime = {
+  [Time.Last24h]: 24,
+  [Time.Last48h]: 48,
+  [Time.Last7d]: 7,
+  [Time.Last30d]: 30,
+  [Time.Last60d]: 60,
+  [Time.Last90d]: 90,
+}
+
 interface RawItem  {
   date_truncated: string
   relays: number
@@ -66,6 +75,10 @@ function useCustomizableCompUnitsData() {
       }
     })
 
+    if (rawData.length === pointsPerTime[selectedTime]) {
+      return rawData
+    }
+
     return fillChartData({
       data: rawData,
       defaultProps: {
@@ -77,7 +90,7 @@ function useCustomizableCompUnitsData() {
       endDate: lastVariables.current?.endDate || '',
       unitToFormatDate: (lastVariables.current?.truncInterval as UnitTimeGroup) || 'day'
     })
-  }, [data])
+  }, [data, selectedTime])
 
   useEffect(() => {
     setData(processedData)
@@ -100,6 +113,47 @@ export default function CustomizableCompUnitsChart() {
   const isDark = theme === 'dark'
   const {chartType} = useChartType()
 
+  const getTooltipLabel = useCallback((data: ChartItem) => {
+    return [
+      `Computed Units: ${formatAmount({
+        amount: data?.original || data?.totalComputedUnits || 0,
+        abbreviateThreshold: Infinity,
+      })}`,
+      `Relays: ${formatAmount({
+        amount: data?.totalRelays || 0,
+        abbreviateThreshold: Infinity,
+      })}`,
+      `POKT: ${formatAmount({
+        amount: data?.totalPokt || 0,
+        denom: 'upokt',
+        includeSymbol: false,
+        maxDecimals: 6,
+        abbreviateThreshold: Infinity,
+      })}`
+    ]
+  }, [])
+
+  const getCustomDatasetProps = useCallback(() => {
+    return {
+      tension: 0.5,
+      pointRadius: 8,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      pointHoverRadius: 8,
+      pointBorderColor: 'transparent',
+      pointBackgroundColor: 'transparent',
+      pointBorderWidth: 0,
+      borderWidth: 1.5,
+    }
+  }, [])
+
+  const colorById = useMemo(() => ({
+    '': isDark ? '#b9b9b9' : '#3f3f3f'
+  }), [isDark])
+
+  const mapData = useMemo(() => ({
+    '': data
+  }), [data])
 
   if (error) {
     return (
@@ -112,50 +166,16 @@ export default function CustomizableCompUnitsChart() {
   return (
     <div className={'pt-2 px-4 h-[calc(100%-60px)]'}>
       <BaseLineBarChart
-        data={{
-          '': data
-        }}
-        colorById={{
-          '': isDark ? '#b9b9b9' : '#3f3f3f'
-        }}
+        data={mapData}
+        colorById={colorById}
         yAxisKey={'totalComputedUnits'}
         yAxisLabel={'Computed Units'}
         isLoading={isLoading}
         chartType={chartType}
         unitToFormatDate={[Time.Last24h, Time.Last48h].includes(selectedTime) ? 'hour' : 'day'}
         displayColorsInTooltip={false}
-        getTooltipLabel={(data) => {
-          return [
-            `Computed Units: ${formatAmount({
-              amount: data?.original || data?.totalComputedUnits || 0,
-              abbreviateThreshold: Infinity,
-            })}`,
-            `Relays: ${formatAmount({ 
-              amount: data?.totalRelays || 0,
-              abbreviateThreshold: Infinity,
-            })}`,
-            `POKT: ${formatAmount({
-              amount: data?.totalPokt || 0,
-              denom: 'upokt',
-              includeSymbol: false,
-              maxDecimals: 6,
-              abbreviateThreshold: Infinity,
-            })}`
-          ]
-        }}
-        getCustomDatasetProps={() => {
-          return {
-            tension: 0.5,
-            pointRadius: 8,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            pointHoverRadius: 8,
-            pointBorderColor: 'transparent',
-            pointBackgroundColor: 'transparent',
-            pointBorderWidth: 0,
-            borderWidth: 1.5,
-          }
-        }}
+        getTooltipLabel={getTooltipLabel}
+        getCustomDatasetProps={getCustomDatasetProps}
       />
     </div>
   )
