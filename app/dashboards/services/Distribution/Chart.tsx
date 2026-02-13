@@ -30,12 +30,12 @@ export default function DistributionChart({initialData, initialError, timeSelect
   })
 
   const processedData = useMemo(() => {
-    const total = data?.relayByBlockAndServices?.groupedAggregates?.reduce((acc, item) => acc.add(item?.sum?.computedUnits || 0), new Big(0)) || new Big(0)
+    const total = data?.relayByBlockAndServices?.groupedAggregates?.reduce((acc, item) => acc.add(item?.sum?.estimatedComputedUnits || 0), new Big(0)) || new Big(0)
 
     return data?.relayByBlockAndServices?.groupedAggregates?.map((item) => ({
       id: item?.keys?.at(0) || '',
-      total: item?.sum?.computedUnits || 0,
-      percent: calculatePercentage(new Big(item?.sum?.computedUnits || 0), total),
+      total: item?.sum?.estimatedComputedUnits || 0,
+      percent: calculatePercentage(new Big(item?.sum?.estimatedComputedUnits || 0), total),
     })) || []
   }, [data])
 

@@ -92,7 +92,7 @@ export default function ServicesProductivityChart({
 
       if (blocksAmount > 0 && totalStakedSuppliers > 0) {
         avgRelays = Number(((Number(item!.relays) / totalStakedSuppliers) * blocksAmount).toFixed(2))
-        avgComputedUnits = Number(((Number(item!.computed_units) / totalStakedSuppliers) * blocksAmount).toFixed(2))
+        avgComputedUnits = Number(((Number(item!.estimated_computed_units || 0) / totalStakedSuppliers) * blocksAmount).toFixed(2))
         avgClaimedUpokt = Number(((Number(item!.claimed_upokt) / totalStakedSuppliers) * blocksAmount).toFixed(2))
         avgStakedSuppliers = Number((totalStakedSuppliers / blocksAmount).toFixed(0))
       }
@@ -101,8 +101,8 @@ export default function ServicesProductivityChart({
         id: item!.service_id,
         point: normalizeIsoDate(item!.date_truncated),
         start_date: normalizeIsoDate(item!.date_truncated),
-        relays: Number(item!.relays),
-        computedUnits: Number(item!.computed_units),
+        relays: Number(item!.estimated_relays || 0),
+        computedUnits: Number(item!.estimated_computed_units || 0),
         claimedUpokt: Number(item!.claimed_upokt),
         avgRelays,
         avgComputedUnits,

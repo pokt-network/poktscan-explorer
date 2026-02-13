@@ -46,10 +46,10 @@ export default function ClientRewardsByServiceTable({
 
   const rows: Array<RewardsByServiceRow> = useMemo(() => orderBy(data?.data?.map(item => ({
     id: item.service_id,
-    relays: formatSimpleAmount(item.relays),
-    raw_relays: item.relays,
-    computedUnits: formatSimpleAmount(item.computed_units),
-    raw_computedUnits: item.computed_units,
+    relays: formatSimpleAmount(item.estimated_relays || 0),
+    raw_relays: item.estimated_relays || 0,
+    computedUnits: formatSimpleAmount(item.estimated_computed_units || 0),
+    raw_computedUnits: item.estimated_computed_units || 0,
     grossRewards: formatUpokt({amount: item.gross_rewards}),
     raw_grossRewards: convertUpoktToPokt(item.gross_rewards),
     netRewards: formatUpokt({amount: item.net_rewards}),
