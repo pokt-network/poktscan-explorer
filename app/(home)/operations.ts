@@ -40,7 +40,9 @@ export const summaryDocument = graphql(`
       aggregates {
         sum {
           totalRelays
+          totalEstimatedRelays
           totalComputedUnits
+          totalEstimatedComputedUnits
         }
       }
     }
@@ -135,7 +137,9 @@ export const servicesDocument = graphql(`
         keys
         sum {
           relays
+          estimatedRelays
           computedUnits
+          estimatedComputedUnits
           amount
           claimedUpokt
         }
@@ -146,7 +150,9 @@ export const servicesDocument = graphql(`
         keys
         sum {
           relays
+          estimatedRelays
           computedUnits
+          estimatedComputedUnits
           amount
           claimedUpokt
         }

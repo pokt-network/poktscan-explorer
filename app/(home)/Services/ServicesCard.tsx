@@ -16,7 +16,9 @@ type Item = {
   keys: string[]; // Array with one string element (id)
   sum: {
     relays: number;
+    estimatedRelays: number;
     computedUnits: number;
+    estimatedComputedUnits: number;
     amount: number;
     claimedUpokt: number;
   };
@@ -53,8 +55,8 @@ export function calculateChanges(current: Item[], past: Item[]): AugmentedItem[]
   // Calculate totals for percentage calculations
   const totalSums = current.reduce(
     (totals, item) => {
-      totals.relays = totals.relays.add(new Big(item.sum.relays));
-      totals.computedUnits = totals.computedUnits.add(item.sum.computedUnits);
+      totals.relays = totals.relays.add(new Big(item.sum.estimatedRelays));
+      totals.computedUnits = totals.computedUnits.add(item.sum.estimatedComputedUnits);
       totals.amount = totals.amount.add(item.sum.amount);
       totals.claimedUpokt = totals.claimedUpokt.add(item.sum.claimedUpokt);
       return totals;
@@ -70,8 +72,8 @@ export function calculateChanges(current: Item[], past: Item[]): AugmentedItem[]
     // Calculate percentage changes
     const changes = pastItem
       ? {
-        relays: calculatePercentageChange(new Big(currentItem.sum.relays), new Big(pastItem.relays)),
-        computedUnits: calculatePercentageChange(new Big(currentItem.sum.computedUnits), new Big(pastItem.computedUnits)),
+        relays: calculatePercentageChange(new Big(currentItem.sum.estimatedRelays), new Big(pastItem.estimatedRelays)),
+        computedUnits: calculatePercentageChange(new Big(currentItem.sum.estimatedComputedUnits), new Big(pastItem.estimatedComputedUnits)),
         amount: calculatePercentageChange(new Big(currentItem.sum.amount), new Big(pastItem.amount)),
         claimedUpokt: calculatePercentageChange(new Big(currentItem.sum.claimedUpokt), new Big(pastItem.claimedUpokt)),
       }
@@ -84,8 +86,8 @@ export function calculateChanges(current: Item[], past: Item[]): AugmentedItem[]
 
     // Calculate percentages of the total
     const percentages = {
-      relays: calculatePercentage(new Big(currentItem.sum.relays), totalSums.relays),
-      computedUnits: calculatePercentage(new Big(currentItem.sum.computedUnits), totalSums.computedUnits),
+      relays: calculatePercentage(new Big(currentItem.sum.estimatedRelays), totalSums.relays),
+      computedUnits: calculatePercentage(new Big(currentItem.sum.estimatedComputedUnits), totalSums.computedUnits),
       amount: calculatePercentage(new Big(currentItem.sum.amount), totalSums.amount),
       claimedUpokt: calculatePercentage(new Big(currentItem.sum.claimedUpokt), totalSums.claimedUpokt),
     };

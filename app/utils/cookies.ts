@@ -13,6 +13,8 @@ export function setCookie(name: string, value: string, options: {
         ? new Date(Date.now() + options.expires * 1000).toUTCString()
         : options.expires.toUTCString();
     cookieString += `; expires=${expires}`;
+  } else {
+    cookieString += '; expires=Fri, 31 Dec 9999 23:59:59 GMT';
   }
 
   cookieString += `; path=${options.path || '/'}`;

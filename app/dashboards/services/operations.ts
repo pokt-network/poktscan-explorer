@@ -45,6 +45,7 @@ export const distributionDocument = graphql(`
         keys
         sum {
           computedUnits
+          estimatedComputedUnits
         }
       }
     }

@@ -28,7 +28,9 @@ const pointsPerTime = {
 interface RawItem  {
   date_truncated: string
   relays: number
+  estimated_relays: number
   computed_units: number
+  estimated_computed_units: number
   claimed_amount: number
 }
 
@@ -69,8 +71,8 @@ function useCustomizableCompUnitsData() {
         id: '',
         point: normalizedDate,
         start_date: normalizedDate,
-        totalRelays: item.relays,
-        totalComputedUnits: item.computed_units,
+        totalRelays: item.estimated_relays,
+        totalComputedUnits: item.estimated_computed_units,
         totalPokt: item.claimed_amount,
       }
     })

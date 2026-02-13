@@ -47,7 +47,7 @@ export default function PerformanceTable({initialData, initialError, timeSelecte
       },
     }), {}) || {}
 
-    const totalComputedUnits = data.performance?.reduce((acc, item) => acc.add(new Big(item.computed_units)), new Big(0)) || new Big(0)
+    const totalComputedUnits = data.performance?.reduce((acc, item) => acc.add(new Big(item.estimated_computed_units || 0)), new Big(0)) || new Big(0)
 
     return  data.performance?.map((item) => {
       const avgData = avgDataByServiceId[item.service_id]
@@ -64,10 +64,10 @@ export default function PerformanceTable({initialData, initialError, timeSelecte
           denom: 'upokt'
         }),
         raw_earnAvg: rawEarnAvg,
-        relays: formatSimpleAmount(item.relays),
-        raw_relays: item.relays,
-        computedUnits: formatSimpleAmount(item.computed_units),
-        raw_computedUnits: item.computed_units,
+        relays: formatSimpleAmount(item.estimated_relays || 0),
+        raw_relays: item.estimated_relays || 0,
+        computedUnits: formatSimpleAmount(item.estimated_computed_units || 0),
+        raw_computedUnits: item.estimated_computed_units || 0,
         stakedApps: formatSimpleAmount(item.apps_staked),
         raw_stakedApps: item.apps_staked,
         stakedNodes: formatSimpleAmount(item.suppliers_staked),
@@ -75,7 +75,7 @@ export default function PerformanceTable({initialData, initialError, timeSelecte
         totalEarn: formatAmount({ amount: item.claimed_upokt, denom: 'upokt' }),
         raw_totalEarn: item.claimed_upokt,
         network: calculatePercentage(
-          new Big(item.computed_units),
+          new Big(item.estimated_computed_units || 0),
           totalComputedUnits
         ),
       } as Omit<ServicePerformanceRow, 'network'>

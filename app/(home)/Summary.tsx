@@ -150,7 +150,7 @@ export default function Summary({initialData, initialError, initialVariables}: S
                 </div>
                 <p className={'text-[15px]'}>
                   {formatAmount({
-                    amount: summary?.totalComputedUnits,
+                    amount: summary?.totalEstimatedComputedUnits,
                   })}
                 </p>
               </div>
@@ -164,7 +164,7 @@ export default function Summary({initialData, initialError, initialVariables}: S
               </div>
               <p className={'text-[15px]'}>
                 {formatAmount({
-                  amount: summary?.totalRelays,
+                  amount: summary?.totalEstimatedRelays,
                 })}
               </p>
             </div>
