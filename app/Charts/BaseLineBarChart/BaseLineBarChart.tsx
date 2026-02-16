@@ -363,7 +363,7 @@ export default function BaseLineBarChart<T extends LineBarItem>({
             label: function(context) {
               const data = context.dataset.data[context.dataIndex] as T
 
-              if (typeof data.original === 'number' && chartType === 'bar') {
+              if (typeof data.original === 'number' && chartType === 'bar' && data.original + data[yAxisKey] > 0) {
                 return [
                   'PROJECTED:',
                   formatAmount({
@@ -380,7 +380,7 @@ export default function BaseLineBarChart<T extends LineBarItem>({
                 [yAxisKey]: typeof data.original === 'number' ? data.original : data[yAxisKey],
               }) : context.label
 
-              if (typeof data.original !== 'number') return labels
+              if (typeof data.original !== 'number' || data.original === 0) return labels
 
               const labelsToAdd = [
                 '',

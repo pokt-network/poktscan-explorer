@@ -108,6 +108,40 @@ export const rewardsByServicesDocument = graphql(`
   }
 `)
 
+export const overservicedByAddressesAndTimeDocument = graphql(`
+  query overservicedByAddressesAndTime(
+    $addresses: [String!]!
+    $startDate: Datetime!
+    $endDate: Datetime!
+    $truncInterval: String!
+  ) {
+    data: getOverservicedByAddressesAndTime(
+      addresses: $addresses,
+      startTs: $startDate,
+      endTs: $endDate,
+      truncInterval: $truncInterval
+    )
+  }
+`)
+
+export const overservicedByAddressesAndTimeVariables = (
+  addresses: Array<string>,
+  dateStr: string,
+  timeSelected: string
+): ExtractVariables<typeof overservicedByAddressesAndTimeDocument> => {
+  const { start, end, truncInterval } = getStartAndEndDateBasedOnTime(
+    dateStr,
+    timeSelected
+  )
+
+  return {
+    addresses,
+    startDate: start.toISOString(),
+    endDate: end.toISOString(),
+    truncInterval,
+  }
+}
+
 export const claimProofByAddressesAndTimesDocument = graphql(`
   query claimProofData(
     $addresses: [String!]!

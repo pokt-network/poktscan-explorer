@@ -1,5 +1,5 @@
 import { PageProps } from '@/app/types/pages'
-import { addressesCookieKey, OperatorTabs, selectedTimeCookieKey, selectedTimeParamKey } from './constants'
+import { addressesCookieKey, OperatorTabs, overservicedChartTypeCookieKey, selectedTimeCookieKey, selectedTimeParamKey } from './constants'
 import { cookies } from 'next/headers'
 import React from 'react'
 import { getValidAddresses } from '@/app/tools/utils'
@@ -12,6 +12,7 @@ import NoData from '@/app/components/NoData'
 import { getValidTime, Time } from '@/app/utils/dates'
 import RewardsByServiceTable from '@/app/tools/operator/ServicesTab/Table'
 import ComparisonChart from '@/app/tools/operator/ComparisonChart'
+import OverservicedTab from '@/app/tools/operator/OverservicedTab'
 
 const tabs = [
   {
@@ -21,6 +22,10 @@ const tabs = [
   {
     label: 'Rewards by Service',
     tab: OperatorTabs.RewardsByService
+  },
+  {
+    label: 'Overserviced',
+    tab: OperatorTabs.Overserviced
   },
   {
     label: 'Slashing',
@@ -74,6 +79,11 @@ export default async function NodeRunningPage({searchParams}: PageProps) {
   } else if (activeTab === OperatorTabs.RewardsByService) {
     content = (
       <RewardsByServiceTable addresses={validAddresses} time={selectedTime} />
+    )
+  } else if (activeTab === OperatorTabs.Overserviced) {
+    const chartType = cookiesAwaited.get(overservicedChartTypeCookieKey)?.value
+    content = (
+      <OverservicedTab chartType={chartType} />
     )
   } else {
     if (validAddresses.length === 0) {
