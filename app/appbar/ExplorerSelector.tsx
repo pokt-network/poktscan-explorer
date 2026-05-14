@@ -21,7 +21,7 @@ export default function ExplorerSelector() {
 
   const isBetaSelected = origin.includes('beta')
 
-  const isMainNetSelected = origin.includes('poktscan.com') && !isBetaSelected
+  const isMainNetSelected = origin.includes('pocket.network') && !isBetaSelected
 
   const check = (
     <Check className={'h-4 w-4 text-[color:--secondary] dark:text-white'} />
@@ -48,7 +48,7 @@ export default function ExplorerSelector() {
         >
           <a
             className={'cursor-pointer w-full'}
-            href={'https://poktscan.com'}
+            href={'https://poktscan.pocket.network'}
             target={'_blank'}
           >
             MainNet
@@ -61,7 +61,7 @@ export default function ExplorerSelector() {
         >
           <a
             className={'cursor-pointer w-full'}
-            href={'https://beta.poktscan.com'}
+            href={'https://poktscan.beta.pocket.network'}
             target={'_blank'}
           >
             Beta

@@ -10,7 +10,7 @@ export default function SponsoredLabel({lightColor}: SponsoredLabelProps) {
       <span className={'font-semibold'}>Sponsored:</span> Want to earn rewards with Pocket Network?{' '}
       <a
         className={'text-[color:--primary] dark:hover:text-blue-300 hover:text-blue-600 font-semibold'}
-        href={'mailto:info@poktscan.com'}
+        href={'mailto:info@pocket.network'}
       >
         Stake with us!
       </a>

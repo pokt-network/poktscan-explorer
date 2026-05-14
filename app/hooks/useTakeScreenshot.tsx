@@ -35,7 +35,7 @@ function Footer({network}: FooterProps){
         by
       </div>
       <div className={clsx(commonClasses, 'font-medium')}>
-        poktscan.com
+        poktscan.pocket.network
       </div>
     </div>
   )
