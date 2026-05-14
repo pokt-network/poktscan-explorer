@@ -9,7 +9,8 @@
     "start": "next start -p 3001",
     "lint": "next lint",
     "codegen": "graphql-codegen --config codegen.ts",
-    "docker:build": "pnpm codegen && docker build -t registry.digitalocean.com/poktscan/shannon-web:mainnet ."
+    "docker:build": "pnpm codegen && docker build --label org.opencontainers.image.revision=$(git rev-parse HEAD) --label org.opencontainers.image.ref.name=$(git rev-parse --abbrev-ref HEAD) --label org.opencontainers.image.source=https://github.com/pokt-shannon/explorer --label org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%SZ) -t registry.infra.pocket.network/pnf/shannon-web:mainnet -t registry.infra.pocket.network/pnf/shannon-web:beta .",
+    "docker:push": "docker push registry.infra.pocket.network/pnf/shannon-web:mainnet && docker push registry.infra.pocket.network/pnf/shannon-web:beta"
   },
   "dependencies": {
     "@apollo/client": "^3.11.8",
