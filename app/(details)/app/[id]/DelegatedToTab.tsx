@@ -14,14 +14,14 @@ import { indexerMetadataDocument } from '@/app/operations/metadata'
 import useFetchOnBlock from '@/app/hooks/useFetchOnBlock'
 import { useSearchParams } from 'next/navigation'
 import type { ApplicationResponseFromRpc } from '@/app/(details)/app/[id]/getApp'
-
-const rpcUrl = process.env.NEXT_PUBLIC_RPC_BASE_URL!
+import { useRpcUrl } from '@/app/context/rpcUrl'
 
 interface DelegatedToTabProps {
   app: string
 }
 
 export default function DelegatedToTab({app}: DelegatedToTabProps) {
+  const rpcUrl = useRpcUrl()
   const searchParams = useSearchParams()
   const [rpcData, setRpcData] = useState<ApplicationResponseFromRpc['application'] | null>(null)
   const [isLoadingRpc, setIsLoadingRpc] = useState(false)

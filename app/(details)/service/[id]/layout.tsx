@@ -5,16 +5,15 @@ import TitleEntity from '@/app/components/TitleEntity'
 import EntityDetail from '@/app/components/EntityDetail'
 import getRows from '@/app/(details)/service/[id]/rows'
 import GetService from '@/app/(details)/service/[id]/getService'
-
-const rpcUrl = process.env.RPC_BASE_URL!
+import { getServerRpcUrl, getPublicRpcUrl } from '@/app/utils/rpcUrl'
 
 async function ServerServiceLayout({id}: Readonly<{
   id: string
 }>) {
-  const getServiceProps = await GetService(id, rpcUrl, getClient())
+  const getServiceProps = await GetService(id, getServerRpcUrl(), getClient())
 
   return (
-    <ServiceDetail id={id} rpcUrl={rpcUrl} {...getServiceProps} />
+    <ServiceDetail id={id} rpcUrl={getPublicRpcUrl()} {...getServiceProps} />
   )
 }
 

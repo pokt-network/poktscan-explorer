@@ -10,14 +10,14 @@ import { indexerMetadataDocument } from '@/app/operations/metadata'
 import useFetchOnBlock from '@/app/hooks/useFetchOnBlock'
 import { useQuery } from '@apollo/client'
 import { Skeleton } from '@/components/ui/skeleton'
-
-const rpcUrl = process.env.NEXT_PUBLIC_RPC_BASE_URL!
+import { useRpcUrl } from '@/app/context/rpcUrl'
 
 interface MetadataProps {
   id: string
 }
 
 export default function Metadata({id}: MetadataProps) {
+  const rpcUrl = useRpcUrl()
   const [rpcData, setRpcData] = useState<BlockResponse | null | undefined>(undefined)
   const [isLoadingRpc, setIsLoadingRpc] = useState(false)
 

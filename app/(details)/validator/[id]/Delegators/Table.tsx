@@ -8,8 +8,7 @@ import EntityLink from '@/app/components/EntityLink'
 import { BaseRetryError } from '@/app/components/ErrorBoundary'
 import { formatUpokt, formatSimpleAmount } from '@/app/utils/format'
 import { Skeleton } from '@/components/ui/skeleton'
-
-const rpcUrl = process.env.NEXT_PUBLIC_RPC_BASE_URL!
+import { useRpcUrl } from '@/app/context/rpcUrl'
 
 export type DelegatorsResponseFromRpc = {
   delegation_responses: Array<{
@@ -125,6 +124,7 @@ interface ValidatorDelegatorsTableProps {
 }
 
 export default function ValidatorDelegatorsTable({valoperAddress}: ValidatorDelegatorsTableProps) {
+  const rpcUrl = useRpcUrl()
   const [delegators, setDelegators] = useState<DelegatorsResponseFromRpc['delegation_responses'] | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(false)

@@ -7,8 +7,9 @@ import NotFound from '@/app/not-found'
 import TitleEntity from '@/app/components/TitleEntity'
 import Uptime from '@/app/(details)/validator/[id]/Uptime/Uptime'
 import ValidatorDetail from '@/app/(details)/validator/[id]/Detail'
+import { getPublicRpcUrl } from '@/app/utils/rpcUrl'
 
-const rpcUrl = process.env.RPC_BASE_URL!
+const rpcUrl = getPublicRpcUrl()
 
 export default async function ValidatorLayout({children, params}: Readonly<{
   children: React.ReactNode;

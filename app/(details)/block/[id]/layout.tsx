@@ -5,16 +5,15 @@ import EntityDetail from '@/app/components/EntityDetail'
 import { getRows } from '@/app/(details)/block/[id]/utils'
 import getBlock from './getBlock'
 import { getClient } from '@/app/config/apollo/rsc'
-
-const rpcUrl = process.env.RPC_BASE_URL!
+import { getServerRpcUrl, getPublicRpcUrl } from '@/app/utils/rpcUrl'
 
 async function ServerBlockLayout({id}: Readonly<{
   id: string
 }>) {
-  const props = await getBlock(id, rpcUrl, getClient())
+  const props = await getBlock(id, getServerRpcUrl(), getClient())
 
   return (
-    <BlockDetail id={id} rpcUrl={rpcUrl} {...props} />
+    <BlockDetail id={id} rpcUrl={getPublicRpcUrl()} {...props} />
   )
 }
 

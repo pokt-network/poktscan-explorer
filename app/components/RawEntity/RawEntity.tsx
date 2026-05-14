@@ -1,5 +1,6 @@
 import { EntityLinkProps } from '@/app/components/EntityLink'
 import RawEntityClient from '@/app/components/RawEntity/Client'
+import { getPublicRpcUrl } from '@/app/utils/rpcUrl'
 
 interface RawEntityProps {
   entity: EntityLinkProps['entity']
@@ -9,7 +10,7 @@ interface RawEntityProps {
 }
 
 export default function  RawEntity({entity, id, loadOnClick, rpcUrl}: RawEntityProps) {
-  const baseUrl = rpcUrl || process.env.NEXT_PUBLIC_RPC_BASE_URL!
+  const baseUrl = rpcUrl || getPublicRpcUrl()
   return (
     <RawEntityClient baseUrl={baseUrl} entity={entity} id={id} loadOnClick={loadOnClick} />
   )

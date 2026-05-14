@@ -1,5 +1,6 @@
 import TransactionTabs from '@/app/(details)/tx/[id]/Tabs'
 import { PageProps } from '@/app/types/pages'
+import { getPublicRpcUrl } from '@/app/utils/rpcUrl'
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,6 @@ export default async function TransactionDetailPage({
   const tab = searchParams['tab']?.toString() || 'messages'
 
   return (
-    <TransactionTabs hash={id} tab={tab} rpcUrl={process.env.RPC_BASE_URL} />
+    <TransactionTabs hash={id} tab={tab} rpcUrl={getPublicRpcUrl()} />
   )
 }

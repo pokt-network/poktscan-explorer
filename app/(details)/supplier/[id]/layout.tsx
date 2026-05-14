@@ -7,18 +7,17 @@ import TitleEntity from '@/app/components/TitleEntity'
 import getRows from '@/app/(details)/supplier/[id]/rows'
 import getSupplier from '@/app/(details)/supplier/[id]/getSupplier'
 import { getClient } from '@/app/config/apollo/rsc'
-
-const rpcUrl = process.env.RPC_BASE_URL!
+import { getServerRpcUrl, getPublicRpcUrl } from '@/app/utils/rpcUrl'
 
 async function ServerSupplierLayout({id}: Readonly<{
   id: string
 }>) {
-  const props = await getSupplier(id, rpcUrl, getClient())
+  const props = await getSupplier(id, getServerRpcUrl(), getClient())
 
   return (
     <SupplierDetail
       id={id}
-      rpcUrl={rpcUrl}
+      rpcUrl={getPublicRpcUrl()}
       {...props}
     />
   )

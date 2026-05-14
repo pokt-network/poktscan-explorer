@@ -9,6 +9,8 @@ import DatesProvider from '@/app/dates/Context'
 import { cookies } from 'next/headers'
 import { dateTimeColumnField, dateTimeZoneField, formatTextField } from '@/app/dates/constants'
 import HeightContextProvider from '@/app/context/height'
+import { RpcUrlProvider } from '@/app/context/rpcUrl'
+import { getPublicRpcUrl } from '@/app/utils/rpcUrl'
 import { getLatestBlock } from '@/app/api/blocks'
 import ReactQueryProvider from '@/app/config/query'
 import RegisterPlugins from '@/app/Charts/Plugins/RegisterPlugins'
@@ -59,21 +61,23 @@ export default async function RootLayout({children}: Readonly<{
                 enableSystem
                 enableColorScheme
               >
-                <HeightContextProvider
-                  firstHeight={latestBlock?.height}
-                  networkHeight={metadata?._metadata?.targetHeight || 0}
-                  // the timestamp is in UTC, so we need to add the Z to the end because the api doesn't include it
-                  firstTime={latestBlock?.timestamp ? latestBlock.timestamp + 'Z' : ''}
-                >
-                  <RegisterPlugins />
-                  <AppBar />
-                  <div className={'w-full h-full flex items-center justify-center overflow-x-hidden'}>
-                    <div className={'max-w-[1400px] w-full'} id={'content-container'}>
-                      {children}
+                <RpcUrlProvider rpcUrl={getPublicRpcUrl()}>
+                  <HeightContextProvider
+                    firstHeight={latestBlock?.height}
+                    networkHeight={metadata?._metadata?.targetHeight || 0}
+                    // the timestamp is in UTC, so we need to add the Z to the end because the api doesn't include it
+                    firstTime={latestBlock?.timestamp ? latestBlock.timestamp + 'Z' : ''}
+                  >
+                    <RegisterPlugins />
+                    <AppBar />
+                    <div className={'w-full h-full flex items-center justify-center overflow-x-hidden'}>
+                      <div className={'max-w-[1400px] w-full'} id={'content-container'}>
+                        {children}
+                      </div>
                     </div>
-                  </div>
-                  <Footer />
-                </HeightContextProvider>
+                    <Footer />
+                  </HeightContextProvider>
+                </RpcUrlProvider>
               </ThemeProvider>
             </DatesProvider>
           </ApolloWrapper>

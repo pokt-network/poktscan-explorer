@@ -12,8 +12,7 @@ import useFetchOnBlock from '@/app/hooks/useFetchOnBlock'
 import { getUrl } from '@/app/components/RawEntity/utils'
 import { useLazyQuery } from '@apollo/client'
 import { servicesOfSupplier } from '@/app/(details)/supplier/[id]/operations'
-
-const rpcUrl = process.env.NEXT_PUBLIC_RPC_BASE_URL!
+import { useRpcUrl } from '@/app/context/rpcUrl'
 
 function Card({children}: React.PropsWithChildren) {
   return (
@@ -67,6 +66,7 @@ interface ServicesTabProps {
 }
 
 export default function ServicesTab({id}: ServicesTabProps) {
+  const rpcUrl = useRpcUrl()
   const [rpcData, setRpcData] = useState<SupplierResponseFromRpc['supplier'] | null | undefined>(undefined)
   const [isLoadingRpc, setIsLoadingRpc] = useState(false)
   const [graphqlServices, setGraphqlServices] = useState<Array<SupplierResponseFromRpc['supplier']['services'][number] & {activatedAt: string}>>([])

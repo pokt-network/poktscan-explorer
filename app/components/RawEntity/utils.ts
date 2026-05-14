@@ -1,6 +1,12 @@
 import type { EntityLinkProps } from '@/app/components/EntityLink'
 
 export function getUrl(baseUrl: string, entity: EntityLinkProps['entity'], id: string) {
+  // Defensive: a falsy baseUrl would produce URLs like "undefined/cosmos/..."
+  // which the browser tries to DNS-resolve, often triggering Private Network
+  // Access prompts and hitting random devices on the user's LAN.
+  if (!baseUrl || !/^https?:\/\//.test(baseUrl)) {
+    throw new Error('RPC base URL is missing or invalid — check RPC_BASE_URL env var on the server and that RpcUrlProvider wraps the tree')
+  }
   switch(entity) {
     case 'tx':
       return `${baseUrl}/cosmos/tx/v1beta1/txs/${id}`

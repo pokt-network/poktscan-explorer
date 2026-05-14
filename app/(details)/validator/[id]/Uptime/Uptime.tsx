@@ -13,15 +13,16 @@ import {
 import { indexerMetadataDocument } from '@/app/operations/metadata'
 import useFetchOnBlock from '@/app/hooks/useFetchOnBlock'
 import { useQuery } from '@apollo/client'
+import { useRpcUrl } from '@/app/context/rpcUrl'
 
 const amountOfBlocks = 499
-const rpcUrl = process.env.NEXT_PUBLIC_RPC_BASE_URL!
 
 interface UptimeProps {
   valoperAddress: string
 }
 
 export default function Uptime({valoperAddress}: UptimeProps) {
+  const rpcUrl = useRpcUrl()
   const [validatorData, setValidatorData] = useState<{
     hexAddress: string
     from: string

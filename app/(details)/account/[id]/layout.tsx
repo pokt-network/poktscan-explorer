@@ -3,8 +3,9 @@ import { isValidPoktAddress } from '@/app/utils/poktroll'
 import NotFound from '@/app/not-found'
 import TitleEntity from '@/app/components/TitleEntity'
 import AccountDetail from '@/app/(details)/account/[id]/Detail'
+import { getPublicRpcUrl } from '@/app/utils/rpcUrl'
 
-const rpcUrl = process.env.RPC_BASE_URL!
+const rpcUrl = getPublicRpcUrl()
 
 export default async function AccountLayout({children, params}: {
   children: ReactNode

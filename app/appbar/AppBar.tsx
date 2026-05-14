@@ -9,8 +9,9 @@ import ExpandContextProvider from '@/app/appbar/Routes/ExpandContext'
 import RoutesAccordion from '@/app/appbar/Routes/RoutesAccordion'
 import RoutesList from '@/app/appbar/Routes/RoutesList'
 import StatusPopover from '@/app/appbar/Status/Popover'
+import { getPublicRpcUrl } from '@/app/utils/rpcUrl'
 
-const rpcUrl = process.env.RPC_BASE_URL!
+const rpcUrl = getPublicRpcUrl()
 
 export default async function AppBar() {
   const siteSettings = (

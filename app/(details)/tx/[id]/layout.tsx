@@ -3,8 +3,9 @@ import { isValidHash } from '@/app/utils/poktroll'
 import NotFound from '@/app/not-found'
 import TitleEntity from '@/app/components/TitleEntity'
 import TransactionDetail from '@/app/(details)/tx/[id]/Detail'
+import { getPublicRpcUrl } from '@/app/utils/rpcUrl'
 
-const rpcUrl = process.env.RPC_BASE_URL!
+const rpcUrl = getPublicRpcUrl()
 
 export default async function TxLayout({params, children}: {
   children: React.ReactNode

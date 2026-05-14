@@ -1,7 +1,8 @@
 import GatewayPageClient from '@/app/(details)/gateway/[id]/PageClient'
+import { getPublicRpcUrl } from '@/app/utils/rpcUrl'
 
 export default async function GatewayDetailPage() {
   return (
-    <GatewayPageClient rpcUrl={process.env.RPC_BASE_URL} />
+    <GatewayPageClient rpcUrl={getPublicRpcUrl()} />
   )
 }
