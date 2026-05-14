@@ -138,7 +138,7 @@ const routes: RoutesAccordionProps['routeGroups'] = [
       {
         type: 'route',
         label: 'Soothe Vault',
-        href: 'https://trustsoothe.io/'
+        href: 'https://soothe.pocket.network/'
       },
       {
         type: 'route',
@@ -151,7 +151,7 @@ const routes: RoutesAccordionProps['routeGroups'] = [
       {
         type: 'route',
         label: 'POKT Money',
-        href: 'https://pokt.money/'
+        href: 'https://money.pocket.network/'
       },
     ]
   }
