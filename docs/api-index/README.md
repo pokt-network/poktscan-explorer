@@ -14,6 +14,7 @@ Schema source: `app/config/gql` (codegen) targeting a SubQuery-style indexer.
 ## Cross-cutting
 
 - [`_shared.md`](./_shared.md) — queries from shared components, contexts, and the global search bar.
+- [`external-pokt-money.md`](./external-pokt-money.md) — plain-text supply endpoints exposed by the separate `pokt-money` app (not part of this explorer).
 
 ## Home and top-level
 
