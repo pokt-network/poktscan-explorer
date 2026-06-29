@@ -443,9 +443,8 @@ function getTransferFilter(address: string | undefined): string {
     return '1=1';
   }
 
-  // Filter transfers where address is either sender or recipient
-  // Note: senderId and recipientId are incorrectly mapped in the indexer (swapped)
-  return `(nt.recipient_id = '${address}' OR nt.sender_id = '${address}')`;
+  // Filter transfers where address is either sender or recipient (symmetric)
+  return `(nt.sender_id = '${address}' OR nt.recipient_id = '${address}')`;
 }
 
 /**
@@ -644,13 +643,13 @@ export function getEntityQuery(
           t.id,
           nt.block_id,
           b.timestamp,
-          nt.recipient_id,
+          nt.sender_id,
           CASE
             WHEN '${address || ''}' = '' THEN ''
-            WHEN nt.recipient_id = '${address || ''}' THEN 'OUT'
+            WHEN nt.sender_id = '${address || ''}' THEN 'OUT'
             ELSE 'IN'
           END,
-          nt.sender_id,
+          nt.recipient_id,
           (
             SELECT
               CASE
