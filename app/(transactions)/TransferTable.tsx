@@ -221,10 +221,9 @@ export default function TransferTable({address, page, itemsPerPage, basePath}: T
       codespace: transfer?.transaction?.codespace,
       height: transfer?.block?.height,
       timestamp: transfer?.block?.timestamp,
-      // TODO: senderId and recipientId is incorrectly mapped in the indexer
-      from: transfer?.recipientId,
-      flow: transfer?.recipientId === address ? 'OUT' : 'IN',
-      to: transfer?.senderId,
+      from: transfer?.senderId,
+      flow: transfer?.senderId === address ? 'OUT' : 'IN',
+      to: transfer?.recipientId,
       amount: formatAmount(amount),
       raw_amount: convertUpoktToPokt(amount?.amount),
       fee: formatAmount(fee),
