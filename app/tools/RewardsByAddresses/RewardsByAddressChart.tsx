@@ -67,9 +67,9 @@ export default function RewardsByAddressChart({
   const { selectedValue: groupAllAddresses } = useMultipleOptionContext<boolean>()
 
   const processedData: Record<string, Array<RewardItem>> = useMemo(() => {
-    const rawPoints: Array<{date_truncated: string, total_amount: string | number, address: string}> = rawData?.rewards || []
+    const rawPoints: Array<{date_truncated: string, total_amount: string | number, address: string}> = rawData?.rewards?.data || []
 
-    if (!addresses.length || !rawData?.rewards) return {}
+    if (!addresses.length || !rawData?.rewards?.data) return {}
 
     if (groupAllAddresses) {
       const amountByDate = rawPoints.reduce((acc, item) => ({

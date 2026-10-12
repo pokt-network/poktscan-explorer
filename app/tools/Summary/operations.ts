@@ -21,13 +21,13 @@ export const summaryDocument = graphql(`
         }
       }
     }
-    last24h: getRewardsByAddressesAndTime(
+    last24h: legacyRewardsByAddressesAndTime(
       addresses: $addresses,
       startDate: $last24Hours,
       endDate: $currentDate,
     )
 
-    last48h: getRewardsByAddressesAndTime(
+    last48h: legacyRewardsByAddressesAndTime(
       addresses: $addresses,
       startDate: $last48Hours,
       endDate: $currentDate,

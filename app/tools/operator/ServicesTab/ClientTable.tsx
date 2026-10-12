@@ -44,7 +44,7 @@ export default function ClientRewardsByServiceTable({
     updateOnNewSession: true,
   })
 
-  const rows: Array<RewardsByServiceRow> = useMemo(() => orderBy(data?.data?.map(item => ({
+  const rows: Array<RewardsByServiceRow> = useMemo(() => orderBy(data?.data?.data?.map(item => ({
     id: item.service_id,
     relays: formatSimpleAmount(item.estimated_relays || 0),
     raw_relays: item.estimated_relays || 0,

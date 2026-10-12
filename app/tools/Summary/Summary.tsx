@@ -92,7 +92,7 @@ export default function Summary({isOwners, initialAddresses, initialData, initia
             3: (
               <Value
                 value={formatUpokt({
-                  amount: data?.last24h,
+                  amount: data?.last24h?.data,
                   maxDecimals: 4,
                 })}
               />
@@ -100,7 +100,7 @@ export default function Summary({isOwners, initialAddresses, initialData, initia
             4: (
               <Value
                 value={formatUpokt({
-                  amount: data?.last48h,
+                  amount: data?.last48h?.data,
                   maxDecimals: 4,
                 })}
               />
