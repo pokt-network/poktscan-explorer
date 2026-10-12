@@ -131,7 +131,7 @@ query rewardsByServices(
   $startTime: Datetime!
   $endTime: Datetime!
 ) {
-  data: getRewardsByAddressesAndTimeGroupByService(
+  data: legacyRewardsByAddressesAndTimeGroupByService(
     addresses: $delegatorAddresses,
     startTs: $startTime,
     endTs: $endTime
@@ -185,13 +185,13 @@ query nodesSummary(
       }
     }
   }
-  last24h: getRewardsByAddressesAndTime(
+  last24h: legacyRewardsByAddressesAndTime(
     addresses: $addresses,
     startDate: $last24Hours,
     endDate: $currentDate,
   )
 
-  last48h: getRewardsByAddressesAndTime(
+  last48h: legacyRewardsByAddressesAndTime(
     addresses: $addresses,
     startDate: $last48Hours,
     endDate: $currentDate,
@@ -205,7 +205,7 @@ query nodesSummary(
 
 ```graphql
 query getRewardsByAddressesAndTimeGroupByAddressAndDate($addresses: [String!]!, $startDate: Datetime!, $endDate: Datetime!, $truncInterval: String!) {
-  rewards: getRewardsByAddressesAndTimeGroupByAddressAndDate(
+  rewards: legacyRewardsByAddressesAndTimeGroupByAddressAndDate(
     addresses: $addresses, 
     startDate: $startDate, 
     endDate: $endDate, 
