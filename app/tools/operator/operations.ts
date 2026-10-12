@@ -100,7 +100,7 @@ export const rewardsByServicesDocument = graphql(`
     $startTime: Datetime!
     $endTime: Datetime!
   ) {
-    data: getRewardsByAddressesAndTimeGroupByService(
+    data: legacyRewardsByAddressesAndTimeGroupByService(
       addresses: $delegatorAddresses,
       startTs: $startTime,
       endTs: $endTime
