@@ -3,7 +3,7 @@ import { ExtractVariables } from '@/app/hooks/useFetchOnBlock'
 import { getStartAndEndDateBasedOnTime } from '@/app/utils/dates'
 
 export const rewardsByAddressAndTimeGroupByDateDocument = graphql(`
-  query getRewardsByAddressesAndTimeGroupByAddressAndDate($addresses: [String!]!, $startDate: Datetime!, $endDate: Datetime!, $truncInterval: String!) {
+  query legacyRewardsByAddressesAndTimeGroupByAddressAndDate($addresses: [String!]!, $startDate: Datetime!, $endDate: Datetime!, $truncInterval: String!) {
     rewards: legacyRewardsByAddressesAndTimeGroupByAddressAndDate(
       addresses: $addresses, 
       startDate: $startDate, 

@@ -50,12 +50,12 @@ query nodesSummary(
 }
 ```
 
-### `getRewardsByAddressesAndTimeGroupByAddressAndDate`
+### `legacyRewardsByAddressesAndTimeGroupByAddressAndDate`
 - **File:** `app/tools/RewardsByAddresses/operations.ts`
 - **Used for:** Rewards-per-address-per-day chart inside `SummaryAndRewards`.
 
 ```graphql
-query getRewardsByAddressesAndTimeGroupByAddressAndDate($addresses: [String!]!, $startDate: Datetime!, $endDate: Datetime!, $truncInterval: String!) {
+query legacyRewardsByAddressesAndTimeGroupByAddressAndDate($addresses: [String!]!, $startDate: Datetime!, $endDate: Datetime!, $truncInterval: String!) {
   rewards: legacyRewardsByAddressesAndTimeGroupByAddressAndDate(
     addresses: $addresses, 
     startDate: $startDate, 
